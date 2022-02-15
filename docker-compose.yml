@@ -1,0 +1,8 @@
+version: "3.6"
+services:
+    bot:
+        image: themikkel/group-dcbot
+        restart: always
+        environment:
+            bot_token: ${bot_token}
+            bot_prefix: ${bot_prefix}
