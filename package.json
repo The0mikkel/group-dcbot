@@ -1,0 +1,29 @@
+{
+  "name": "group-dc-bot",
+  "version": "1.0.0",
+  "description": "Discord group bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/bot.js",
+    "devStart": "nodemon ./src/bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/The0mikkel/group-dcbot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/The0mikkel/group-dcbot/issues"
+  },
+  "homepage": "https://github.com/The0mikkel/group-dcbot#readme",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "dotenv": "^10.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.9"
+  },
+  "keywords": []
+}
