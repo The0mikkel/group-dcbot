@@ -1,6 +1,6 @@
 {
   "name": "group-dc-bot",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Discord group bot",
   "main": "index.js",
   "scripts": {
