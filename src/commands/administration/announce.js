@@ -10,7 +10,7 @@ module.exports = {
     usage: '[channel] [message]',
 	execute(message, args) {
         if (!message.member.roles.cache.has(announcer_role)) 
-        return;
+            return;
         // Check if there is any args - Channel id
         if (!args.length)
             return message.reply(`You need to specify a channel, to be able to use this command!`);
