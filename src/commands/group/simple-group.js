@@ -6,7 +6,7 @@ module.exports = {
     guildOnly: true,
     args: true,
     args_quantity: 2,
-    usage: '[group name] [group members]',
+    usage: '[group name] [group members / roles]',
 	execute(message, args) {
         // Check permissions
         if(
@@ -27,41 +27,58 @@ module.exports = {
 };
 
 async function asyncCreate(message, name, args) {
-    const channel = await message.guild.channels.create(name, { type: 'GUILD_CATEGORY', reason: 'Needed a new group called '+name }).catch(console.error);
-    channel.setParent(message.channel.parent);
+    let channel 
+    try {
+        channel = await message.guild.channels.create(name, { type: 'GUILD_CATEGORY', reason: 'Needed a new group called '+name }).catch(console.error);
+        channel.setParent(message.channel.parent);
+    } catch (error) {
+        console.log(`There was an error creating channel "${name}" and this was caused by: ${error}`);
+        message.reply('there was an error trying to execute that command!');
+        return;
+    }
 
     const everyoneRole = message.guild.roles.everyone;
 
-    await channel.overwritePermissions([
-        {type: 'member', id: message.author.id, allow: ['VIEW_CHANNEL']},
-        {type: 'role', id: everyoneRole.id, deny: ['VIEW_CHANNEL']},
-    ]);
-
-    var users = [];
-    for (let index = 0; index < args.length; index++) {
-        if (args[index].startsWith('<@') && args[index].endsWith('>')) {
-            var mention = args[index].slice(2, -1);
-    
-            if (mention.startsWith('!')) {
-                mention = mention.slice(1);
-            }
-    
-            var user = message.client.users.cache.get(mention);
-            if (!user) {
-                continue;
-            }
-
-            await channel.updateOverwrite(user.id, {
-                VIEW_CHANNEL: true
-            })
-            users.push(user); 
-        }
+    try {
+        await channel.overwritePermissions([
+            {type: 'member', id: message.author.id, allow: ['VIEW_CHANNEL']},
+            {type: 'member', id: message.client.user.id, allow: ['VIEW_CHANNEL']},
+            {type: 'role', id: everyoneRole.id, deny: ['VIEW_CHANNEL']},
+        ]);
+    } catch (error) {
+        console.log(`There was an error updating base channel permissions for channel "${name}" and this was caused by: ${error}`);
+        message.reply('there was an error trying to execute that command!');
+        return;
     }
 
-    var usersList = "";
+    let users = [];
+
+    message.mentions.users.forEach(async (element) => {
+        try {
+            await channel.updateOverwrite(element, {
+                VIEW_CHANNEL: true
+            })
+            users.push(element);    
+        } catch (error) {
+            console.log(`There was an error adding user: ${element} to the channel "${name}" and this was caused by: ${error}`)
+        }
+    });
+
+    message.mentions.roles.forEach(async (element) => {
+        try {
+            await channel.updateOverwrite(element, {
+                VIEW_CHANNEL: true
+            })
+            users.push(element);    
+        } catch (error) {
+            console.log(`There was an error adding role: ${element} to the channel "${name}" and this was caused by: ${error}`)
+        }
+    });
+
+    let usersList = "";
     users.forEach(element => {
         usersList += element.username+", ";
     });
     usersList = usersList.slice(0,-2);
-    message.channel.send(`Group "${name}" was created with the members: ${usersList} in the category ${message.channel.parent}`);
+    message.channel.send(`Group ${channel} was created in the category ${message.channel.parent}`);
 }
