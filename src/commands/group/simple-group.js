@@ -1,26 +1,26 @@
 require("dotenv").config();
-const announcer_role = process.env.announcer_role;
 
 module.exports = {
     name: 'simple-group',
-	description: 'Create a simple group, by naming the goup and mentioning all users in the group. The group will be created in the current category. You need to be an administrator to use this command.',
+	description: 'Create a simple group, by naming the goup and mentioning all users in the group. The group will be created in the current category. You need to be an administrator or have the "Manage channels" permission to use this command.',
     guildOnly: true,
     args: true,
     args_quantity: 2,
     usage: '[group name] [group members]',
 	execute(message, args) {
         // Check permissions
-        if(!message.member.hasPermission("ADMINISTRATOR")) return message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+        if(
+            !message.member.hasPermission("MANAGE_CHANNELS")
+            || !message.member.hasPermission("ADMINISTRATOR")
+        ) {
+            return message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+        }
 
         // Check if there is any args - Channel id
         if (!args.length)
             return message.reply(`You need to specify a channel, to be able to use this command!`);
 
         const groupName = args.shift();
-
-        // Checking if announcment message is in args
-        if (!args.length)
-            return message.channel.send(`You didn't provide any users text, ${message.author}!`);
         
         asyncCreate(message, groupName, args);
 	},
