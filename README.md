@@ -1,5 +1,6 @@
 # Discord group bot - Grouper
-Discord bot for easy creation of groups with channels and categories. All made with Discord.js
+Discord bot for easy creation of groups with channels and categories. All made with Discord.js<br>
+This bot is also known as "GroupDC" and "Grouper"
 
 ## How to run
 1. Set .env variable
