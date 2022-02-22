@@ -1,16 +1,19 @@
 require("dotenv").config();
-const announcer_role = process.env.announcer_role;
 
 module.exports = {
-    name: 'announce',
-	description: 'Announce to specific channel!',
+    name: 'bot-announce',
+	description: 'Announce to specific channel. Required administrator privileges.',
     guildOnly: true,
     args: true,
     args_quantity: 2,
     usage: '[channel] [message]',
 	execute(message, args) {
-        if (!message.member.roles.cache.has(announcer_role)) 
-            return;
+        if(
+            !message.member.hasPermission("ADMINISTRATOR")
+        ) {
+            return message.channel.send("You need to be an administrator to do that.");
+        }
+
         // Check if there is any args - Channel id
         if (!args.length)
             return message.reply(`You need to specify a channel, to be able to use this command!`);
