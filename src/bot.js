@@ -29,8 +29,8 @@ client.on("ready", () => {
 
   	client.user.setPresence({
 		activity: { 
-		name: 'Botting along',
-		type: 'WATCHING'
+			name: 'this wonderful community',
+			type: 'WATCHING'
 		},
 		status: 'active'
 	})
