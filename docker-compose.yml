@@ -1,8 +1,32 @@
 version: "3.6"
 services:
     bot:
-        image: themikkel/group-dcbot
+        # image: themikkel/group-dcbot
+        build: .
+        volumes:
+            - ./src:/usr/src/app/src
+            - ./package.json:/usr/src/app/package.json
+            - ./package-lock.json:/usr/src/app/package-lock.json
         restart: always
         environment:
             bot_token: ${bot_token}
             bot_prefix: ${bot_prefix}
+            database_url: mongodb://${db_username}:${db_password}@mongodb:27017/
+    mongodb:
+        image: mongo
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${db_username}
+            MONGO_INITDB_ROOT_PASSWORD: ${db_password}
+        volumes:
+            - ./db:/data/db
+
+    mongo-express:
+        image: mongo-express
+        restart: always
+        ports:
+        - 8081:8081
+        environment:
+            ME_CONFIG_MONGODB_ADMINUSERNAME: ${db_username}
+            ME_CONFIG_MONGODB_ADMINPASSWORD: ${db_password}
+            ME_CONFIG_MONGODB_URL: mongodb://${db_username}:${db_password}@mongodb:27017/

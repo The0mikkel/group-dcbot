@@ -1,5 +1,5 @@
 require("dotenv").config();
-const prefix = process.env.bot_prefix;
+const { MessageEmbed } = require('discord.js');
 
 module.exports = {
 	name: 'help',
@@ -8,15 +8,33 @@ module.exports = {
 	usage: '[command name]',
 	cooldown: 5,
 	execute(message, args) {
-		const data = [];
+		let data = [];
 		const { commands } = message.client;
 
 		if (!args.length) {
-			data.push('Here\'s a list of all my commands:');
-			data.push(commands.map(command => command.name).join(', '));
-			data.push(`\nYou can send \`${prefix}help [command name]\` to get info on a specific command!`);
+			// data.push('Here\'s a list of all my commands:');
+			// data.push(commands.map(command => command.name).join(', '));
+			// data.push(`\nYou can send \`${prefix}help [command name]\` to get info on a specific command!`);
 
-			return message.channel.send(data, { split: true });
+			// console.log(data)
+			// return message.channel.send({embed: {
+			// 	color: 3447003,
+			// 	title: "Command list:",
+			// 	fields: [
+			// 	  { value: commands.map(command => command.name).join('\n')+"\nYou can send \`${prefix}help [command name]\` to get info on a specific command!", inline: true},
+			// 	]
+			//   }
+			// });
+
+			const exampleEmbed = new MessageEmbed()
+				.setColor('#0099ff')
+				.setTitle('Command list:')
+				.setDescription(commands.map(command => command.name).join('\n'))
+				.addFields({ name: 'Prefix:', value: message.prefix })
+				.setFooter({ text: 'Grouper', iconURL: 'https://cdn.discordapp.com/avatars/943231088438947890/31cfc4f6fe63a45a471c8c898e74efea.png?size=256' });
+
+			message.channel.send({ embeds: [exampleEmbed] });
+			return;
 		}
 
 		const name = args[0].toLowerCase();
@@ -34,6 +52,7 @@ module.exports = {
 
 		if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 
-		message.channel.send(data, { split: true });
+		console.log(data)
+		// message.channel.send(data, { split: true });
 	},
 };

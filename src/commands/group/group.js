@@ -1,12 +1,12 @@
 require("dotenv").config();
 
 module.exports = {
-    name: 'simple-group',
-	description: 'Create a simple group, by naming the goup and mentioning all users in the group. The group will be created in the current category. You need to be an administrator or have the "Manage channels" permission to use this command.',
+    name: 'group',
+	description: 'Create a group, by naming the goup and mentioning all users in the group. The group will be created in the current category, with a role of the same name as the group. You need to be an administrator or have the "Manage channels" permission to use this command.',
     guildOnly: true,
     args: true,
     args_quantity: 2,
-    usage: '[group name] [group members / roles]',
+    usage: '[group name] [group members]',
 	execute(message, args) {
         // Check permissions
         if(
@@ -27,9 +27,17 @@ module.exports = {
 };
 
 async function asyncCreate(message, name, args) {
+
+    let role = await message.guild.roles.create({
+        data: {
+          name: name
+        },
+        reason: 'Group was created by grouper, as per request by '+message.author.tag,
+    })
+
     let channel 
     try {
-        channel = await message.guild.channels.create(name, { type: 'GUILD_CATEGORY', reason: 'Needed a new group called '+name }).catch(console.error);
+        channel = await message.guild.channels.create(name, { type: 'GUILD_CATEGORY', reason: 'Needed a new group called '+name+' as per request by '+message.author.tag }).catch(console.error);
         channel.setParent(message.channel.parent);
     } catch (error) {
         console.log(`There was an error creating channel "${name}" and this was caused by: ${error}`);
@@ -44,6 +52,7 @@ async function asyncCreate(message, name, args) {
             {type: 'member', id: message.author.id, allow: ['VIEW_CHANNEL']},
             {type: 'member', id: message.client.user.id, allow: ['VIEW_CHANNEL']},
             {type: 'role', id: everyoneRole.id, deny: ['VIEW_CHANNEL']},
+            {type: 'role', id: role.id, allow: ['VIEW_CHANNEL']},
         ]);
     } catch (error) {
         console.log(`There was an error updating base channel permissions for channel "${name}" and this was caused by: ${error}`);
@@ -53,14 +62,12 @@ async function asyncCreate(message, name, args) {
 
     let users = [];
 
-    message.mentions.users.forEach(async (element) => {
+    message.mentions.members.forEach(async (member) => {
         try {
-            await channel.updateOverwrite(element, {
-                VIEW_CHANNEL: true
-            })
-            users.push(element);    
+            member.roles.add(role.id);
+            users.push(member);    
         } catch (error) {
-            console.log(`There was an error adding user: ${element} to the channel "${name}" and this was caused by: ${error}`)
+            console.log(`There was an error adding user: ${member} to the channel "${name}" and this was caused by: ${error}`)
         }
     });
 
@@ -80,5 +87,5 @@ async function asyncCreate(message, name, args) {
         usersList += element.username+", ";
     });
     usersList = usersList.slice(0,-2);
-    message.channel.send(`Group ${channel} was created in the category ${message.channel.parent}`);
+    message.channel.send(`Group ${role} was created in the category ${message.channel.parent}`);
 }

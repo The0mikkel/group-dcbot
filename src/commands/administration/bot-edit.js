@@ -9,7 +9,7 @@ module.exports = {
     usage: '[channel] [message id] [new message]',
 	execute(message, args) {
         if(
-            !message.member.hasPermission("ADMINISTRATOR")
+            !message.member.permissions.has("ADMINISTRATOR")
         ) {
             return message.channel.send("You need to be an administrator to do that.");
         }
