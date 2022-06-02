@@ -18,7 +18,7 @@ services:
             bot_token: ${bot_token}
             bot_prefix: ${bot_prefix}
 ```
-Image: https://hub.docker.com/repository/docker/themikkel/group-dcbot
+Image: [https://hub.docker.com/repository/docker/themikkel/group-dcbot](https://hub.docker.com/r/themikkel/group-dcbot)
 
 The image is automaticly updated, when a feature is merged into the main branch.
 
