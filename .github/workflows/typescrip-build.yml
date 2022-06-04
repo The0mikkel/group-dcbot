@@ -1,7 +1,6 @@
 name: Typescript build test
 
 on:
-  push:
   pull_request:
 
 jobs:
