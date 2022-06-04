@@ -11,7 +11,8 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 
-COPY ./dist ./src
+COPY ./js ./src
 
+RUN tsc
 
-CMD [ "node", "./src/bot.js" ]
+CMD [ "node", "./dist/bot.js" ]
