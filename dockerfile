@@ -14,4 +14,4 @@ RUN npm install
 COPY ./dist ./src
 
 
-CMD [ "node", "./src/bot.js" ]
+CMD [ "node", "./dist/bot.js" ]
