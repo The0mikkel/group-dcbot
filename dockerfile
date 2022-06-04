@@ -11,7 +11,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
 
-COPY ./js ./src
+COPY ./src ./src
 
 RUN tsc
 
