@@ -1,8 +1,7 @@
 version: "3.6"
 services:
     bot:
-        # image: themikkel/group-dcbot
-        build: .
+        image: themikkel/group-dcbot
         volumes:
             - ./dist:/usr/src/app/src
             - ./package.json:/usr/src/app/package.json

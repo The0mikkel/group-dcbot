@@ -13,7 +13,6 @@ module.exports = {
         // Check permissions
         if (
             !message.member
-            || !message.member.permissions.has("MANAGE_CHANNELS")
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
             return message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
