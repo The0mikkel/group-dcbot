@@ -30,7 +30,7 @@ Image: [https://hub.docker.com/repository/docker/themikkel/group-dcbot](https://
 The image is automaticly updated, when a feature is merged into the main branch.
 
 Before you run the bot, please specify a bot_token, that is a Discord Bot Token.<br>
-The default prefix is "!" and can only be changed by setting the bot_prefix
+The default prefix is "gr!" and can only be changed by setting the bot_prefix
 
 ## Configuration
 The bot is made, to use MongoDB, to enable configuration of the bot on a per-guild basis. 
@@ -42,7 +42,7 @@ Run the help command, to see a list of all commands.
 
 ### simple-group
 ```
-gg!simple-group Group-name @user1 @user2
+gr!simple-group Group-name @user1 @user2
 ```
 This will:
 1. Create a new channel called [Group-name]
@@ -53,7 +53,7 @@ This command can only be runned by administrators or members who has the "manage
 
 ### group
 ```
-gg!group Group-name @user1 @user2
+gr!group Group-name @user1 @user2
 ```
 This will:
 1. Create a new role called [Group-name]

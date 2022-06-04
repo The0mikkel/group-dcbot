@@ -26,7 +26,7 @@ module.exports = {
                 guildSearch = addGuild.execute(guild);
             } else {
                 guildToReturn.id = guild.id;
-                guildToReturn.config = new Config(guildSearch.config.prefix ?? process.env.bot_prefix ?? "gg!"); 
+                guildToReturn.config = new Config(guildSearch.config.prefix ?? process.env.bot_prefix ?? "gr!"); 
             }
         } finally {
             await mongoClient.close();

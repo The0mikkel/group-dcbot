@@ -74,7 +74,7 @@ async function handleMessageCreateEvent(message: Message) {
 	}
 	botSystem.guild = guild;
 
-	let prefix = (process.env.bot_prefix ?? "gg!").trim();
+	let prefix = (process.env.bot_prefix ?? "gr!").trim();
 	if (guild && guild.config) {
 		prefix = (guild.config.prefix ?? process.env.bot_prefix).trim();
 	}
