@@ -9,9 +9,11 @@ ENV bot_prefix=$bot_prefix
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+COPY tsconfig.json ./
 RUN npm install
 
-COPY ./dist ./src
+COPY ./src ./src
 
+RUN npm run build
 
-CMD [ "node", "./src/bot.js" ]
+CMD [ "node", "./dist/bot.js" ]
