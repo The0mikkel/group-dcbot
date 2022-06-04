@@ -1,13 +1,14 @@
 {
   "name": "group-dc-bot",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Discord group bot",
-  "main": "index.js",
+  "main": "./dist/bot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./dist/bot.js",
     "devStart": "nodemon ./dist/bot.js",
-    "build": "tsc"
+    "build": "tsc",
+    "watch": "tsc -w"
   },
   "repository": {
     "type": "git",
