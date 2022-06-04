@@ -1,8 +1,8 @@
 const { MongoClient } = require("mongodb");
 
 module.exports = {
-    execute(guild, config) {
-        run(guild, config).catch(console.dir);
+    async execute(guild, config) {
+        await run(guild, config).catch(console.dir);
     },
 };
 

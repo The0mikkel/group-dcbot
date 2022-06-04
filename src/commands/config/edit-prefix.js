@@ -14,7 +14,7 @@ module.exports = {
             return message.channel.send("You need to be an administrator to do that.");
         }
 
-        // Check if there is any args - message id
+        // Check if there is any args
         if (!args.length)
             return message.reply(`You need to specify a prefix, to be able to use this command!`);
         

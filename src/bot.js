@@ -58,6 +58,10 @@ async function handleMessage(message) {
 	let guild = undefined;
 	if (message.guild) {
 		guild = await searchGuild.execute(message.guild);
+		if (!guild) {
+			await addGuild.execute(message.guild);
+		}
+		guild = await searchGuild.execute(message.guild);
 	}
 	let prefix = "gg!";
 	if (guild && guild.config) {
