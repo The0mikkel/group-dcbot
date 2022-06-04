@@ -5,7 +5,21 @@ on:
     branches: [ main ]
 
 jobs:
+  build:
+    name: Typescript build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: install node v17
+      uses: actions/setup-node@v1
+      with:
+        node-version: 17
+    - name: npm install
+      run: npm install
+    - name: tsc
+      uses: icrawl/action-tsc@v1
   docker:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       -
