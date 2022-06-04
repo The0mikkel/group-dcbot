@@ -3,7 +3,7 @@ import BotSystem from "../../data/BotSystem";
 
 require("dotenv").config();
 const { MessageEmbed } = require('discord.js');
-const addGuild = require("./add-guild.js")
+const addGuild = require("./../../data/guild/add-guild")
 
 module.exports = {
 	name: 'help',

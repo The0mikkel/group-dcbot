@@ -114,7 +114,7 @@ async function handleMessageCreateEvent(message: Message) {
 	}
 
 	// Cooldown checking
-	const { cooldowns } = botSystem.cooldowns;
+	const cooldowns = botSystem.cooldowns;
 
 	if (!cooldowns.has(command.name)) {
 		cooldowns.set(command.name, new Discord.Collection());
