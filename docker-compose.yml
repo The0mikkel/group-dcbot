@@ -4,7 +4,7 @@ services:
         # image: themikkel/group-dcbot
         build: .
         volumes:
-            - ./src:/usr/src/app/src
+            - ./dist:/usr/src/app/src
             - ./package.json:/usr/src/app/package.json
             - ./package-lock.json:/usr/src/app/package-lock.json
         restart: always

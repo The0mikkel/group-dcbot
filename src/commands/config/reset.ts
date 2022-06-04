@@ -1,3 +1,5 @@
+import { Message } from "discord.js";
+
 require("dotenv").config();
 
 module.exports = {
@@ -7,9 +9,10 @@ module.exports = {
     args: false,
     args_quantity: 0,
     usage: '',
-	execute(message, args) {
+	execute(message: Message, args: any) {
         if(
-            !message.member.permissions.has("ADMINISTRATOR")
+            !message.member
+            || !message.member.permissions.has("ADMINISTRATOR")
         ) {
             return message.channel.send("You need to be an administrator to do that.");
         }
@@ -18,7 +21,7 @@ module.exports = {
 	},
 };
 
-async function resetGuild(message, args) {
+async function resetGuild(message: Message, args: any) {
     const searchGuild = require("./../../data/guild/search-guild.js");
     let guild = await searchGuild.execute(message.guild);
     

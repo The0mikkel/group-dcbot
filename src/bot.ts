@@ -1,17 +1,21 @@
-// Modules
-require("dotenv").config();
-const fs = require('fs');
-const Discord = require("discord.js");
+import { BaseGuildTextChannel, Guild, Message } from "discord.js";
+import { DBGuild } from "./data/guild/DBGuild";
+import fs from 'fs';
+import Discord from "discord.js";
+import BotSystem from "./data/BotSystem";
 
 // Initialize system
+require("dotenv").config();
 require('./setup.js');
 
 const client = new Discord.Client({
 	partials: ["MESSAGE", "CHANNEL"],
 	intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MEMBERS, Discord.Intents.FLAGS.GUILD_MESSAGES, Discord.Intents.FLAGS.DIRECT_MESSAGES]
 });
-client.commands = new Discord.Collection();
-client.cooldowns = new Discord.Collection();
+
+const botSystem = BotSystem.getInstance();
+botSystem.commands = new Discord.Collection();
+botSystem.cooldowns = new Discord.Collection();
 
 // Get all command files
 const commandFolders = fs.readdirSync('./src/commands');
@@ -20,42 +24,47 @@ for (const folder of commandFolders) {
 	const commandFiles = fs.readdirSync(`./src/commands/${folder}`).filter(file => file.endsWith('.js'));
 	for (const file of commandFiles) {
 		const command = require(`./commands/${folder}/${file}`);
-		client.commands.set(command.name, command);
+		botSystem.commands.set(command.name, command);
 	}
 }
 
 // Booting bot
 client.on("ready", () => {
+	if (!client.user) {
+		return;
+	}
 	console.log(`Bot is ready to go! - Logged in as ${client.user.tag}!`)
 
 	client.user.setPresence({
-		activity: {
+		status: 'online',
+		activities: [{
 			name: 'this wonderful community',
 			type: 'WATCHING'
-		},
-		status: 'active'
+		}],
+
 	})
 })
 
 //joined a server
 const addGuild = require("./data/guild/add-guild.js")
-client.on("guildCreate", guild => {
+client.on("guildCreate", (guild: Guild) => {
 	console.log("Joined a new guild: " + guild.name);
 	addGuild.execute(guild);
 })
 
 //removed from a server
 const removeGuild = require("./data/guild/remove-guild.js")
-client.on("guildDelete", guild => {
+client.on("guildDelete", (guild: Guild) => {
 	console.log("Left a guild: " + guild.name);
 	removeGuild.execute(guild);
 })
 
 // React on message
-client.on('messageCreate', message => handleMessage(message));
-async function handleMessage(message) {
+client.on('messageCreate', (message: Message) => { handleMessageCreateEvent(message) });
+async function handleMessageCreateEvent(message: Message) {
 	const searchGuild = require("./data/guild/search-guild.js");
-	let guild = undefined;
+	let guild: DBGuild|undefined;
+	guild = undefined;
 	if (message.guild) {
 		guild = await searchGuild.execute(message.guild);
 		if (!guild) {
@@ -63,31 +72,30 @@ async function handleMessage(message) {
 		}
 		guild = await searchGuild.execute(message.guild);
 	}
-	let prefix = "gg!";
+	botSystem.guild = guild;
+
+	let prefix = (process.env.bot_prefix ?? "gg!").trim();
 	if (guild && guild.config) {
 		prefix = (guild.config.prefix ?? process.env.bot_prefix).trim();
-	} else {
-		prefix = process.env.bot_prefix.trim();
 	}
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
-	message.prefix = prefix;
 
 	// Getting argumnts, command and all commands
-	const args = message.content.slice(prefix.length).trim().split(/ +/);
-	const commandName = args.shift().toLowerCase();
+	let args = message.content.slice(prefix.length).trim().split(/ +/);
+	const commandName = (args.shift() ?? "").toLowerCase();
 
-	const command = client.commands.get(commandName)
-		|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+	const command = botSystem.commands.get(commandName)
+		|| botSystem.commands.find((cmd: any) => cmd.aliases && cmd.aliases.includes(commandName));
 
 	if (!command) return;
 
 	// Checking dm compatebility
-	if (command.guildOnly && (message.channel.type === 'dm' || guild == undefined)) {
+	if (command.guildOnly && (message.channel.type === 'DM')) {
 		return message.reply('I can\'t execute that command inside DMs!');
 	}
 
 	// Permissions checking
-	if (command.permissions) {
+	if (command.permissions && message.channel instanceof BaseGuildTextChannel) {
 		const authorPerms = message.channel.permissionsFor(message.author);
 		if (!authorPerms || !authorPerms.has(command.permissions)) {
 			return message.reply('You can not do this!');
@@ -106,7 +114,7 @@ async function handleMessage(message) {
 	}
 
 	// Cooldown checking
-	const { cooldowns } = client;
+	const { cooldowns } = botSystem.cooldowns;
 
 	if (!cooldowns.has(command.name)) {
 		cooldowns.set(command.name, new Discord.Collection());

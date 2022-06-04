@@ -47,3 +47,7 @@ This command can only be runned by administrators or members who has the "manage
 ## Idea
 The idea behind the bot, is to easely create groups, with either channels or entire categories.<br>
 This is especially useful when having a list of participants and wanting to throw them into different groups, without having to make the roles and channels manually.
+
+## Development
+Compile with watch: `npx tsc -w`  
+Or compile one: `npx tsc`

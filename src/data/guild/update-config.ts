@@ -1,15 +1,15 @@
-const { MongoClient } = require("mongodb");
+import { Guild } from "discord.js";
+import { MongoClient } from "mongodb";
+import BotSystem from "../BotSystem";
+import { Config } from "./Config";
 
 module.exports = {
-    async execute(guild, config) {
-        await run(guild, config).catch(console.dir);
-    },
-};
+    async execute(guild: Guild, config: Config) {
+    
+    const botSystem = BotSystem.getInstance();
+    const mongoClient = botSystem.mongoClient;
+    const mongoDatabase = botSystem.mongoDatabase;
 
-async function run(guild, config) {
-    const mongoUrl = process.env.database_url;
-    const mongoClient = new MongoClient(mongoUrl, { useUnifiedTopology: true });
-    const mongoDatabase = mongoClient.db("grouper");
     let guildSearch = undefined;
 
     try {
@@ -32,4 +32,5 @@ async function run(guild, config) {
     } finally {
         await mongoClient.close();
     }
-}
+    },
+};

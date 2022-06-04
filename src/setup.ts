@@ -1,12 +1,13 @@
 
 // DB setup
 
-const { MongoClient } = require("mongodb");
+import { MongoClient } from "mongodb";
+import BotSystem from "./data/BotSystem";
 const COLLECTIONS = ['guilds', 'guild_settings', 'groups', 'invites'];
 
-const mongoUrl = process.env.database_url;
-const mongoClient = new MongoClient(mongoUrl, { useUnifiedTopology: true });
-const mongoDatabase = mongoClient.db("grouper");
+const botSystem = BotSystem.getInstance();
+const mongoClient = botSystem.mongoClient;
+const mongoDatabase = botSystem.mongoDatabase;
 
 setupDatabase();
 
@@ -15,7 +16,7 @@ async function setupDatabase() {
 
     COLLECTIONS.forEach(collection => {
         mongoDatabase.listCollections({ name: collection })
-            .next(function (err, collinfo) {
+            .next(function (err: any, collinfo: any) {
                 if (!collinfo) {
                     setupCollection(collection)
                 }
@@ -24,9 +25,9 @@ async function setupDatabase() {
     mongoClient.close();
 }
 
-async function setupCollection(collection) {
+async function setupCollection(collection: string) {
     await mongoClient.connect();
-    mongoDatabase.createCollection(collection, function (err, res) {
+    mongoDatabase.createCollection(collection, function (err: any, res: any) {
         if (err)
             console.log("Collection already exist!")
         else

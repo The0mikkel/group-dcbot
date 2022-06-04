@@ -1,5 +1,9 @@
+import { Message } from "discord.js";
+import BotSystem from "../../data/BotSystem";
+
 require("dotenv").config();
 const { MessageEmbed } = require('discord.js');
+const addGuild = require("./add-guild.js")
 
 module.exports = {
 	name: 'help',
@@ -7,9 +11,9 @@ module.exports = {
 	aliases: ['commands'],
 	usage: '[command name]',
 	cooldown: 5,
-	execute(message, args) {
+	execute(message: Message, args: any) {
 		let data = [];
-		const { commands } = message.client;
+		let commands = BotSystem.getInstance().commands;
 
 		if (!args.length) {
 			// data.push('Here\'s a list of all my commands:');
@@ -30,7 +34,7 @@ module.exports = {
 				.setColor('#0099ff')
 				.setTitle('Command list:')
 				.setDescription(commands.map(command => command.name).join('\n'))
-				.addFields({ name: 'Prefix:', value: message.prefix })
+				.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild ?? addGuild.execute(message.guild)).config.prefix })
 				.setFooter({ text: 'Grouper', iconURL: 'https://cdn.discordapp.com/avatars/943231088438947890/31cfc4f6fe63a45a471c8c898e74efea.png?size=256' });
 
 			message.channel.send({ embeds: [exampleEmbed] });
@@ -48,7 +52,7 @@ module.exports = {
 
 		if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
 		if (command.description) data.push(`**Description:** ${command.description}`);
-		if (command.usage) data.push(`**Usage:** ${prefix}${command.name} ${command.usage}`);
+		if (command.usage) data.push(`**Usage:** ${(BotSystem.getInstance().guild ?? addGuild.execute(message.guild)).config.prefix}${command.name} ${command.usage}`);
 
 		if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 

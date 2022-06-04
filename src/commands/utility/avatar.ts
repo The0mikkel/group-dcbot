@@ -1,8 +1,10 @@
+import { Message } from "discord.js";
+
 module.exports = {
 	name: 'avatar',
 	description: 'Get the avatar URL of the tagged user(s), or your own avatar.',
 	aliases: ['icon', 'pfp'],
-	execute(message) {
+	execute(message: Message) {
 		if (!message.mentions.users.size) {
 			return message.channel.send(`Your avatar: <${message.author.displayAvatarURL({ dynamic: true })}>`);
 		}
@@ -11,6 +13,6 @@ module.exports = {
 			return `${user.username}'s avatar: <${user.displayAvatarURL({ dynamic: true })}>`;
 		});
 
-		message.channel.send(avatarList);
+		message.channel.send(avatarList[0]);
 	},
 };
