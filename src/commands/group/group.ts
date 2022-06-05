@@ -1,4 +1,5 @@
 import { Message } from "discord.js";
+import { DBGroup } from "../../data/roles/DBGroup";
 
 require("dotenv").config();
 
@@ -22,9 +23,8 @@ module.exports = {
             return message.reply('I can\'t execute outsite Guilds!');
         }
 
-        // Check if there is any args - Channel id
         if (!args.length)
-            return message.reply(`You need to specify a channel, to be able to use this command!`);
+            return message.reply(`You need to specify a group name and group members!`);
 
         const groupName = args.shift();
 
@@ -34,6 +34,13 @@ module.exports = {
             mentionable: true,
             reason: 'Group was created by grouper, as per request by ' + message.author.tag,
         })
+
+        try {
+            new DBGroup(role.id, message.guild.id, role.name, message.author.id, Date.now()).save()            
+        } catch (error) {
+            console.log(error);
+        }
+
 
         let users = [];
 
