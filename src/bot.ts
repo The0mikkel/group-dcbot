@@ -18,10 +18,10 @@ botSystem.commands = new Discord.Collection();
 botSystem.cooldowns = new Discord.Collection();
 
 // Get all command files
-const commandFolders = fs.readdirSync('./src/commands');
+const commandFolders = fs.readdirSync('./dist/commands');
 
 for (const folder of commandFolders) {
-	const commandFiles = fs.readdirSync(`./src/commands/${folder}`).filter(file => file.endsWith('.js'));
+	const commandFiles = fs.readdirSync(`./dist/commands/${folder}`).filter(file => file.endsWith('.js'));
 	for (const file of commandFiles) {
 		const command = require(`./commands/${folder}/${file}`);
 		botSystem.commands.set(command.name, command);
@@ -74,7 +74,7 @@ async function handleMessageCreateEvent(message: Message) {
 	}
 	botSystem.guild = guild;
 
-	let prefix = (process.env.bot_prefix ?? "gg!").trim();
+	let prefix = (process.env.bot_prefix ?? "gr!").trim();
 	if (guild && guild.config) {
 		prefix = (guild.config.prefix ?? process.env.bot_prefix).trim();
 	}

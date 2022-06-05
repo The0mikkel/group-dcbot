@@ -22,7 +22,7 @@ async function setupDatabase() {
                 }
             });
     });
-    mongoClient.close();
+    await mongoClient.close();
 }
 
 async function setupCollection(collection: string) {

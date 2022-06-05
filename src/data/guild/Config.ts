@@ -1,7 +1,7 @@
 export class Config {
-    prefix = "gg!";
+    prefix = "gr!";
 
-    constructor(prefix = "gg!") {
+    constructor(prefix = "gr!") {
         this.prefix = prefix;
     }
 }

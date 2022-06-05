@@ -13,6 +13,7 @@ module.exports = {
         const mongoDatabase = botSystem.mongoDatabase;
 
         let guildToReturn = new DBGuild;
+        let guildSearch;
 
         try {
             await mongoClient.connect();
@@ -20,17 +21,21 @@ module.exports = {
             
             // Check if guild have been joined before
             const query = { id: guild.id };
-            let guildSearch = await mongoClientGuilds.findOne(query);
-            if (!guildSearch) {
-                const addGuild = require("./add-guild.js")
-                guildSearch = addGuild.execute(guild);
-            } else {
-                guildToReturn.id = guild.id;
-                guildToReturn.config = new Config(guildSearch.config.prefix ?? process.env.bot_prefix ?? "gg!"); 
-            }
+            guildSearch = await mongoClientGuilds.findOne(query);
+        } catch (error) {
+            console.log(error)
         } finally {
             await mongoClient.close();
         }
+
+        if (!guildSearch) {
+            const addGuild = require("./add-guild.js")
+            guildSearch = addGuild.execute(guild);
+        } else {
+            guildToReturn.id = guild.id;
+            guildToReturn.config = new Config(guildSearch.config.prefix ?? process.env.bot_prefix ?? "gr!"); 
+        }
+
         return guildToReturn;
     },
 };

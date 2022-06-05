@@ -3,7 +3,7 @@ services:
     bot:
         image: themikkel/group-dcbot
         volumes:
-            - ./dist:/usr/src/app/src
+            - ./dist:/usr/src/app/dist
             - ./package.json:/usr/src/app/package.json
             - ./package-lock.json:/usr/src/app/package-lock.json
         restart: always
