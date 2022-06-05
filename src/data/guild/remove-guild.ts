@@ -13,10 +13,9 @@ module.exports = {
 
             // Check if guild have been joined before
             const query = { id: guild.id };
-            const result = await mongoClientGuilds.deleteOne(query);
-            if (result.deletedCount === 1) {
-            } else {
-            }
+            await mongoClientGuilds.deleteOne(query);
+        } catch (error) {
+            console.log(error)
         } finally {
             await mongoClient.close();
         }

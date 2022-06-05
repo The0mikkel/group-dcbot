@@ -18,7 +18,6 @@ module.exports = {
 
         // Check if guild have been joined before
         const query = { id: guild.id };
-        guildSearch = await mongoClientGuilds.findOne(query);
 
         // create a document that sets the plot of the movie
         const updateDoc = {
@@ -27,8 +26,10 @@ module.exports = {
             }
         };
         const options = { upsert: true };
-        console.log(await mongoClientGuilds.updateOne(query, updateDoc, options));
+        await mongoClientGuilds.updateOne(query, updateDoc, options);
 
+    } catch (error) {
+        console.log(error)
     } finally {
         await mongoClient.close();
     }
