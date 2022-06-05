@@ -3,6 +3,7 @@ import { DBGuild } from "./data/guild/DBGuild";
 import fs from 'fs';
 import Discord from "discord.js";
 import BotSystem from "./data/BotSystem";
+import { Config } from "./data/guild/Config";
 
 // Initialize system
 require("dotenv").config();
@@ -46,31 +47,29 @@ client.on("ready", () => {
 })
 
 //joined a server
-const addGuild = require("./data/guild/add-guild.js")
 client.on("guildCreate", (guild: Guild) => {
 	console.log("Joined a new guild: " + guild.name);
-	addGuild.execute(guild);
+	const localGuild = new DBGuild(guild.id, new Config);
+	localGuild.save();
 })
 
 //removed from a server
-const removeGuild = require("./data/guild/remove-guild.js")
 client.on("guildDelete", (guild: Guild) => {
 	console.log("Left a guild: " + guild.name);
-	removeGuild.execute(guild);
+	DBGuild.remove(guild.id);
 })
 
 // React on message
 client.on('messageCreate', (message: Message) => { handleMessageCreateEvent(message) });
 async function handleMessageCreateEvent(message: Message) {
-	const searchGuild = require("./data/guild/search-guild.js");
-	let guild: DBGuild|undefined;
+	let guild: DBGuild|undefined|boolean;
 	guild = undefined;
 	if (message.guild) {
-		guild = await searchGuild.execute(message.guild);
+		guild = await DBGuild.load(message.guild.id);
 		if (!guild) {
-			await addGuild.execute(message.guild);
+			guild = new DBGuild(message.guild.id, new Config);
+			guild.save();
 		}
-		guild = await searchGuild.execute(message.guild);
 	}
 	botSystem.guild = guild;
 

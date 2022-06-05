@@ -1,4 +1,6 @@
 import { Message } from "discord.js";
+import BotSystem from "../../data/BotSystem";
+import { Config } from "../../data/guild/Config";
 
 require("dotenv").config();
 
@@ -22,14 +24,13 @@ module.exports = {
 };
 
 async function resetGuild(message: Message, args: any) {
-    const searchGuild = require("./../../data/guild/search-guild.js");
-    let guild = await searchGuild.execute(message.guild);
-    
-    const removeGuild = require("./../../data/guild/remove-guild.js")
-    await removeGuild.execute(guild);
+    let guild = BotSystem.getInstance().guild;
+    if (!guild) {
+        return message.reply(`This command cannot be executed outside a guild!`);
+    }
 
-    const addGuild = require("./../../data/guild/add-guild.js")
-    await addGuild.execute(guild);
+    guild.config = new Config();
+    guild.save();
 
     message.channel.send("Bot has been reset!");
 }

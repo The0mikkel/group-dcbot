@@ -16,7 +16,7 @@ export class DBGroup {
         this.timestamp = timestamp;
     }
 
-    static async load(id: string): Promise<boolean | DBGroup> {
+    static async load(id: string): Promise<undefined | DBGroup> {
         const botSystem = BotSystem.getInstance();
         const mongoClient = botSystem.mongoClient;
 
@@ -31,7 +31,7 @@ export class DBGroup {
             result = await groups.findOne(query, options);
 
             if (!result) {
-                return false;
+                return undefined;
             }
         } catch(error) {
             console.log(error)
@@ -67,7 +67,9 @@ export class DBGroup {
     }
 
     private static generateClassFromDB(result: any): DBGroup {
-        return new DBGroup(result.id ?? undefined, result.guildId ?? "", result.name ?? "", result.author ?? "", result.timestamp ?? "")
+        const group = new DBGroup(result.id ?? undefined, result.guildId ?? "", result.name ?? "", result.author ?? "", result.timestamp ?? "")
+        group._id = result._id;
+        return group;
     }
 
     async save() {
