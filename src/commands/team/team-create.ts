@@ -41,6 +41,12 @@ module.exports = {
         var ASCIIFolder = require("./../../data/helper/ascii-folder");
         const groupName = ASCIIFolder.foldMaintaining(args.shift());
 
+        let roleLookup = message.guild?.roles.cache.find(role => role.name === groupName);
+        if (roleLookup) {
+            message.reply("The team already exist, please select another name for the team!");
+            return;
+        }
+
         let role = await message.guild?.roles.create({
             name: groupName,
             color: undefined,
