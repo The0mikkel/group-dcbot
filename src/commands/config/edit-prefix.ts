@@ -1,4 +1,5 @@
 import { Message } from "discord.js";
+import BotSystem from "../../data/BotSystem";
 
 require("dotenv").config();
 
@@ -21,21 +22,17 @@ module.exports = {
         if (!args.length)
             return message.reply(`You need to specify a prefix, to be able to use this command!`);
 
-        const searchGuild = require("./../../data/guild/search-guild.js");
-        let guild = await searchGuild.execute(message.guild);
-        if (!guild) {
-            const addGuild = require("./data/guild/add-guild.js")
-            await addGuild.execute(message.guild);
-            guild = await searchGuild.execute(message.guild);
-        }
-
         let prefix = args[0];
+
+        let guild = BotSystem.getInstance().guild;
+        if (!guild) {
+            return message.reply(`This command cannot be executed outside a guild!`);
+        }
 
         var ASCIIFolder = require("./../../data/helper/ascii-folder");
         guild.config.prefix = ASCIIFolder.foldReplacing(prefix).trim();
 
-        const updateGuildConfig = require("./../../data/guild/update-config");
-        updateGuildConfig.execute(message.guild, guild.config);
+        guild.save();
 
         message.reply(`The prefix of the bot is now: ${guild.config.prefix}`);
     },
