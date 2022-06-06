@@ -36,7 +36,7 @@ module.exports = {
         })
 
         try {
-            new DBGroup(role.id, message.guild.id, role.name, message.author.id, Date.now()).save()            
+            new DBGroup(role.id, message.guild.id, role.name, message.author.id, "", Date.now()).save()            
         } catch (error) {
             console.log(error);
         }

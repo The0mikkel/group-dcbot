@@ -24,7 +24,6 @@ module.exports = {
         }
 
         let groups = await DBGroup.loadFromGuild(message.guild.id);
-        console.log(groups)
 
         const exampleEmbed = new MessageEmbed()
 				.setColor('#0099ff')

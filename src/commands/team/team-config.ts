@@ -1,5 +1,6 @@
 import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import { InviteType } from "../../data/guild/InviteType";
 import { TeamConfig } from "../../data/guild/TeamConfig";
 import { DBGroup } from "../../data/roles/DBGroup";
 
@@ -25,7 +26,7 @@ module.exports = {
         botSystem.guild?.save();
 
         if (!botSystem.guild) {
-            message.reply("Cannot execute the command here");   
+            message.reply("Cannot execute the command here");
             return;
         }
 
@@ -51,6 +52,19 @@ module.exports = {
                 message.reply("Roles added!");
                 writeRolesCreateTeamList(message);
                 break;
+            case "role-everyone":
+
+                botSystem.guild.teamConfig.allowEveryone = !botSystem.guild.teamConfig.allowEveryone;
+
+                botSystem.guild?.save();
+
+                if (botSystem.guild.teamConfig.allowEveryone) {
+                    message.reply("Everyone can now create a team.");
+                } else {
+                    message.reply("Team creation has been restricted to the following roles:")
+                    writeRolesCreateTeamList(message);
+                }
+                break;
             case "rem-role":
                 message.mentions.roles.forEach(async (role) => {
                     try {
@@ -65,11 +79,11 @@ module.exports = {
                 message.reply("Roles removed!");
                 writeRolesCreateTeamList(message);
                 break;
-            case "invite": 
+            case "invite":
                 message.reply("Invite to join team is currently " + (botSystem.guild?.teamConfig.requireInvite ? "active" : "inactive"));
                 break;
             case "set-invite":
-                const setInviteBooleanText =  (args?.shift()?.trim().toLowerCase() ?? "false");
+                const setInviteBooleanText = (args?.shift()?.trim().toLowerCase() ?? "false");
                 if (setInviteBooleanText === "true" || setInviteBooleanText === "yes" || setInviteBooleanText === "1") {
                     botSystem.guild.teamConfig.requireInvite = true;
                 } else {
@@ -78,6 +92,33 @@ module.exports = {
                 botSystem.guild.save();
                 message.reply("Invite to join team is now " + (botSystem.guild?.teamConfig.requireInvite ? "active" : "inactive"));
                 break;
+            case "invite-by":
+                const setInviteTypeText = (args?.shift()?.trim().toLowerCase() ?? "");
+
+                switch (setInviteTypeText) {
+                    case "":
+                        message.reply("Sending invites, are currently limited to " + botSystem.guild.teamConfig.teamInviteType.toString())
+                        break;
+                    case "admin":
+                        botSystem.guild.teamConfig.teamInviteType = InviteType.admin;
+                        message.reply("Sending invites, are now updated to be limited to " + InviteType[botSystem.guild.teamConfig.teamInviteType])
+                        break;
+                    case "leader":
+                        botSystem.guild.teamConfig.teamInviteType = InviteType.leader
+                        message.reply("Sending invites, are now updated to be limited to " + InviteType[botSystem.guild.teamConfig.teamInviteType])
+                        break;
+                    case "team":
+                        botSystem.guild.teamConfig.teamInviteType = InviteType.team
+                        message.reply("Sending invites, are now updated to be limited to " + InviteType[botSystem.guild.teamConfig.teamInviteType])
+                        break;
+                    default:
+                        message.reply("I did not know the restriction type. Please use either admin, leader or team.")
+                        break;
+                }
+
+                botSystem.guild.save();
+
+                break;
             default:
                 const teamConfigCommandEmbed = new MessageEmbed()
                     .setColor('#0099ff')
@@ -85,10 +126,12 @@ module.exports = {
                     .setDescription(
                         `
                             - roles - See list of roles, that can create teams 
+                            - role-everyone - Toggle if everyone should be able to create a team 
                             - add-role [role] - Add role, that can create team 
                             - rem-role [role] - Remove role, that can create team 
                             - invite - Check if invite is currently required before a member is added to a team
-                            - set-invite [true/false] - Set, if a member can only be added through an invite
+                            - set-invite [true/false] - Set if a member can only be added through an invite
+                            - invite-by [admin/leader/team] - Set, who can add new members to a team
                         `
                     )
                     .setFooter({ text: 'Grouper', iconURL: botImage });

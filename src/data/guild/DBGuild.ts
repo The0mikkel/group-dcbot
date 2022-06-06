@@ -1,5 +1,6 @@
 import BotSystem from "../BotSystem";
 import { Config } from "./Config";
+import { InviteType } from "./InviteType";
 import { TeamConfig } from "./TeamConfig";
 
 export class DBGuild {
@@ -41,7 +42,7 @@ export class DBGuild {
 
     private static generateClassFromDB(result: any): DBGuild {
         const config = new Config(result.config.prefix ?? process.env.bot_prefix ?? "gr!");
-        const teamConfig = new TeamConfig(result.teamConfig?.creatorRole ?? [], result.teamConfig?.requireInvite ?? false);
+        const teamConfig = new TeamConfig(result.teamConfig?.creatorRole ?? [], result.teamConfig?.allowEveryone ?? false, result.teamConfig?.requireInvite ?? false, InviteType[(result.teamConfig?.teamInviteType ?? "admin") as keyof typeof InviteType]);
         const guild = new DBGuild(result.id ?? undefined, config, teamConfig);
         guild._id = result._id;
         return guild;
