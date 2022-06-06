@@ -3,7 +3,6 @@ import BotSystem from "../../data/BotSystem";
 
 require("dotenv").config();
 const { MessageEmbed } = require('discord.js');
-const addGuild = require("./../../data/guild/add-guild")
 
 module.exports = {
 	name: 'help',
@@ -14,6 +13,7 @@ module.exports = {
 	execute(message: Message, args: any) {
 		let data = [];
 		let commands = BotSystem.getInstance().commands;
+		const image = message.client.user?.avatarURL() ?? "";
 
 		if (!args.length) {
 			// data.push('Here\'s a list of all my commands:');
@@ -30,12 +30,14 @@ module.exports = {
 			//   }
 			// });
 
+
 			const exampleEmbed = new MessageEmbed()
 				.setColor('#0099ff')
 				.setTitle('Command list:')
 				.setDescription(commands.map(command => command.name).join('\n'))
-				.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild ?? addGuild.execute(message.guild)).config.prefix })
-				.setFooter({ text: 'Grouper', iconURL: 'https://cdn.discordapp.com/avatars/943231088438947890/31cfc4f6fe63a45a471c8c898e74efea.png?size=256' });
+				.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild)?.config.prefix })
+				.addFields({ name: 'Detailed help:', value: "Write the command name, after the help command, to see more details about the command" })
+				.setFooter({ text: 'Grouper', iconURL: image });
 
 			message.channel.send({ embeds: [exampleEmbed] });
 			return;
@@ -52,11 +54,16 @@ module.exports = {
 
 		if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
 		if (command.description) data.push(`**Description:** ${command.description}`);
-		if (command.usage) data.push(`**Usage:** ${(BotSystem.getInstance().guild ?? addGuild.execute(message.guild)).config.prefix}${command.name} ${command.usage}`);
+		if (command.usage) data.push(`**Usage:** ${(BotSystem.getInstance().guild)?.config.prefix}${command.name} ${command.usage}`);
 
 		if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 
-		console.log(data)
-		// message.channel.send(data, { split: true });
+		const specificHelp = new MessageEmbed()
+				.setColor('#0099ff')
+				.setTitle('Command usage:')
+				.setDescription(data.join('\n'))
+				.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild)?.config.prefix })
+				.setFooter({ text: 'Grouper', iconURL: image });
+		message.channel.send({ embeds: [specificHelp] });
 	},
 };
