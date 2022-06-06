@@ -69,9 +69,9 @@ Some of these elements are:
 - Setting multiple roles, that can create teams
 - Enabeling invite to be accepted (through DM), to join team
 
-The team system, can be configurated through the command `team-config`  
+The team system, can be configurated through the command `team-config [command] [arguments]`  
 
-Teams can be created with the command `create-team`
+Teams can be created with the command `create-team [team name] [members]`
 
 
 ## Idea
