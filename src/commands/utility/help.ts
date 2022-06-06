@@ -30,12 +30,14 @@ module.exports = {
 			//   }
 			// });
 
+            const image = message.client.user?.avatarURL() ?? "";
+
 			const exampleEmbed = new MessageEmbed()
 				.setColor('#0099ff')
 				.setTitle('Command list:')
 				.setDescription(commands.map(command => command.name).join('\n'))
 				.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild ?? addGuild.execute(message.guild)).config.prefix })
-				.setFooter({ text: 'Grouper', iconURL: 'https://cdn.discordapp.com/avatars/943231088438947890/31cfc4f6fe63a45a471c8c898e74efea.png?size=256' });
+				.setFooter({ text: 'Grouper', iconURL: image });
 
 			message.channel.send({ embeds: [exampleEmbed] });
 			return;

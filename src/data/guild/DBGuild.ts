@@ -1,14 +1,17 @@
 import BotSystem from "../BotSystem";
 import { Config } from "./Config";
+import { TeamConfig } from "./TeamConfig";
 
 export class DBGuild {
     _id: undefined | string
     id: any;
     config: Config;
+    teamConfig: TeamConfig
 
-    constructor(id = "", config = new Config) {
+    constructor(id = "", config = new Config, teamConfig = new TeamConfig) {
         this.id = id;
         this.config = config;
+        this.teamConfig = teamConfig;
     }
 
     static async load(id: string): Promise<undefined | DBGuild> {
@@ -27,6 +30,7 @@ export class DBGuild {
                 return undefined;
             }
         } catch(error) {
+            console.log("Error with loading guild!")
             console.log(error)
         } finally {
             await mongoClient.close();
@@ -37,7 +41,8 @@ export class DBGuild {
 
     private static generateClassFromDB(result: any): DBGuild {
         const config = new Config(result.config.prefix ?? process.env.bot_prefix ?? "gr!");
-        const guild = new DBGuild(result.id ?? undefined, config);
+        const teamConfig = new TeamConfig(result.teamConfig?.creatorRole ?? [], result.teamConfig?.requireInvite ?? false);
+        const guild = new DBGuild(result.id ?? undefined, config, teamConfig);
         guild._id = result._id;
         return guild;
     }
@@ -54,11 +59,15 @@ export class DBGuild {
             const updateDoc = {
                 $set: {
                     id: this.id,
-                    config: this.config
+                    config: this.config,
+                    teamConfig: this.teamConfig
                 }
             };
             const result = await guilds.updateOne(filter, updateDoc, options);
-            this._id = result.upsertedId.toString();
+            this._id = result.upsertedId?.toString();
+        } catch (error) {
+            console.log("Error with saving guild!")
+            console.log(error);
         } finally {
             await mongoClient.close();
         }
@@ -76,6 +85,7 @@ export class DBGuild {
             const query = { id: id };
             await mongoClientGuilds.deleteOne(query);
         } catch (error) {
+            console.log("Error with removing guild!")
             console.log(error)
         } finally {
             await mongoClient.close();

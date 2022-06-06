@@ -50,7 +50,7 @@ module.exports = {
                     member.roles.add(role.id);
                     users.push(member);
                 } catch (error) {
-                    console.log(`There was an error adding user: ${member} to the channel "${groupName}" and this was caused by: ${error}`)
+                    console.log(`There was an error adding user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
                 }
             });
         }
