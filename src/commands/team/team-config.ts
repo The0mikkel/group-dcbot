@@ -23,7 +23,7 @@ module.exports = {
 
         const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
-        botSystem.guild?.save();
+        await botSystem.guild?.save();
 
         if (!botSystem.guild) {
             message.reply("Cannot execute the command here");
@@ -47,7 +47,7 @@ module.exports = {
                     }
                 });
 
-                botSystem.guild?.save();
+                await botSystem.guild?.save();
 
                 message.reply("Roles added!");
                 writeRolesCreateTeamList(message);
@@ -56,7 +56,7 @@ module.exports = {
 
                 botSystem.guild.teamConfig.allowEveryone = !botSystem.guild.teamConfig.allowEveryone;
 
-                botSystem.guild?.save();
+                await botSystem.guild?.save();
 
                 if (botSystem.guild.teamConfig.allowEveryone) {
                     message.reply("Everyone can now create a team.");
@@ -74,7 +74,7 @@ module.exports = {
                     }
                 });
 
-                botSystem.guild?.save();
+                await botSystem.guild?.save();
 
                 message.reply("Roles removed!");
                 writeRolesCreateTeamList(message);

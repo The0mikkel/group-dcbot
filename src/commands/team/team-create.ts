@@ -16,7 +16,7 @@ module.exports = {
     async execute(message: Message, args: any) {
         const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
-        botSystem.guild?.save();
+        await botSystem.guild?.save();
 
         let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
