@@ -30,10 +30,10 @@ Image: [https://hub.docker.com/repository/docker/themikkel/group-dcbot](https://
 The image is automaticly updated, when a feature is merged into the main branch.
 
 Before you run the bot, please specify a bot_token, that is a Discord Bot Token.<br>
-The default prefix is "!" and can only be changed by setting the bot_prefix
+The default prefix is "gr!" and can only be changed by setting the bot_prefix
 
 ## Configuration
-The bot is made, to use MongoDB, to enable configuration of the bot on a per-guild basis. 
+The bot is made to use MongoDB, to enable configuration of the bot on a per-guild basis, and allows for multiple functions of the bot to work. 
 
 ## Commands
 The bot contains a number of default commands:
@@ -42,7 +42,7 @@ Run the help command, to see a list of all commands.
 
 ### simple-group
 ```
-gg!simple-group Group-name @user1 @user2
+gr!simple-group Group-name @user1 @user2
 ```
 This will:
 1. Create a new channel called [Group-name]
@@ -53,13 +53,26 @@ This command can only be runned by administrators or members who has the "manage
 
 ### group
 ```
-gg!group Group-name @user1 @user2
+gr!group Group-name @user1 @user2
 ```
 This will:
 1. Create a new role called [Group-name]
 2. Add @user1 and @user2 to this role
 
 This command can only be runned by an administrators
+
+### Team
+A team command is available, that works like the group command, but enables users to create teams, and add other users to their group, either directly or through invites.
+
+The team system allows for a lot of customization.  
+Some of these elements are:  
+- Setting multiple roles, that can create teams
+- Enabeling invite to be accepted (through DM), to join team
+
+The team system, can be configurated through the command `team-config [command] [arguments]`  
+
+Teams can be created with the command `create-team [team name] [members]`
+
 
 ## Idea
 The idea behind the bot, is to easely create groups, with either channels or entire categories.<br>

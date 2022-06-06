@@ -3,7 +3,7 @@
 
 import { MongoClient } from "mongodb";
 import BotSystem from "./data/BotSystem";
-const COLLECTIONS = ['guilds', 'guild_settings', 'groups', 'invites'];
+const COLLECTIONS = ['guilds', 'groups', 'invites'];
 
 const botSystem = BotSystem.getInstance();
 const mongoClient = botSystem.mongoClient;
@@ -22,7 +22,7 @@ async function setupDatabase() {
                 }
             });
     });
-    mongoClient.close();
+    await mongoClient.close();
 }
 
 async function setupCollection(collection: string) {

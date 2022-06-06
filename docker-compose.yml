@@ -3,7 +3,7 @@ services:
     bot:
         image: themikkel/group-dcbot
         volumes:
-            - ./dist:/usr/src/app/src
+            - ./dist:/usr/src/app/dist
             - ./package.json:/usr/src/app/package.json
             - ./package-lock.json:/usr/src/app/package-lock.json
         restart: always
@@ -11,6 +11,7 @@ services:
             bot_token: ${bot_token}
             bot_prefix: ${bot_prefix}
             database_url: mongodb://${db_username}:${db_password}@mongodb:27017/
+            env: ${env}
     mongodb:
         image: mongo
         restart: always
