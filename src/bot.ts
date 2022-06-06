@@ -50,16 +50,16 @@ client.on("ready", () => {
 })
 
 //joined a server
-client.on("guildCreate", (guild: Guild) => {
+client.on("guildCreate", async (guild: Guild) => {
 	console.log("Joined a new guild: " + guild.name);
 	const localGuild = new DBGuild(guild.id, new Config, new TeamConfig);
-	localGuild.save();
+	await localGuild.save();
 })
 
 //removed from a server
-client.on("guildDelete", (guild: Guild) => {
+client.on("guildDelete", async (guild: Guild) => {
 	console.log("Left a guild: " + guild.name);
-	DBGuild.remove(guild.id);
+	await DBGuild.remove(guild.id);
 })
 
 // React on message
@@ -73,7 +73,7 @@ async function handleMessageCreateEvent(message: Message) {
 			guild = await DBGuild.load(message.guild.id);
 			if (!guild) {
 				guild = new DBGuild(message.guild.id, new Config, new TeamConfig);
-				guild.save();
+				await guild.save();
 			}
 		}
 		botSystem.guild = guild;

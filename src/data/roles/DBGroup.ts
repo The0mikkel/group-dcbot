@@ -6,13 +6,15 @@ export class DBGroup {
     guildId: string;
     name: string;
     author: undefined | string;
+    teamLeader: string;
     timestamp: any;
 
-    constructor(id: any, guildId: string, name: string, author: string, timestamp: any) {
+    constructor(id: any, guildId: string, name: string, author: string, teamLeader: string, timestamp: any) {
         this.id = id;
         this.guildId = guildId;
         this.name = name;
         this.author = author;
+        this.teamLeader = teamLeader;
         this.timestamp = timestamp;
     }
 
@@ -67,7 +69,7 @@ export class DBGroup {
     }
 
     private static generateClassFromDB(result: any): DBGroup {
-        const group = new DBGroup(result.id ?? undefined, result.guildId ?? "", result.name ?? "", result.author ?? "", result.timestamp ?? "")
+        const group = new DBGroup(result.id ?? undefined, result.guildId ?? "", result.name ?? "", result.author ?? "", result.teamLeader ?? "", result.timestamp ?? "")
         group._id = result._id;
         return group;
     }
@@ -87,11 +89,13 @@ export class DBGroup {
                     guildId: this.guildId,
                     name: this.name,
                     author: this.author,
+                    teamLeader: this.teamLeader,
                     timestamp: this.timestamp
                 }
             };
             const result = await groups.updateOne(filter, updateDoc, options);
-            this._id = result.upsertedId.toString();
+            if (result)
+                this._id = result.upsertedId?.toString() ?? this._id;
         } finally {
             await mongoClient.close();
         }

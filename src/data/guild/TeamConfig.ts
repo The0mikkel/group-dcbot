@@ -1,12 +1,17 @@
 import { Guild, Message } from "discord.js";
+import { InviteType } from "./InviteType";
 
 export class TeamConfig {
     creatorRole: string[] = [];
+    allowEveryone: boolean;
     requireInvite: boolean;
+    teamInviteType: InviteType;
 
-    constructor(creatorRole: string[] = [], requireInvite = false) {
+    constructor(creatorRole: string[] = [], allowEveryone = false, requireInvite = false, teamInviteType = InviteType.admin) {
         this.creatorRole = creatorRole;
+        this.allowEveryone = allowEveryone;
         this.requireInvite = requireInvite;
+        this.teamInviteType = teamInviteType;
     }
 
     addCreatorRole(roleId: string) {

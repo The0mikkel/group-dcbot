@@ -33,7 +33,7 @@ Before you run the bot, please specify a bot_token, that is a Discord Bot Token.
 The default prefix is "gr!" and can only be changed by setting the bot_prefix
 
 ## Configuration
-The bot is made, to use MongoDB, to enable configuration of the bot on a per-guild basis. 
+The bot is made to use MongoDB, to enable configuration of the bot on a per-guild basis, and allows for multiple functions of the bot to work. 
 
 ## Commands
 The bot contains a number of default commands:
@@ -60,6 +60,19 @@ This will:
 2. Add @user1 and @user2 to this role
 
 This command can only be runned by an administrators
+
+### Team
+A team command is available, that works like the group command, but enables users to create teams, and add other users to their group, either directly or through invites.
+
+The team system allows for a lot of customization.  
+Some of these elements are:  
+- Setting multiple roles, that can create teams
+- Enabeling invite to be accepted (through DM), to join team
+
+The team system, can be configurated through the command `team-config [command] [arguments]`  
+
+Teams can be created with the command `create-team [team name] [members]`
+
 
 ## Idea
 The idea behind the bot, is to easely create groups, with either channels or entire categories.<br>

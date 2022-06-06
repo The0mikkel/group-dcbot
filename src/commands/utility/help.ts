@@ -14,6 +14,7 @@ module.exports = {
 	execute(message: Message, args: any) {
 		let data = [];
 		let commands = BotSystem.getInstance().commands;
+		const image = message.client.user?.avatarURL() ?? "";
 
 		if (!args.length) {
 			// data.push('Here\'s a list of all my commands:');
@@ -30,13 +31,13 @@ module.exports = {
 			//   }
 			// });
 
-            const image = message.client.user?.avatarURL() ?? "";
 
 			const exampleEmbed = new MessageEmbed()
 				.setColor('#0099ff')
 				.setTitle('Command list:')
 				.setDescription(commands.map(command => command.name).join('\n'))
 				.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild ?? addGuild.execute(message.guild)).config.prefix })
+				.addFields({ name: 'Detailed help:', value: "Write the command name, after the help command, to see more details about the command" })
 				.setFooter({ text: 'Grouper', iconURL: image });
 
 			message.channel.send({ embeds: [exampleEmbed] });
@@ -58,7 +59,12 @@ module.exports = {
 
 		if (command.cooldown) data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 
-		console.log(data)
-		// message.channel.send(data, { split: true });
+		const specificHelp = new MessageEmbed()
+				.setColor('#0099ff')
+				.setTitle('Command usage:')
+				.setDescription(data.join('\n'))
+				.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild ?? addGuild.execute(message.guild)).config.prefix })
+				.setFooter({ text: 'Grouper', iconURL: image });
+		message.channel.send({ embeds: [specificHelp] });
 	},
 };

@@ -7,15 +7,16 @@ require("dotenv").config();
 
 module.exports = {
     name: 'create-team',
-    description: 'Create team with mentioned users - Remember to mention yourself',
+    description: 'Create team with mentioned users - Remember to mention yourself. The first mentioned user, will be the team leader',
     guildOnly: true,
     args: true,
     args_quantity: 2,
-    usage: '[command]',
+    cooldown: 5,
+    usage: '[team name] [team-leader] [members...]',
     async execute(message: Message, args: any) {
         const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
-        botSystem.guild?.save();
+        await botSystem.guild?.save();
 
         let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
@@ -23,7 +24,10 @@ module.exports = {
                 hasRole = true;
             }
         });
-        console.log(hasRole)
+        
+        if (botSystem.guild?.teamConfig.allowEveryone) {
+            hasRole = true;
+        }
 
         if (
             !message.member
@@ -40,6 +44,13 @@ module.exports = {
 
         var ASCIIFolder = require("./../../data/helper/ascii-folder");
         const groupName = ASCIIFolder.foldMaintaining(args.shift());
+        groupName.trim();
+
+        let roleLookup = message.guild?.roles.cache.find(role => role.name === groupName);
+        if (roleLookup) {
+            message.reply("The team already exist, please select another name for the team!");
+            return;
+        }
 
         let role = await message.guild?.roles.create({
             name: groupName,
@@ -53,11 +64,8 @@ module.exports = {
             return
         }
 
-        try {
-            new DBGroup(role?.id, message.guild?.id ?? "", role?.name ?? "", message.author.id, Date.now()).save()
-        } catch (error) {
-            console.log(error);
-        }
+        let dbGroup: DBGroup;
+        dbGroup = new DBGroup(role?.id, message.guild?.id ?? "", role?.name ?? "", message.author.id, "", Date.now());
 
 
         let users = [];
@@ -75,10 +83,15 @@ module.exports = {
             }
             message.channel.send(`Group ${role} was created. Role was added to mentioned users.`);
         } else { // Invite required
+            let membersCount = 0;
+            let randomMemberId = "";
             if (message.mentions.members) {
                 message.mentions.members.forEach(async (member) => {
+                    if (membersCount == 0) {
+                        randomMemberId = member.id;
+                    }
                     try {
-                        let dmMessage = await member.send(`You have been invited to the team "${groupName}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nReact below, to join the team!\nThe activation link is available for 1 hour.`);
+                        let dmMessage = await member.send(`You have been invited to the team "${groupName}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nReact below, to join the team!.`);
                         dmMessage.react("✅");
                         dmMessage.react("❌");
                         
@@ -87,8 +100,13 @@ module.exports = {
                         console.log(`There was an error sending invite to user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
                     }
                 });
+
+                dbGroup.teamLeader = args.shift().toLowerCase().substring(2).trim().slice(0, -1) ?? randomMemberId;
             }
             message.channel.send(`Group ${role} was created. Invites to team was send to all mentioned users.`);
         }
+
+        await dbGroup.save();
+
     },
 };
