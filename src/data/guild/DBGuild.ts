@@ -1,4 +1,5 @@
 import BotSystem from "../BotSystem";
+import ASCIIFolder from "../helper/ascii-folder";
 import { Config } from "./Config";
 import { InviteType } from "./InviteType";
 import { TeamConfig } from "./TeamConfig";
@@ -11,7 +12,7 @@ export class DBGuild {
     guidedTeamStart: string[] // Message ids for guided team creations
 
     constructor(id = "", config = new Config, teamConfig = new TeamConfig, guidedTeamStart: string[] = []) {
-        this.id = id;
+        this.id = ASCIIFolder.foldReplacing(id);
         this.config = config;
         this.teamConfig = teamConfig;
         this.guidedTeamStart = guidedTeamStart;
@@ -32,7 +33,7 @@ export class DBGuild {
             if (!result) {
                 return undefined;
             }
-        } catch(error) {
+        } catch (error) {
             console.log("Error with loading guild!")
             console.log(error)
         } finally {
@@ -43,8 +44,12 @@ export class DBGuild {
     }
 
     private static generateClassFromDB(result: any): DBGuild {
-        const config = new Config(result.config.prefix ?? process.env.bot_prefix ?? "gr!");
-        const teamConfig = new TeamConfig(result.teamConfig?.creatorRole ?? [], result.teamConfig?.allowEveryone ?? false, result.teamConfig?.requireInvite ?? false, InviteType[(result.teamConfig?.teamInviteType ?? "admin") as keyof typeof InviteType]);
+        const config = new Config(ASCIIFolder.foldReplacing(result.config.prefix) ?? ASCIIFolder.foldReplacing(process.env.bot_prefix) ?? "gr!");
+        const teamConfig = new TeamConfig(
+            result.teamConfig?.creatorRole ?? [], 
+            result.teamConfig?.allowEveryone ?? false, 
+            result.teamConfig?.requireInvite ?? false, 
+            InviteType[(result.teamConfig?.teamInviteType ?? "admin") as keyof typeof InviteType]) ?? InviteType.admin;
         const guild = new DBGuild(result.id ?? undefined, config, teamConfig, result.guidedTeamStart ?? []);
         guild._id = result._id;
         return guild;

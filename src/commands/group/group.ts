@@ -1,4 +1,5 @@
 import { Message } from "discord.js";
+import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
 
 require("dotenv").config();
@@ -26,7 +27,7 @@ module.exports = {
         if (!args.length)
             return message.reply(`You need to specify a group name and group members!`);
 
-        const groupName = args.shift();
+        const groupName = ASCIIFolder.foldReplacing(args.shift());
 
         let role = await message.guild.roles.create({
             name: groupName,

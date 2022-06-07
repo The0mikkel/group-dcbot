@@ -72,7 +72,7 @@ module.exports = {
         }
 
         let dbGroup: DBGroup;
-        dbGroup = new DBGroup(role?.id, message.guild?.id ?? "", role?.name ?? "", message.author.id, "", Date.now());
+        dbGroup = new DBGroup(role?.id, message.guild?.id ?? "", ASCIIFolder.foldReplacing(role?.name ?? ""), message.author.id, "", Date.now());
 
 
         let users = [];
