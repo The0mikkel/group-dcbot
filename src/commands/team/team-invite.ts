@@ -23,64 +23,64 @@ module.exports = {
         if (
             !message.member
         ) {
-            return message.channel.send("You don't have permission to add new team members!");
+            message.channel.send("You don't have permission to add new team members!");
+            return false;
         }
 
         if (
             botSystem.guild?.teamConfig.teamInviteType == InviteType.admin
             && !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            return message.channel.send("You don't have permission to add new team members - Only admins can do that.");
+            message.channel.send("You don't have permission to add new team members - Only admins can do that.");
+            return false;
         }
 
         if (args.length < 2) {
-            return message.reply(`You need to specify a group name and group members!`);
+            message.reply(`You need to specify a group name and group members!`);
+            return false;
         }
 
         let roleId: string | undefined;
         let groupName: string;
         if (!message.mentions.roles || message.mentions.roles.first() == undefined) {
-            groupName = ASCIIFolder.foldMaintaining(args.shift().trim());
+            groupName = ASCIIFolder.foldReplacing(args.shift().trim());
             console.log(groupName);
             roleId = message.guild?.roles.cache.find(role => role.name === groupName)?.id;
         } else {
             args.shift();
             roleId = message.mentions.roles.first()?.id ?? undefined;
-            groupName = ASCIIFolder.foldMaintaining(message.mentions.roles.first()?.name);
+            groupName = ASCIIFolder.foldReplacing(message.mentions.roles.first()?.name);
         }
         if (!roleId) {
             message.reply("The team does not exist!");
-            return;
+            return false;
         }
 
         let role = await DBGroup.load(roleId ?? "");
         if (role == undefined) {
             message.reply("The team does not exist!");
-            return;
+            return false;
         }
 
         if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("ADMINISTRATOR")) {
             if (role?.teamLeader != message.author.id) {
                 message.reply("This action can only be performed by the team leader!");
-                return;
+                return false;
             }
         } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("ADMINISTRATOR")) {
             let currentUser = await message.guild?.members.fetch(message.author.id);
             currentUser?.roles.cache.has(role?.id);
             if (role?.teamLeader != message.author.id) {
                 message.reply("This action can only be performed by a member of the team!");
-                return;
+                return false;
             }
         }
-
-        let users = [];
 
         if (!botSystem.guild?.teamConfig.requireInvite) { // Invite not required
             if (message.mentions.members) {
                 message.mentions.members.forEach(async (member) => {
                     try {
                         member.roles.add(role?.id ?? "");
-                        users.push(member);
                     } catch (error) {
                         console.log(`There was an error adding user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
                     }

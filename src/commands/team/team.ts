@@ -31,13 +31,13 @@ module.exports = {
         let DiscordRole: Role | undefined;
         let groupName: string;
         if (!message.mentions.roles || message.mentions.roles.first() == undefined) {
-            groupName = ASCIIFolder.foldMaintaining(args.shift().trim());
+            groupName = ASCIIFolder.foldReplacing(args.shift().trim());
             console.log(groupName);
             DiscordRole = message.guild?.roles.cache.find(role => role.name === groupName);
         } else {
             args.shift();
             DiscordRole = message.mentions.roles.first() ?? undefined;
-            groupName = ASCIIFolder.foldMaintaining(message.mentions.roles.first()?.name);
+            groupName = ASCIIFolder.foldReplacing(message.mentions.roles.first()?.name);
         }
         if (!DiscordRole) {
             message.reply("The team does not exist!");

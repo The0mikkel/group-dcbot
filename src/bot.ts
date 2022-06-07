@@ -1,4 +1,4 @@
-import { BaseGuildTextChannel, Guild, Interaction, Message } from "discord.js";
+import { BaseGuildTextChannel, Guild, Interaction, Message, User } from "discord.js";
 import { DBGuild } from "./data/guild/DBGuild";
 import fs from 'fs';
 import Discord from "discord.js";
@@ -7,14 +7,23 @@ import { Config } from "./data/guild/Config";
 import { envType } from "./data/envType";
 import { TeamConfig } from "./data/guild/TeamConfig";
 import { DBInvite } from "./data/roles/DBInvite";
+import GuidedTeamCreation from "./data/GuidedTeamCreation/GuidedTeamCreation";
+import { GuidedTeamCreationState } from "./data/GuidedTeamCreation/GuidedTeamCreationState";
 
 // Initialize system
 require("dotenv").config();
 require('./setup.js');
 
 const client = new Discord.Client({
-	partials: ["MESSAGE", "CHANNEL"],
-	intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MEMBERS, Discord.Intents.FLAGS.GUILD_MESSAGES, Discord.Intents.FLAGS.DIRECT_MESSAGES, Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS]
+	partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
+	intents: [
+		Discord.Intents.FLAGS.GUILDS,
+		Discord.Intents.FLAGS.GUILD_MEMBERS,
+		Discord.Intents.FLAGS.GUILD_MESSAGES,
+		Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+		Discord.Intents.FLAGS.DIRECT_MESSAGES,
+		Discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS
+	]
 });
 
 const botSystem = BotSystem.getInstance();
@@ -47,6 +56,8 @@ client.on("ready", () => {
 		}],
 
 	})
+
+	BotSystem.client = client;
 })
 
 //joined a server
@@ -77,6 +88,14 @@ async function handleMessageCreateEvent(message: Message) {
 			}
 		}
 		botSystem.guild = guild;
+
+		if (!message.author.bot) {
+			let guidedTeamCreation = botSystem.getGuidedTeamCreation(message.channel, message.author);
+			if (guidedTeamCreation && guidedTeamCreation.state != GuidedTeamCreationState.teamCreated) {
+				guidedTeamCreation.step(message);
+				return;
+			}
+		}
 
 		let prefix = (process.env.bot_prefix ?? "gr!").trim();
 		if (guild && guild.config) {
@@ -169,16 +188,31 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		try {
 			await reaction.message.fetch();
 		} catch (error) {
+			console.log(error)
 			return
 		}
 	}
+
+	// Detect guild
+	let guild: DBGuild | undefined;
+	guild = undefined;
+	if (reaction.message.guild) {
+		guild = await DBGuild.load(reaction.message.guild.id);
+		if (!guild) {
+			guild = new DBGuild(reaction.message.guild.id, new Config, new TeamConfig);
+			await guild.save();
+		}
+	}
+	botSystem.guild = guild;
+
+	console.log(`${user.username} reacted with "${reaction.emoji.name}" on ${reaction.message.id}`);
 
 	if (reaction.message.id != "" && reaction.message.author?.id == client.user?.id) { // Execute only on messages created by the bot
 		console.log(`${user.username} reacted with "${reaction.emoji.name}".`);
 		if (user.id == client.user?.id) { // Execute only when bot reacts
 
 		} else { // Execute only when a user reacts
-			// Invite handling
+			// Team invite handling
 			let invite = await DBInvite.loadByMessageId(reaction.message.id);
 			if (
 				invite != undefined
@@ -196,6 +230,22 @@ client.on('messageReactionAdd', async (reaction, user) => {
 			}
 		}
 	} else {
+		if (botSystem.guild && (user instanceof User) && !user.bot) {
+			// Guided team creation handling
+			if (botSystem.guild.guidedTeamStart.includes(reaction.message.id)) {
+				console.log("Guided creation started!");
+				try {
+					reaction.users.remove(user.id)
+				} catch (error) {
+					console.log("Failed to remove reaction for user");
+				}
+
+				let guidedCreation = new GuidedTeamCreation(botSystem.guild, reaction.message.channel, user);
+				botSystem.addGuidedTeamCreation(guidedCreation);
+
+				guidedCreation.step(undefined);
+			}
+		}
 		console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
 	}
 });

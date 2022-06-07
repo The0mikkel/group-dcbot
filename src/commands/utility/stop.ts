@@ -1,4 +1,5 @@
 import { Message } from "discord.js";
+import BotSystem from "../../data/BotSystem";
 
 module.exports = {
 	name: 'stop',
@@ -6,5 +7,6 @@ module.exports = {
 	guildOnly: true,
 	execute(message: Message) {
 		process.exit();
+		// BotSystem.sendAutoDeleteMessage(message.channel, "This action has been removed!");
 	},
 };

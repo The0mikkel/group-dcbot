@@ -13,7 +13,7 @@ module.exports = {
     args_quantity: 2,
     cooldown: 5,
     usage: '[team name] [team-leader] [members...]',
-    async execute(message: Message, args: any) {
+    async execute(message: Message, args: any, autoDelete = false): Promise<false | DBGroup> {
         const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
@@ -24,7 +24,7 @@ module.exports = {
                 hasRole = true;
             }
         });
-        
+
         if (botSystem.guild?.teamConfig.allowEveryone) {
             hasRole = true;
         }
@@ -36,20 +36,26 @@ module.exports = {
                 && !hasRole
             )
         ) {
-            return message.channel.send("You don't have permission to add new teams!");
+            let botMessage = message.channel.send("You don't have permission to add new teams!");
+            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
+            return false;
         }
 
-        if (args.length < 2)
-            return message.reply(`You need to specify a group name and group members!`);
+        if (args.length < 2) {
+            let botMessage = message.reply(`You need to specify a group name and group members!`);
+            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
+            return false;
+        }
 
         var ASCIIFolder = require("./../../data/helper/ascii-folder");
-        const groupName = ASCIIFolder.foldMaintaining(args.shift());
+        const groupName = ASCIIFolder.foldReplacing(args.shift());
         groupName.trim();
 
         let roleLookup = message.guild?.roles.cache.find(role => role.name === groupName);
         if (roleLookup) {
-            message.reply("The team already exist, please select another name for the team!");
-            return;
+            let botMessage = message.reply("The team already exist, please select another name for the team!");
+            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
+            return false;
         }
 
         let role = await message.guild?.roles.create({
@@ -60,8 +66,9 @@ module.exports = {
         })
 
         if (role == undefined) {
-            message.reply("Could not create group "+groupName);
-            return
+            let botMessage = message.reply("Could not create group " + groupName);
+            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
+            return false;
         }
 
         let dbGroup: DBGroup;
@@ -81,7 +88,8 @@ module.exports = {
                     }
                 });
             }
-            message.channel.send(`Group ${role} was created. Role was added to mentioned users.`);
+            let botMessage = message.channel.send(`Group ${role} was created. Role was added to mentioned users.`);
+            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
         } else { // Invite required
             let membersCount = 0;
             let randomMemberId = "";
@@ -94,7 +102,7 @@ module.exports = {
                         let dmMessage = await member.send(`You have been invited to the team "${groupName}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nReact below, to join the team!.`);
                         dmMessage.react("✅");
                         dmMessage.react("❌");
-                        
+
                         (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
                     } catch (error) {
                         console.log(`There was an error sending invite to user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
@@ -103,10 +111,11 @@ module.exports = {
 
                 dbGroup.teamLeader = args.shift().toLowerCase().substring(2).trim().slice(0, -1) ?? randomMemberId;
             }
-            message.channel.send(`Group ${role} was created. Invites to team was send to all mentioned users.`);
+            let botMessage = message.channel.send(`Group ${role} was created. Invites was send to all mentioned users.`);
+            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
         }
 
         await dbGroup.save();
-
+        return dbGroup;
     },
 };
