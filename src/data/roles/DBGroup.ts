@@ -1,4 +1,5 @@
 import BotSystem from "../BotSystem";
+import ASCIIFolder from "../helper/ascii-folder";
 
 export class DBGroup {
     _id: undefined | string
@@ -10,11 +11,11 @@ export class DBGroup {
     timestamp: any;
 
     constructor(id: any, guildId: string, name: string, author: string, teamLeader: string, timestamp: any) {
-        this.id = id;
-        this.guildId = guildId;
-        this.name = name;
-        this.author = author;
-        this.teamLeader = teamLeader;
+        this.id = ASCIIFolder.foldReplacing(id);
+        this.guildId = ASCIIFolder.foldReplacing(guildId);
+        this.name = ASCIIFolder.foldReplacing(name);
+        this.author = ASCIIFolder.foldReplacing(author);
+        this.teamLeader = ASCIIFolder.foldReplacing(teamLeader);
         this.timestamp = timestamp;
     }
 
@@ -69,7 +70,14 @@ export class DBGroup {
     }
 
     private static generateClassFromDB(result: any): DBGroup {
-        const group = new DBGroup(result.id ?? undefined, result.guildId ?? "", result.name ?? "", result.author ?? "", result.teamLeader ?? "", result.timestamp ?? "")
+        const group = new DBGroup(
+            ASCIIFolder.foldReplacing(result.id ?? undefined), 
+            ASCIIFolder.foldReplacing(result.guildId ?? ""), 
+            ASCIIFolder.foldReplacing(result.name ?? ""), 
+            ASCIIFolder.foldReplacing(result.author ?? ""), 
+            ASCIIFolder.foldReplacing(result.teamLeader ?? ""), 
+            result.timestamp ?? ""
+        )
         group._id = result._id;
         return group;
     }
@@ -85,11 +93,11 @@ export class DBGroup {
             const options = { upsert: true };
             const updateDoc = {
                 $set: {
-                    id: this.id,
-                    guildId: this.guildId,
-                    name: this.name,
-                    author: this.author,
-                    teamLeader: this.teamLeader,
+                    id: ASCIIFolder.foldReplacing(this.id),
+                    guildId: ASCIIFolder.foldReplacing(this.guildId),
+                    name: ASCIIFolder.foldReplacing(this.name),
+                    author: ASCIIFolder.foldReplacing(this.author),
+                    teamLeader: ASCIIFolder.foldReplacing(this.teamLeader),
                     timestamp: this.timestamp
                 }
             };

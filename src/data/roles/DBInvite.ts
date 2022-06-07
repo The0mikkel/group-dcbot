@@ -1,5 +1,6 @@
 import { Client, Message } from "discord.js";
 import BotSystem from "../BotSystem";
+import ASCIIFolder from "../helper/ascii-folder";
 
 export class DBInvite {
     _id: undefined | string
@@ -9,10 +10,10 @@ export class DBInvite {
     guildId: string;
 
     constructor(userId: any, messageId: string, roleId: string, guildId: string) {
-        this.userId = userId;
-        this.messageId = messageId;
-        this.roleId = roleId;
-        this.guildId = guildId;
+        this.userId = ASCIIFolder.foldReplacing(userId);
+        this.messageId = ASCIIFolder.foldReplacing(messageId);
+        this.roleId = ASCIIFolder.foldReplacing(roleId);
+        this.guildId = ASCIIFolder.foldReplacing(guildId);
     }
 
     static async load(id: string): Promise<undefined | DBInvite> {
@@ -24,7 +25,7 @@ export class DBInvite {
             await mongoClient.connect();
             const invites = botSystem.mongoDatabase.collection("invites");
 
-            const query = { _id: id };
+            const query = { _id: ASCIIFolder.foldReplacing(id) };
             const options = {
             };
             result = await invites.findOne(query, options);
@@ -49,7 +50,7 @@ export class DBInvite {
             await mongoClient.connect();
             const invites = botSystem.mongoDatabase.collection("invites");
 
-            const query = { messageId: id };
+            const query = { messageId: ASCIIFolder.foldReplacing(id) };
             const options = {};
             result = await invites.findOne(query, options);
 
@@ -73,7 +74,7 @@ export class DBInvite {
             await mongoClient.connect();
             const invites = botSystem.mongoDatabase.collection("invites");
 
-            const query = { guildId: id };
+            const query = { guildId: ASCIIFolder.foldReplacing(id) };
             const options = {};
             result = await invites.findOne(query, options);
 
@@ -97,7 +98,7 @@ export class DBInvite {
             await mongoClient.connect();
             const invites = botSystem.mongoDatabase.collection("invites");
 
-            const query = { roleId: id };
+            const query = { roleId: ASCIIFolder.foldReplacing(id) };
             const options = {};
             result = await invites.findOne(query, options);
 
@@ -122,7 +123,7 @@ export class DBInvite {
             await mongoClient.connect();
             const invites = botSystem.mongoDatabase.collection("invites");
 
-            const query = { guildId: guildId };
+            const query = { guildId: ASCIIFolder.foldReplacing(guildId) };
             const cursor = invites.find(query);
 
             await cursor.forEach(element => {
@@ -138,7 +139,7 @@ export class DBInvite {
     }
 
     private static generateClassFromDB(result: any): DBInvite {
-        const invite = new DBInvite(result.userId ?? "", result.messageId ?? "", result.roleId ?? "", result.guildId ?? "");
+        const invite = new DBInvite(ASCIIFolder.foldReplacing(result.userId ?? ""), ASCIIFolder.foldReplacing(result.messageId ?? ""), ASCIIFolder.foldReplacing(result.roleId ?? ""), ASCIIFolder.foldReplacing(result.guildId ?? ""));
         invite._id = result._id ?? undefined;
         return invite;
     }
@@ -158,10 +159,10 @@ export class DBInvite {
             const options = { upsert: true };
             const updateDoc = {
                 $set: {
-                    userId: this.userId,
-                    messageId: this.messageId,
-                    roleId: this.roleId,
-                    guildId: this.guildId
+                    userId: ASCIIFolder.foldReplacing(this.userId),
+                    messageId: ASCIIFolder.foldReplacing(this.messageId),
+                    roleId: ASCIIFolder.foldReplacing(this.roleId),
+                    guildId: ASCIIFolder.foldReplacing(this.guildId)
                 }
             };
             const result = await invites.updateOne(filter, updateDoc, options);
@@ -180,7 +181,7 @@ export class DBInvite {
             const invites = botSystem.mongoDatabase.collection("invites");
 
             // Check if guild have been joined before
-            const query = { _id: id };
+            const query = { _id: ASCIIFolder.foldReplacing(id) };
             await invites.deleteOne(query);
         } catch (error) {
             console.log(error)

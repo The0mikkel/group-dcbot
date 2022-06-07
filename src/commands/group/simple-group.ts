@@ -1,4 +1,5 @@
 import { CategoryChannel, DMChannel, GuildChannel, Message } from "discord.js";
+import ASCIIFolder from "../../data/helper/ascii-folder";
 
 require("dotenv").config();
 
@@ -27,7 +28,7 @@ module.exports = {
         if (!args.length)
             return message.reply(`You need to specify a channel, to be able to use this command!`);
 
-        const groupName = args.shift();
+        const groupName = ASCIIFolder.foldReplacing(args.shift());
 
         let tempChannel: void | CategoryChannel;
         let channel: CategoryChannel;
