@@ -57,7 +57,6 @@ export default class GuidedTeamCreation {
                     console.log("Tried to delete message, but an error occurred!");
                 }
             })
-            console.log("Removing bot messages!")
             this.botMessages.forEach(async message => {
                 try {
                     await message.delete();
@@ -99,7 +98,7 @@ export default class GuidedTeamCreation {
                 this.state = GuidedTeamCreationState.awaitTeamMembers;
                 break;
             case GuidedTeamCreationState.awaitTeamMembers:
-                if (!message || !this.team) return;
+                if (!message || !this.team || this.team == null) return;
                 this.addUserMessage(message);
 
                 let role = this.team;
@@ -110,7 +109,7 @@ export default class GuidedTeamCreation {
                             try {
                                 member.roles.add(role.id ?? "");
                             } catch (error) {
-                                console.log(`There was an error adding user: ${member} for the role "${this.team.name}" and this was caused by: ${error}`)
+                                console.log(`There was an error adding user: ${member} for the role "${this.team?.name ?? "ukendt"}" and this was caused by: ${error}`)
                             }
                         });
                     }
@@ -122,13 +121,13 @@ export default class GuidedTeamCreation {
                                 return;
                             }
                             try {
-                                let dmMessage = await member.send(`You have been invited to the team "${this.team.name}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nReact below, to join the team!.`);
+                                let dmMessage = await member.send(`You have been invited to the team "${this.team?.name ?? "ukendt"}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nReact below, to join the team!.`);
                                 dmMessage.react("✅");
                                 dmMessage.react("❌");
 
                                 (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
                             } catch (error) {
-                                console.log(`There was an error sending invite to user: ${member} for the role "${this.team.name}" and this was caused by: ${error}`)
+                                console.log(`There was an error sending invite to user: ${member} for the role "${this.team?.name ?? "ukendt"}" and this was caused by: ${error}`)
                             }
                         });
                     }

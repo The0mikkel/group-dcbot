@@ -204,8 +204,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	}
 	botSystem.guild = guild;
-
-	console.log(`${user.username} reacted with "${reaction.emoji.name}" on ${reaction.message.id}`);
+	if (botSystem.env = envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on ${reaction.message.id}`);
 
 	if (reaction.message.id != "" && reaction.message.author?.id == client.user?.id) { // Execute only on messages created by the bot
 		console.log(`${user.username} reacted with "${reaction.emoji.name}".`);
@@ -233,7 +232,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		if (botSystem.guild && (user instanceof User) && !user.bot) {
 			// Guided team creation handling
 			if (botSystem.guild.guidedTeamStart.includes(reaction.message.id)) {
-				console.log("Guided creation started!");
 				try {
 					reaction.users.remove(user.id)
 				} catch (error) {
@@ -246,7 +244,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 				guidedCreation.step(undefined);
 			}
 		}
-		console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
+		if (botSystem.env = envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
 	}
 });
 
