@@ -10,12 +10,14 @@ export class DBGuild {
     config: Config;
     teamConfig: TeamConfig
     guidedTeamStart: string[] // Message ids for guided team creations
+    cleanChannels: string[] // Channel ids for clean channels
 
-    constructor(id = "", config = new Config, teamConfig = new TeamConfig, guidedTeamStart: string[] = []) {
+    constructor(id = "", config = new Config, teamConfig = new TeamConfig, guidedTeamStart: string[] = [], cleanChannels: string[] = []) {
         this.id = ASCIIFolder.foldReplacing(id);
         this.config = config;
         this.teamConfig = teamConfig;
         this.guidedTeamStart = guidedTeamStart;
+        this.cleanChannels = cleanChannels;
     }
 
     static async load(id: string): Promise<undefined | DBGuild> {
@@ -50,7 +52,13 @@ export class DBGuild {
             result.teamConfig?.allowEveryone ?? false, 
             result.teamConfig?.requireInvite ?? false, 
             InviteType[(result.teamConfig?.teamInviteType ?? "admin") as keyof typeof InviteType]) ?? InviteType.admin;
-        const guild = new DBGuild(result.id ?? undefined, config, teamConfig, result.guidedTeamStart ?? []);
+        const guild = new DBGuild(
+            result.id ?? undefined, 
+            config, 
+            teamConfig, 
+            result.guidedTeamStart ?? [],
+            result.cleanChannels ?? []
+        );
         guild._id = result._id;
         return guild;
     }
@@ -69,7 +77,8 @@ export class DBGuild {
                     id: this.id,
                     config: this.config,
                     teamConfig: this.teamConfig,
-                    guidedTeamStart: this.guidedTeamStart
+                    guidedTeamStart: this.guidedTeamStart,
+                    cleanChannels: this.cleanChannels
                 }
             };
             const result = await guilds.updateOne(filter, updateDoc, options);
