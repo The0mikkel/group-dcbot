@@ -59,6 +59,7 @@ export default class BotSystem {
         try {
             setTimeout(async () => {
                 try {
+                    message = await message.fetch();
                     await message.delete();
                 } catch (error) {
                     console.log("Error deleting auto delete message");

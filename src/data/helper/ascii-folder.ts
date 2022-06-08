@@ -20,7 +20,7 @@
  * the License.
  */
 export default class ASCIIFolder {
-    static mapping: any;
+    // static mapping: any;
 
     static foldReplacing(str = '', replacement = '') {
         return this._fold(str, () => replacement);
@@ -38,7 +38,7 @@ export default class ASCIIFolder {
             return '' + str;
 
         if (typeof str !== 'string')
-            throw new Error('Invalid input data type');
+            return str; // Returning if not string, as it is not possible to fold
 
         return str.split('').map(character => {
             if (character.charCodeAt(0) < 128) {
@@ -50,7 +50,7 @@ export default class ASCIIFolder {
         }).join('');
     }
 
-    mapping = new Map([
+    static mapping = new Map([
         [0xC0, 'A'],
         [0xC1, 'A'],
         [0xC2, 'A'],

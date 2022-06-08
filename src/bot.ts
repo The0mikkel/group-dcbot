@@ -89,6 +89,10 @@ async function handleMessageCreateEvent(message: Message) {
 		}
 		botSystem.guild = guild;
 
+		if (botSystem.guild?.cleanChannels.includes(message.channelId)) {
+			BotSystem.autoDeleteMessageByUser(message, 15000);
+		}
+
 		if (!message.author.bot) {
 			let guidedTeamCreation = botSystem.getGuidedTeamCreation(message.channel, message.author);
 			if (guidedTeamCreation && guidedTeamCreation.state != GuidedTeamCreationState.teamCreated) {

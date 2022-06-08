@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
 import { DBInvite } from "../../data/roles/DBInvite";
 
@@ -47,9 +48,14 @@ module.exports = {
             return false;
         }
 
-        var ASCIIFolder = require("./../../data/helper/ascii-folder");
         const groupName = ASCIIFolder.foldReplacing(args.shift());
         groupName.trim();
+
+        if (groupName == "") {
+            let botMessage = message.reply(`You need to specify a group name!`);
+            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
+            return false;
+        }
 
         let roleLookup = message.guild?.roles.cache.find(role => role.name === groupName);
         if (roleLookup) {

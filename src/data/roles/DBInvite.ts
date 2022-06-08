@@ -181,7 +181,7 @@ export class DBInvite {
             const invites = botSystem.mongoDatabase.collection("invites");
 
             // Check if guild have been joined before
-            const query = { _id: ASCIIFolder.foldReplacing(id) };
+            const query = { _id: ASCIIFolder.foldReplacing(id+"") };
             await invites.deleteOne(query);
         } catch (error) {
             console.log(error)
