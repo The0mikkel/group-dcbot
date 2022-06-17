@@ -1,19 +1,24 @@
 import { Message, MessageEmbed, Role } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import Command from "../../data/Command";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
-import { DBInvite } from "../../data/roles/DBInvite";
 
 require("dotenv").config();
 
-module.exports = {
-    name: 'team',
-    description: 'Get information about a team',
-    guildOnly: true,
-    args: true,
-    args_quantity: 1,
-    usage: '[team]',
-    async execute(message: Message, args: any) {
+export default class Team extends Command {
+    constructor() {
+        super(
+            "team",
+            'Get information about a team',
+            true,
+            true,
+            1,
+            '[team]'
+        )
+    }
+
+    async execute(message: Message, args: any): Promise<void> {
         const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
@@ -21,11 +26,13 @@ module.exports = {
         if (
             !message.member
         ) {
-            return message.channel.send("You don't have permission to add new team members!");
+            message.channel.send("You don't have permission to add new team members!");
+            return;
         }
 
         if (args.length < 1) {
-            return message.reply(`You need to specify a group`);
+            message.reply(`You need to specify a group`);
+            return;
         }
 
         let DiscordRole: Role | undefined;
@@ -62,5 +69,5 @@ module.exports = {
 				.setFooter({ text: 'Grouper', iconURL: botImage });
 		message.channel.send({ embeds: [teamInformation] });
 
-    },
+    }
 };

@@ -1,15 +1,21 @@
 import { CategoryChannel, DMChannel, GuildChannel, Message } from "discord.js";
+import Command from "../../data/Command";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 
 require("dotenv").config();
 
-module.exports = {
-    name: 'simple-group',
-    description: 'Create a simple group, by naming the goup and mentioning all users in the group. The group will be created in the current category. You need to be an administrator or have the "Manage channels" permission to use this command.',
-    guildOnly: true,
-    args: true,
-    args_quantity: 2,
-    usage: '[group name] [group members / roles]',
+export default class SimpleGroup extends Command {
+    constructor() {
+        super(
+            'simple-group',
+            'Create a simple group, by naming the goup and mentioning all users in the group. The group will be created in the current category. You need to be an administrator or have the "Manage channels" permission to use this command.',
+            true,
+            true,
+            2,
+            '[group name] [group members / roles]',
+        )
+    }
+
     async execute(message: Message, args: any) {
         // Check permissions
         if (
@@ -92,5 +98,5 @@ module.exports = {
         });
 
         message.channel.send(`Group ${channel} was created in the category ${message.channel.parent}`);
-    },
+    }
 };

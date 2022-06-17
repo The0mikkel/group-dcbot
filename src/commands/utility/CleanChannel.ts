@@ -1,24 +1,31 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import Command from "../../data/Command";
 import { Config } from "../../data/guild/Config";
 import ArrayRemover from "../../data/helper/ArrayRemover";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 
 require("dotenv").config();
 
-module.exports = {
-	name: 'clean-channel',
-	description: 'See or set the current channel to be a clean channel - All new messages will be deleted by the bot.',
-	guildOnly: true,
-	args: false,
-	args_quantity: 0,
-	usage: '[true/false]',
-	async execute(message: Message, args: any) {
+export default class CleanChannel extends Command {
+	constructor() {
+		super(
+			'clean-channel',
+			'See or set the current channel to be a clean channel - All new messages will be deleted by the bot.',
+			true,
+			undefined,
+			undefined,
+			'[true/false]'
+		)
+	}
+
+	async execute(message: Message, args: any): Promise<void> {
 		if (
 			!message.member
 			|| !message.member.permissions.has("ADMINISTRATOR")
 		) {
-			return message.channel.send("You need to be an administrator to do that.");
+			message.channel.send("You need to be an administrator to do that.");
+			return
 		}
 
 		const answer = ASCIIFolder.foldReplacing(args.shift() ?? "");
@@ -46,7 +53,7 @@ module.exports = {
 			}
 		} else {
 			message.reply("The current channel is " + (botSystem.guild?.cleanChannels.includes(message.channelId) ? "" : "not ") + "setup as a clean channel");
-			return false;
+			return;
 		}
-	},
+	}
 };

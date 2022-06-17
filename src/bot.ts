@@ -27,19 +27,6 @@ const client = new Discord.Client({
 });
 
 const botSystem = BotSystem.getInstance();
-botSystem.commands = new Discord.Collection();
-botSystem.cooldowns = new Discord.Collection();
-
-// Get all command files
-const commandFolders = fs.readdirSync('./dist/commands');
-
-for (const folder of commandFolders) {
-	const commandFiles = fs.readdirSync(`./dist/commands/${folder}`).filter(file => file.endsWith('.js'));
-	for (const file of commandFiles) {
-		const command = require(`./commands/${folder}/${file}`);
-		botSystem.commands.set(command.name, command);
-	}
-}
 
 // Booting bot
 client.on("ready", () => {
@@ -106,7 +93,7 @@ async function handleMessageCreateEvent(message: Message) {
 			prefix = (guild.config.prefix ?? process.env.bot_prefix).trim();
 		}
 		if (!message.content.startsWith(prefix) || message.author.bot) {
-			if (botSystem.env = envType.dev) console.log("Message not send to bot");
+			if (botSystem.env == envType.dev) console.log("Message not send to bot");
 			return
 		};
 
@@ -118,24 +105,31 @@ async function handleMessageCreateEvent(message: Message) {
 			|| botSystem.commands.find((cmd: any) => cmd.aliases && cmd.aliases.includes(commandName));
 
 		if (!command) {
-			if (botSystem.env = envType.dev) console.log("Message not a command");
+			if (botSystem.env == envType.dev) console.log("Message not a command");
 			message.reply("I don't know that command.");
 			return
 		};
 
 		// Checking dm compatebility
 		if (command.guildOnly && (message.channel.type === 'DM')) {
-			if (botSystem.env = envType.dev) console.log("Message send in a DM, when not available in DMs");
+			if (botSystem.env == envType.dev) console.log("Message send in a DM, when not available in DMs");
 			return message.reply('I can\'t execute that command inside DMs!');
 		}
 
 		// Permissions checking
 		if (command.permissions && message.channel instanceof BaseGuildTextChannel) {
 			const authorPerms = message.channel.permissionsFor(message.author);
-			if (!authorPerms || !authorPerms.has(command.permissions)) {
-				if (botSystem.env = envType.dev) console.log("Permissions missing");
+			if (!authorPerms) {
+				if (botSystem.env == envType.dev) console.log("Permissions missing");
 				return message.reply('You can not do this!');
 			}
+			// || !authorPerms.has(command.permissions)
+			command.permissions.forEach(permission => {
+				if (!authorPerms.has(permission)) {
+					if (botSystem.env == envType.dev) console.log("Permissions missing");
+					return message.reply('You do not have the right permissions to use this command!');
+				}
+			});
 		}
 
 		// Argument length validation
@@ -146,7 +140,7 @@ async function handleMessageCreateEvent(message: Message) {
 				reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
 			}
 
-			if (botSystem.env = envType.dev) console.log("Arguments missing");
+			if (botSystem.env == envType.dev) console.log("Arguments missing");
 			return message.channel.send(reply);
 		}
 
@@ -161,24 +155,24 @@ async function handleMessageCreateEvent(message: Message) {
 		const timestamps = cooldowns.get(command.name);
 		const cooldownAmount = (command.cooldown || 0) * 1000;
 
-		if (timestamps.has(message.author.id)) {
-			const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+		if (timestamps?.has(message.author.id)) {
+			const expirationTime = (timestamps?.get(message.author.id) ?? now) + cooldownAmount;
 
 			if (now < expirationTime) {
 				const timeLeft = (expirationTime - now) / 1000;
-				if (botSystem.env = envType.dev) console.log("Cooldown reached");
+				if (botSystem.env == envType.dev) console.log("Cooldown reached");
 				return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
 			}
 		}
 
-		timestamps.set(message.author.id, now);
-		setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+		timestamps?.set(message.author.id, now);
+		setTimeout(() => timestamps?.delete(message.author.id), cooldownAmount);
 
 		// Execure command
 		try {
-			command.execute(message, args);
+			command.execute(message, args, false, 0);
 		} catch (error) {
-			if (botSystem.env = envType.dev) console.log(error);
+			if (botSystem.env == envType.dev) console.log(error);
 			console.error(error);
 			message.reply('there was an error trying to execute that command!');
 		}
@@ -208,7 +202,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	}
 	botSystem.guild = guild;
-	if (botSystem.env = envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on ${reaction.message.id}`);
+	if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on ${reaction.message.id}`);
 
 	if (reaction.message.id != "" && reaction.message.author?.id == client.user?.id) { // Execute only on messages created by the bot
 		console.log(`${user.username} reacted with "${reaction.emoji.name}".`);
@@ -248,7 +242,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 				guidedCreation.step(undefined);
 			}
 		}
-		if (botSystem.env = envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
+		if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
 	}
 });
 

@@ -1,13 +1,15 @@
 import { Client, Collection, DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User } from "discord.js";
-import { Db, MongoClient } from "mongodb";
+import { Db, MongoClient, Timestamp } from "mongodb";
 import { DBGuild } from "./guild/DBGuild";
 import Discord from "discord.js";
 import { envType } from "./envType";
 import GuidedTeamCreation from "./GuidedTeamCreation/GuidedTeamCreation";
+import Command from "./Command";
+import fs from 'fs';
 
 export default class BotSystem {
-    commands: Collection<string, any>
-    cooldowns: any
+    commands: Collection<string, Command>
+    cooldowns: Collection<string, Collection<string, number>>
     guild: DBGuild | undefined
     mongoUrl: string;
     mongoClient: MongoClient;
@@ -20,13 +22,16 @@ export default class BotSystem {
     public static client: Client;
 
     private constructor() {
-        this.commands = new Discord.Collection()
-        this.cooldowns = new Discord.Collection()
+        this.commands = new Discord.Collection<string, Command>() 
+        this.loadCommands();
+        this.cooldowns = new Discord.Collection<string, Collection<string, number>>()
+        
         this.guild = undefined;
         this.mongoUrl = process.env.database_url ?? "";
         this.mongoClient = new MongoClient(this.mongoUrl);
         this.mongoDatabase = this.mongoClient.db("grouper")
-        this.env = envType[(process.env.env ?? "prod") as keyof typeof envType] ?? envType.prod;
+
+        this.env = envType[((process.env.env ?? "prod") as keyof typeof envType)] ?? envType.prod;
 
         this.openGuidedTeamCreations = new Map;
         this.openGuidedTeamCreationsKey = 0;
@@ -112,5 +117,22 @@ export default class BotSystem {
                 this.openGuidedTeamCreations.delete(key);
             }
         })
+    }
+
+    async loadCommands() {
+        const commandFolders = fs.readdirSync('./dist/commands');
+        for (const folder of commandFolders) {
+            const commandFiles = fs.readdirSync(`./dist/commands/${folder}`).filter(file => file.endsWith('.js'));
+            for (const file of commandFiles) {
+                import(`../commands/${folder}/${file}`).then(command => {
+                    try {
+                        let obj = new command.default;
+                        this.commands.set(obj.name, obj);
+                    } catch (error) {
+                        console.error(error);
+                    }
+                });
+            }
+        }
     }
 }

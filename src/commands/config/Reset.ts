@@ -1,16 +1,19 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import Command from "../../data/Command";
 import { Config } from "../../data/guild/Config";
 
 require("dotenv").config();
 
-module.exports = {
-    name: 'reset',
-	description: 'Reset bot for guild',
-    guildOnly: true,
-    args: false,
-    args_quantity: 0,
-    usage: '',
+export default class Reset extends Command {
+    constructor() {
+        super(
+            'reset',
+            'Reset bot for guild',
+            true
+        )
+    }
+
 	execute(message: Message, args: any) {
         if(
             !message.member
@@ -20,7 +23,7 @@ module.exports = {
         }
         
         resetGuild(message, args);
-	},
+	}
 };
 
 async function resetGuild(message: Message, args: any) {

@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import Command from "../../data/Command";
 import { InviteType } from "../../data/guild/InviteType";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
@@ -7,15 +8,20 @@ import { DBInvite } from "../../data/roles/DBInvite";
 
 require("dotenv").config();
 
-module.exports = {
-    name: 'team-invite',
-    description: 'Invite a new member to the team',
-    guildOnly: true,
-    args: true,
-    args_quantity: 2,
-    cooldown: 5,
-    usage: '[team] [team member]',
-    async execute(message: Message, args: any) {
+export default class TeamInvite extends Command {
+    constructor() {
+        super(
+            "team-invite",
+            'Invite a new member to the team',
+            true,
+            true,
+            2,
+            '[team] [team member]',
+        )
+        
+    }
+
+    async execute(message: Message, args: any): Promise<void> {
         const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
@@ -24,7 +30,7 @@ module.exports = {
             !message.member
         ) {
             message.channel.send("You don't have permission to add new team members!");
-            return false;
+            return;
         }
 
         if (
@@ -32,12 +38,12 @@ module.exports = {
             && !message.member.permissions.has("ADMINISTRATOR")
         ) {
             message.channel.send("You don't have permission to add new team members - Only admins can do that.");
-            return false;
+            return;
         }
 
         if (args.length < 2) {
             message.reply(`You need to specify a group name and group members!`);
-            return false;
+            return;
         }
 
         let roleId: string | undefined;
@@ -53,26 +59,26 @@ module.exports = {
         }
         if (!roleId) {
             message.reply("The team does not exist!");
-            return false;
+            return;
         }
 
         let role = await DBGroup.load(roleId ?? "");
         if (role == undefined) {
             message.reply("The team does not exist!");
-            return false;
+            return;
         }
 
         if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("ADMINISTRATOR")) {
             if (role?.teamLeader != message.author.id) {
                 message.reply("This action can only be performed by the team leader!");
-                return false;
+                return;
             }
         } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("ADMINISTRATOR")) {
             let currentUser = await message.guild?.members.fetch(message.author.id);
             currentUser?.roles.cache.has(role?.id);
             if (role?.teamLeader != message.author.id) {
                 message.reply("This action can only be performed by a member of the team!");
-                return false;
+                return;
             }
         }
 
@@ -106,5 +112,5 @@ module.exports = {
             }
             message.channel.send(`Invites to team has been send to all mentioned users.`);
         }
-    },
+    }
 };

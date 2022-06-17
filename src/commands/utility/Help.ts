@@ -1,16 +1,26 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import Command from "../../data/Command";
 
 require("dotenv").config();
 const { MessageEmbed } = require('discord.js');
 
-module.exports = {
-	name: 'help',
-	description: 'List all of my commands or info about a specific command.',
-	aliases: ['commands'],
-	usage: '[command name]',
-	cooldown: 5,
-	execute(message: Message, args: any) {
+export default class help extends Command {
+	constructor() {
+		super(
+			'help',
+			'List all of my commands or info about a specific command.',
+			false,
+			false,
+			1,
+			'[command name]',
+			undefined,
+			undefined,
+			['commands'],
+		)
+	}
+
+	async execute(message: Message, args: any): Promise<void> {
 		let data = [];
 		let commands = BotSystem.getInstance().commands;
 		const image = message.client.user?.avatarURL() ?? "";
@@ -47,7 +57,8 @@ module.exports = {
 		const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
 
 		if (!command) {
-			return message.reply('that\'s not a valid command!');
+			message.reply('that\'s not a valid command!');
+			return
 		}
 
 		data.push(`**Name:** ${command.name}`);
@@ -65,5 +76,5 @@ module.exports = {
 				.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild)?.config.prefix })
 				.setFooter({ text: 'Grouper', iconURL: image });
 		message.channel.send({ embeds: [specificHelp] });
-	},
+	}
 };

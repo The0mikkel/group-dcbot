@@ -1,16 +1,22 @@
 import { Message } from "discord.js";
+import Command from "../../data/Command";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
 
 require("dotenv").config();
 
-module.exports = {
-    name: 'group',
-    description: 'Create a group, by naming the goup and mentioning all users in the group. A role of the same name as the group will be created. You need to be an administrator or have the "Manage channels" permission to use this command.',
-    guildOnly: true,
-    args: true,
-    args_quantity: 2,
-    usage: '[group name] [group members]',
+export default class Group extends Command {
+    constructor() {
+        super(
+            'group',
+            'Create a group, by naming the goup and mentioning all users in the group. A role of the same name as the group will be created. You need to be an administrator or have the "Manage channels" permission to use this command.',
+            true,
+            true,
+            2,
+            '[group name] [group members]',
+        )
+    }
+
     async execute(message: Message, args: any) {
         // Check permissions
         if (
@@ -57,5 +63,5 @@ module.exports = {
         }
 
         message.channel.send(`Group ${role} was created.`);
-    },
+    }
 };

@@ -1,18 +1,24 @@
 import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import Command from "../../data/Command";
 import { InviteType } from "../../data/guild/InviteType";
-import { TeamConfig } from "../../data/guild/TeamConfig";
+import { TeamConfig as DBTeamConfig } from "../../data/guild/TeamConfig";
 import { DBGroup } from "../../data/roles/DBGroup";
 
 require("dotenv").config();
 
-module.exports = {
-    name: 'team-config',
-    description: 'See available team configuration commands',
-    guildOnly: true,
-    args: false,
-    args_quantity: 0,
-    usage: '[command]',
+export default class TeamConfig extends Command {
+    constructor() {
+        super(
+            'team-config',
+            'See available team configuration commands',
+            true,
+            false,
+            0,
+            '[command]',
+        );
+    }
+
     async execute(message: Message, args: any) {
         if (
             !message.member
@@ -120,7 +126,7 @@ module.exports = {
 
                 break;
             default:
-                const teamConfigCommandEmbed = new MessageEmbed()
+                const DBTeamConfigCommandEmbed = new MessageEmbed()
                     .setColor('#0099ff')
                     .setTitle('Command list:')
                     .setDescription(
@@ -136,10 +142,10 @@ module.exports = {
                     )
                     .setFooter({ text: 'Grouper', iconURL: botImage });
                 message.reply("Currently, there are the following")
-                message.channel.send({ embeds: [teamConfigCommandEmbed] });
+                message.channel.send({ embeds: [DBTeamConfigCommandEmbed] });
                 return;
         }
-    },
+    }
 };
 
 function writeRolesCreateTeamList(message: Message) {
@@ -147,7 +153,7 @@ function writeRolesCreateTeamList(message: Message) {
     const teamRoles = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle('Roles, that can create teams:')
-        .setDescription((BotSystem.getInstance().guild?.teamConfig.creatorRole ?? []).map(role => TeamConfig.getRoleName(role, message)).join('\n'))
+        .setDescription((BotSystem.getInstance().guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
         .setFooter({ text: 'Grouper', iconURL: botImage });
     message.channel.send({ embeds: [teamRoles] });
 }

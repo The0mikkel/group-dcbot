@@ -1,19 +1,24 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
+import Command from "../../data/Command";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
 import { DBInvite } from "../../data/roles/DBInvite";
 
 require("dotenv").config();
 
-module.exports = {
-    name: 'create-team',
-    description: 'Create team with mentioned users - Remember to mention yourself. The first mentioned user, will be the team leader',
-    guildOnly: true,
-    args: true,
-    args_quantity: 2,
-    cooldown: 5,
-    usage: '[team name] [team-leader] [members...]',
+export default class TeamCreate extends Command {
+    constructor() {
+        super(
+            'create-team',
+            'Create team with mentioned users - Remember to mention yourself. The first mentioned user, will be the team leader',
+            true,
+            true,
+            2,
+            '[team name] [team-leader] [members...]',
+        )
+    }
+
     async execute(message: Message, args: any, autoDelete = false): Promise<false | DBGroup> {
         const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
@@ -123,5 +128,5 @@ module.exports = {
 
         await dbGroup.save();
         return dbGroup;
-    },
+    }
 };
