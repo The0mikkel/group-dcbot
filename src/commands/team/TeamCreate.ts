@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, Role } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import Command from "../../data/Command";
 import ASCIIFolder from "../../data/helper/ascii-folder";
@@ -19,7 +19,11 @@ export default class TeamCreate extends Command {
         )
     }
 
-    async execute(message: Message, args: any, autoDelete = false): Promise<false | DBGroup> {
+    async execute(message: Message, args: any, autoDelete = false): Promise<void> {
+        await this.createTeam(message, args, autoDelete);
+    }
+
+    async createTeam(message: Message, args: any, autoDelete = false): Promise<false | DBGroup> {
         const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();

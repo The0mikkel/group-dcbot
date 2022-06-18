@@ -23,15 +23,19 @@ export default class Group extends Command {
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            return message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            return;
         }
 
         if (!message.guild) {
-            return message.reply('I can\'t execute outsite Guilds!');
+            message.reply('I can\'t execute outsite Guilds!');
+            return;
         }
 
-        if (!args.length)
-            return message.reply(`You need to specify a group name and group members!`);
+        if (!args.length) {
+            message.reply(`You need to specify a group name and group members!`);
+            return;
+        }
 
         const groupName = ASCIIFolder.foldReplacing(args.shift());
 
@@ -43,7 +47,7 @@ export default class Group extends Command {
         })
 
         try {
-            new DBGroup(role.id, message.guild.id, role.name, message.author.id, "", Date.now()).save()            
+            new DBGroup(role.id, message.guild.id, role.name, message.author.id, "", Date.now()).save()
         } catch (error) {
             console.log(error);
         }
@@ -63,5 +67,6 @@ export default class Group extends Command {
         }
 
         message.channel.send(`Group ${role} was created.`);
+        return;
     }
 };

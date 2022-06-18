@@ -1,4 +1,5 @@
 import { DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User } from "discord.js";
+import TeamCreate from "../../commands/team/TeamCreate";
 import BotSystem from "../BotSystem";
 import { DBGuild } from "../guild/DBGuild";
 import ASCIIFolder from "../helper/ascii-folder";
@@ -89,7 +90,8 @@ export default class GuidedTeamCreation {
                     message.mentions.members?.set(message.author.id, messageGuildMember);
                 }
 
-                let groupCreation = await require("../../commands/team/team-create").execute(message, [groupName, "<!" + message.author.id + ">"], true);
+                const teamCreate = new TeamCreate();
+                let groupCreation = await teamCreate.createTeam(message, [groupName, "<!" + message.author.id + ">"], true);
                 if (!groupCreation) {
                     return;
                 }

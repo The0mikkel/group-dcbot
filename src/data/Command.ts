@@ -1,4 +1,4 @@
-import { Message, PermissionFlags, PermissionResolvable, Permissions } from "discord.js";
+import { Message, PermissionResolvable } from "discord.js";
 
 export default abstract class Command {
     name: string; // Command
@@ -33,5 +33,5 @@ export default abstract class Command {
         this.aliases = aliases;
     }
 
-    abstract execute(message: Message, args: any, autoDelete: boolean, autoDeleteTime: number): any;
+    abstract execute(message: Message, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void>;
 }

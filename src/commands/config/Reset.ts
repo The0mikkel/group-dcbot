@@ -14,15 +14,17 @@ export default class Reset extends Command {
         )
     }
 
-	execute(message: Message, args: any) {
+	async execute(message: Message, args: any) {
         if(
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            return message.channel.send("You need to be an administrator to do that.");
+            message.channel.send("You need to be an administrator to do that.");
+            return;
         }
         
         resetGuild(message, args);
+        return;
 	}
 };
 

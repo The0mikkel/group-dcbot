@@ -16,7 +16,7 @@ export default class Ping extends Command {
 		)
 	}
 
-	execute(message: Message) {
+	async execute(message: Message) {
 		message.channel.send('Pong');
 	}
 };

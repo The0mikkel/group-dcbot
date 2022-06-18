@@ -23,16 +23,20 @@ export default class SimpleGroup extends Command {
             || !message.member.permissions.has("MANAGE_CHANNELS")
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            return message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            return;
         }
 
         if (!message.guild) {
-            return message.reply('I can\'t execute outsite Guilds!');
+            message.reply('I can\'t execute outsite Guilds!');
+            return;
         }
 
         // Check if there is any args - Channel id
-        if (!args.length)
-            return message.reply(`You need to specify a channel, to be able to use this command!`);
+        if (!args.length) {
+            message.reply(`You need to specify a channel, to be able to use this command!`);
+            return;
+        }
 
         const groupName = ASCIIFolder.foldReplacing(args.shift());
 

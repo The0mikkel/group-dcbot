@@ -63,6 +63,9 @@ client.on("guildDelete", async (guild: Guild) => {
 // React on message
 client.on('messageCreate', (message: Message) => { handleMessageCreateEvent(message) });
 async function handleMessageCreateEvent(message: Message) {
+	if (message.author.bot) {
+		return; // Do not run system if it was a bot message
+	}
 	// console.log(["Env:",botSystem.env]);
 	try {
 		let guild: DBGuild | undefined | boolean;

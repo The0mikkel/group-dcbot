@@ -19,11 +19,13 @@ export default class GroupsCreated extends Command {
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            return message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            return;
         }
 
         if (!message.guild) {
-            return message.reply('I can\'t execute outsite Guilds!');
+            message.reply('I can\'t execute outsite Guilds!');
+            return;
         }
 
         let groups = await DBGroup.loadFromGuild(message.guild.id);

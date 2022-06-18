@@ -24,7 +24,8 @@ export default class TeamConfig extends Command {
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            return message.channel.send("You don't have permission to add new teams!");
+            message.channel.send("You don't have permission to add new teams!");
+            return;
         }
 
         const botSystem = BotSystem.getInstance();
