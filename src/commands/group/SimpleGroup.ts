@@ -1,10 +1,10 @@
 import { CategoryChannel, DMChannel, GuildChannel, Message } from "discord.js";
-import Command from "../../data/Command";
+import GroupCommand from "../../data/Command/Types/GroupCommand";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 
 require("dotenv").config();
 
-export default class SimpleGroup extends Command {
+export default class SimpleGroup extends GroupCommand {
     constructor() {
         super(
             'simple-group',

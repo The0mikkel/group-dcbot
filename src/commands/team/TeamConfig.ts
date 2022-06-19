@@ -1,13 +1,12 @@
 import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
-import Command from "../../data/Command";
+import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { InviteType } from "../../data/guild/InviteType";
 import { TeamConfig as DBTeamConfig } from "../../data/guild/TeamConfig";
-import { DBGroup } from "../../data/roles/DBGroup";
 
 require("dotenv").config();
 
-export default class TeamConfig extends Command {
+export default class TeamConfig extends TeamCommand {
     constructor() {
         super(
             'team-config',

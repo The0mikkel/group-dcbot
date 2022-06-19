@@ -1,4 +1,5 @@
 import { Message, PermissionResolvable } from "discord.js";
+import Type from "./Types/Type";
 
 export default abstract class Command {
     name: string; // Command

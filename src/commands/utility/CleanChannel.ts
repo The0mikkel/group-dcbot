@@ -1,13 +1,13 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
-import Command from "../../data/Command";
+import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 import { Config } from "../../data/guild/Config";
 import ArrayRemover from "../../data/helper/ArrayRemover";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 
 require("dotenv").config();
 
-export default class CleanChannel extends Command {
+export default class CleanChannel extends UtilityCommand {
 	constructor() {
 		super(
 			'clean-channel',
@@ -15,7 +15,9 @@ export default class CleanChannel extends Command {
 			true,
 			undefined,
 			undefined,
-			'[true/false]'
+			'[true/false]',
+			undefined,
+			["ADMINISTRATOR"]
 		)
 	}
 

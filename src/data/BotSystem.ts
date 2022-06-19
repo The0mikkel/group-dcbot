@@ -4,7 +4,7 @@ import { DBGuild } from "./guild/DBGuild";
 import Discord from "discord.js";
 import { envType } from "./envType";
 import GuidedTeamCreation from "./GuidedTeamCreation/GuidedTeamCreation";
-import Command from "./Command";
+import Command from "./Command/Command";
 import fs from 'fs';
 
 export default class BotSystem {

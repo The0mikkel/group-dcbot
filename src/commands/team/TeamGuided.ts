@@ -1,11 +1,11 @@
 import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
-import Command from "../../data/Command";
+import TeamCommand from "../../data/Command/Types/TeamCommand";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 
 require("dotenv").config();
 
-export default class TeamGuided extends Command {
+export default class TeamGuided extends TeamCommand {
     constructor() {
         super(
             'team-guided',

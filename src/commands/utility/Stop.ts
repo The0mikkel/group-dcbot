@@ -1,9 +1,9 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
-import Command from "../../data/Command";
+import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 import { envType } from "../../data/envType";
 
-export default class Stop extends Command {
+export default class Stop extends UtilityCommand {
 	constructor() {
 		super(
 			"stop",

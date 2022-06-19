@@ -1,11 +1,11 @@
 import { Message } from "discord.js";
-import Command from "../../data/Command";
+import GroupCommand from "../../data/Command/Types/GroupCommand";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
 
 require("dotenv").config();
 
-export default class Group extends Command {
+export default class Group extends GroupCommand {
     constructor() {
         super(
             'group',

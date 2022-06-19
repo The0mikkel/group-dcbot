@@ -1,10 +1,10 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
-import Command from "../../data/Command";
+import ConfigCommand from "../../data/Command/Types/ConfigCommand";
 
 require("dotenv").config();
 
-export default class EditPrefix extends Command {
+export default class EditPrefix extends ConfigCommand {
 
     constructor() {
         super(

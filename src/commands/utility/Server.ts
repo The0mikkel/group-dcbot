@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
-import Command from "../../data/Command";
+import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 
-export default class Server extends Command {
+export default class Server extends UtilityCommand {
 	constructor() {
 		super(
 			"server",

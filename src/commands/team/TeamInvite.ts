@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
-import Command from "../../data/Command";
+import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { InviteType } from "../../data/guild/InviteType";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
@@ -8,7 +8,7 @@ import { DBInvite } from "../../data/roles/DBInvite";
 
 require("dotenv").config();
 
-export default class TeamInvite extends Command {
+export default class TeamInvite extends TeamCommand {
     constructor() {
         super(
             "team-invite",

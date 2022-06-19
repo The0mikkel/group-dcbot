@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
-import Command from "../../data/Command";
+import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 
-export default class UserInfo extends Command {
+export default class UserInfo extends UtilityCommand {
 	constructor() {
 		super(
 			'user-info',

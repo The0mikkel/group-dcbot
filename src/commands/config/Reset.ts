@@ -1,11 +1,11 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
-import Command from "../../data/Command";
+import ConfigCommand from "../../data/Command/Types/ConfigCommand";
 import { Config } from "../../data/guild/Config";
 
 require("dotenv").config();
 
-export default class Reset extends Command {
+export default class Reset extends ConfigCommand {
     constructor() {
         super(
             'reset',

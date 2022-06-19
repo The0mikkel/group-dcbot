@@ -120,19 +120,23 @@ async function handleMessageCreateEvent(message: Message) {
 		}
 
 		// Permissions checking
-		if (command.permissions && message.channel instanceof BaseGuildTextChannel) {
+		if (command.permissions) {
+			if (!(message.channel instanceof BaseGuildTextChannel)) {
+				message.reply('I can\'t execute that command outside guilds!')
+				return;
+			}
 			const authorPerms = message.channel.permissionsFor(message.author);
 			if (!authorPerms) {
 				if (botSystem.env == envType.dev) console.log("Permissions missing");
 				return message.reply('You can not do this!');
 			}
 			// || !authorPerms.has(command.permissions)
-			command.permissions.forEach(permission => {
-				if (!authorPerms.has(permission)) {
+			for (let index = 0; index < command.permissions.length; index++) {
+				if (!authorPerms.has(command.permissions[index])) {
 					if (botSystem.env == envType.dev) console.log("Permissions missing");
 					return message.reply('You do not have the right permissions to use this command!');
 				}
-			});
+			};
 		}
 
 		// Argument length validation

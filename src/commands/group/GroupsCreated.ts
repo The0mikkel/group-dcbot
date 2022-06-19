@@ -1,10 +1,10 @@
 import { Message, MessageEmbed } from "discord.js";
-import Command from "../../data/Command";
+import GroupCommand from "../../data/Command/Types/GroupCommand";
 import { DBGroup } from "../../data/roles/DBGroup";
 
 require("dotenv").config();
 
-export default class GroupsCreated extends Command {
+export default class GroupsCreated extends GroupCommand {
     constructor() {
         super(
             'groups-created',

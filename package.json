@@ -25,7 +25,6 @@
     "dotenv": "^10.0.0",
     "mongodb": "^4.6.0",
     "node": "^17.7.2",
-    "sqlite3": "^5.0.8",
     "string-sanitizer": "^2.0.2"
   },
   "devDependencies": {
