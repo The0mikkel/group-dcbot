@@ -9,6 +9,7 @@ import fs from 'fs';
 
 export default class BotSystem {
     commands: Collection<string, Command>
+    commandTypeMap: Map<string, Command[]>
     cooldowns: Collection<string, Collection<string, number>>
     guild: DBGuild | undefined
     mongoUrl: string;
@@ -36,6 +37,8 @@ export default class BotSystem {
         this.openGuidedTeamCreations = new Map;
         this.openGuidedTeamCreationsKey = 0;
         setInterval(() => { this.filterOpenGuidedTeamCreations() }, 60000);
+
+        this.commandTypeMap = new Map;
     }
 
     static getInstance() {
@@ -124,10 +127,15 @@ export default class BotSystem {
         for (const folder of commandFolders) {
             const commandFiles = fs.readdirSync(`./dist/commands/${folder}`).filter(file => file.endsWith('.js'));
             for (const file of commandFiles) {
-                import(`../commands/${folder}/${file}`).then(command => {
+                await import(`../commands/${folder}/${file}`).then(command => {
                     try {
                         let obj = new command.default;
                         this.commands.set(obj.name, obj);
+                        
+                        if (!this.commandTypeMap.has(obj.category)) {
+                            this.commandTypeMap.set(obj.category, []);
+                        }
+                        this.commandTypeMap.get(obj.category)?.push(obj);
                     } catch (error) {
                         console.error(error);
                     }

@@ -1,7 +1,31 @@
+import { PermissionResolvable } from "discord.js";
 import Command from "../Command";
 import Type from "./Type";
 
-export default abstract class UtilityCommand extends Command implements Type {
-    declare category: "utility";
-    declare categoryEmoji: ":information_source:";
+export default abstract class UtilityCommand extends Command {
+    constructor(
+        name: string,
+        description: string,
+        guildOnly: boolean = false,
+        args: boolean = false,
+        args_quantity: number = 0,
+        usage: string = "",
+        cooldown: number = 5,
+        permissions: PermissionResolvable[] = [],
+        aliases: string[] = []
+    ) {
+        super(
+            name,
+            description,
+            guildOnly,
+            args,
+            args_quantity,
+            usage,
+            cooldown,
+            permissions,
+            aliases,
+            "utility",
+            "ℹ️"
+        );
+    }
 }
