@@ -1,4 +1,4 @@
-export default interface Type {
+export default interface CommandType {
     category: string;
     categoryEmoji: string;
 }

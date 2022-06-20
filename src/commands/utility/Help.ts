@@ -1,6 +1,7 @@
 import { Message, MessageActionRow, MessageButton } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import Command from "../../data/Command/Command";
+import CommandType from "../../data/Command/Types/CommandType";
 import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 
 require("dotenv").config();
@@ -22,14 +23,8 @@ export default class help extends UtilityCommand {
 
 		this.typemap = BotSystem.getInstance().commandTypeMap;
 		this.pages = [];
-		this.pageEmojis = [];
 		this.image = BotSystem.client?.user?.avatarURL() ?? "";
 	}
-
-	typemap: Map<string, Command[]>;
-	pages: string[];
-	pageEmojis: string[];
-	image: string;
 
 	async execute(message: Message, args: any): Promise<void> {
 		if (this.image == "") {
@@ -39,7 +34,8 @@ export default class help extends UtilityCommand {
 		let commands = BotSystem.getInstance().commands;
 
 		if (!args.length) { // General command
-			this.pageHelp(message);
+			let helpPage = new help();
+			helpPage.pageHelp(message);
 			return;
 		}
 
@@ -59,6 +55,10 @@ export default class help extends UtilityCommand {
 
 		this.commandSpecificHelp(message, command);
 	}
+
+	typemap: Map<string, Command[]>;
+	pages: CommandType[];
+	image: string;
 
 	private async pageHelp(message: Message, page: string = this.category) {
 		
@@ -92,18 +92,14 @@ export default class help extends UtilityCommand {
 		}
 
 		if (this.pages.length <= 0) {
-			let pages: string[];
-			let pageEmojis: string[];
+			let pages: CommandType[];
 			pages = [];
-			pageEmojis = [];
 			this.typemap.forEach(commandList => {
 				if (!commandList[0]) return;
-				pages.push(commandList[0].category);
-				pageEmojis.push(commandList[0].categoryEmoji);
+				pages.push(commandList[0]);
 			});
 
 			this.pages = pages;
-			this.pageEmojis = pageEmojis;
 		}
 
 		let pageCommands = this.typemap.get(page);
@@ -128,11 +124,11 @@ export default class help extends UtilityCommand {
 		const buttons = new MessageActionRow();
 		for (let index = 0; index < this.pages.length; index++) {
 			try {
-				const buttonType = page == this.pages[index] ? 'SUCCESS' : 'SECONDARY';
+				const buttonType = page == this.pages[index].category ? 'SUCCESS' : 'SECONDARY';
 				buttons.addComponents(
 					new MessageButton()
-						.setCustomId(`help-message;${this.pages[index]}`)
-						.setLabel(`${this.pageEmojis[index]} ${this.pages[index]}`)
+						.setCustomId(`help-message;${this.pages[index].category}`)
+						.setLabel(`${this.pages[index].categoryEmoji} ${this.pages[index].category}`)
 						.setStyle(buttonType),
 				);
 			} catch (error) {

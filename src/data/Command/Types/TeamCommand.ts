@@ -1,6 +1,5 @@
 import { PermissionResolvable } from "discord.js";
 import Command from "../Command";
-import Type from "./Type";
 
 export default abstract class TeamCommand extends Command {
     constructor(

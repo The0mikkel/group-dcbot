@@ -1,7 +1,7 @@
-import { Message, PermissionResolvable } from "discord.js";
-import Type from "./Types/Type";
+import { Message, PermissionResolvable, User } from "discord.js";
+import CommandType from "./Types/CommandType";
 
-export default abstract class Command implements Type {
+export default abstract class Command implements CommandType {
     name: string; // Command
     description: string;
     guildOnly: boolean;
