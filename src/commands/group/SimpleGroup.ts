@@ -2,7 +2,7 @@ import { CategoryChannel, DMChannel, GuildChannel, Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
-import ASCIIFolder from "../../data/helper/ascii-folder";
+import ASCIIFolder from "../../data/Helper/ascii-folder";
 
 require("dotenv").config();
 

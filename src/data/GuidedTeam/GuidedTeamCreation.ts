@@ -1,10 +1,10 @@
 import { DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User } from "discord.js";
 import TeamCreate from "../../commands/team/TeamCreate";
 import BotSystem from "../BotSystem";
-import { DBGuild } from "../guild/DBGuild";
-import ASCIIFolder from "../helper/ascii-folder";
-import { DBGroup } from "../roles/DBGroup";
-import { DBInvite } from "../roles/DBInvite";
+import { DBGuild } from "../Guild/DBGuild";
+import ASCIIFolder from "../Helper/ascii-folder";
+import { DBGroup } from "../Group/DBGroup";
+import { DBInvite } from "../Group/DBInvite";
 import GuidedTeamCreationPlatform from "./GuidedTeamCreationPlatform";
 import { GuidedTeamCreationState } from "./GuidedTeamCreationState";
 

@@ -1,6 +1,6 @@
 import { BaseGuildTextChannel, Message, PermissionResolvable } from "discord.js";
 import BotSystem from "../BotSystem";
-import { DBGroup } from "../roles/DBGroup";
+import { DBGroup } from "../Group/DBGroup";
 import CommandType from "./Types/CommandType";
 import { UserLevel } from "./UserLevel";
 

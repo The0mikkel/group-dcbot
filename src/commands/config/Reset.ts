@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import ConfigCommand from "../../data/Command/Types/ConfigCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
-import { Config } from "../../data/guild/Config";
+import { Config } from "../../data/Guild/Config";
 
 require("dotenv").config();
 

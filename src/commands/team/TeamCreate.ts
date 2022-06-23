@@ -1,9 +1,9 @@
 import { Message, Role } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
-import ASCIIFolder from "../../data/helper/ascii-folder";
-import { DBGroup } from "../../data/roles/DBGroup";
-import { DBInvite } from "../../data/roles/DBInvite";
+import ASCIIFolder from "../../data/Helper/ascii-folder";
+import { DBGroup } from "../../data/Group/DBGroup";
+import { DBInvite } from "../../data/Group/DBInvite";
 
 require("dotenv").config();
 

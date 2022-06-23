@@ -1,16 +1,16 @@
 import { BaseGuildTextChannel, Guild, Interaction, Message, User } from "discord.js";
-import { DBGuild } from "./data/guild/DBGuild";
+import { DBGuild } from "./data/Guild/DBGuild";
 import fs from 'fs';
 import Discord from "discord.js";
 import BotSystem from "./data/BotSystem";
-import { Config } from "./data/guild/Config";
+import { Config } from "./data/Guild/Config";
 import { envType } from "./data/envType";
-import { TeamConfig } from "./data/guild/TeamConfig";
-import { DBInvite } from "./data/roles/DBInvite";
-import GuidedTeamCreation from "./data/GuidedTeamCreation/GuidedTeamCreation";
-import { GuidedTeamCreationState } from "./data/GuidedTeamCreation/GuidedTeamCreationState";
+import { TeamConfig } from "./data/Guild/TeamConfig";
+import { DBInvite } from "./data/Group/DBInvite";
+import GuidedTeamCreation from "./data/GuidedTeam/GuidedTeamCreation";
+import { GuidedTeamCreationState } from "./data/GuidedTeam/GuidedTeamCreationState";
 import DBConnection from "./data/DBConnection";
-import GuidedTeamCreationPlatform from "./data/GuidedTeamCreation/GuidedTeamCreationPlatform";
+import GuidedTeamCreationPlatform from "./data/GuidedTeam/GuidedTeamCreationPlatform";
 import Commands from "./data/Command/Commands";
 
 // Initialize system

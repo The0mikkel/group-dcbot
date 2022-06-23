@@ -2,7 +2,7 @@ import { Client, Message } from "discord.js";
 import BotSystem from "../BotSystem";
 import DBConnection from "../DBConnection";
 import DBElement from "../DBElement";
-import ASCIIFolder from "../helper/ascii-folder";
+import ASCIIFolder from "../Helper/ascii-folder";
 
 export class DBInvite implements DBElement {
     _id: undefined | string

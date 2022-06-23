@@ -1,7 +1,7 @@
 import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
-import ASCIIFolder from "../../data/helper/ascii-folder";
+import ASCIIFolder from "../../data/Helper/ascii-folder";
 
 require("dotenv").config();
 

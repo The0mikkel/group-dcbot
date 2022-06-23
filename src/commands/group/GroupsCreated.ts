@@ -2,7 +2,7 @@ import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
-import { DBGroup } from "../../data/roles/DBGroup";
+import { DBGroup } from "../../data/Group/DBGroup";
 
 require("dotenv").config();
 

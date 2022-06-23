@@ -2,9 +2,9 @@ import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
-import { Config } from "../../data/guild/Config";
-import ArrayRemover from "../../data/helper/ArrayRemover";
-import ASCIIFolder from "../../data/helper/ascii-folder";
+import { Config } from "../../data/Guild/Config";
+import ArrayRemover from "../../data/Helper/ArrayRemover";
+import ASCIIFolder from "../../data/Helper/ascii-folder";
 
 require("dotenv").config();
 

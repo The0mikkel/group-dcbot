@@ -2,8 +2,8 @@ import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
-import { InviteType } from "../../data/guild/InviteType";
-import { TeamConfig as DBTeamConfig } from "../../data/guild/TeamConfig";
+import { InviteType } from "../../data/Guild/InviteType";
+import { TeamConfig as DBTeamConfig } from "../../data/Guild/TeamConfig";
 
 require("dotenv").config();
 

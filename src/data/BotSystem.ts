@@ -1,5 +1,5 @@
 import { Client, Collection, DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User } from "discord.js";
-import { DBGuild } from "./guild/DBGuild";
+import { DBGuild } from "./Guild/DBGuild";
 import { envType } from "./envType";
 
 export default class BotSystem {

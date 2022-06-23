@@ -1,4 +1,4 @@
-import ASCIIFolder from "../helper/ascii-folder";
+import ASCIIFolder from "../Helper/ascii-folder";
 
 export class Config {
     prefix = "gr!";

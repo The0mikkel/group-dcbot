@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 import BotSystem from "../BotSystem";
 import DBConnection from "../DBConnection";
 import DBElement from "../DBElement";
-import ASCIIFolder from "../helper/ascii-folder";
+import ASCIIFolder from "../Helper/ascii-folder";
 import { Config } from "./Config";
 import { InviteType } from "./InviteType";
 import { TeamConfig } from "./TeamConfig";
