@@ -1,6 +1,5 @@
-import { BaseGuildTextChannel, Message, PermissionResolvable, User } from "discord.js";
+import { BaseGuildTextChannel, Message, PermissionResolvable } from "discord.js";
 import BotSystem from "../BotSystem";
-import { envType } from "../envType";
 import { DBGroup } from "../roles/DBGroup";
 import CommandType from "./Types/CommandType";
 import { UserLevel } from "./UserLevel";
@@ -67,13 +66,11 @@ export default abstract class Command implements CommandType {
             }
             const authorPerms = message.channel.permissionsFor(message.author);
             if (!authorPerms) {
-                if (botSystem.env == envType.dev) console.log("No permissions found");
                 return false; // User has no permission
             }
 
             for (let index = 0; index < this.permissions.length; index++) {
                 if (!authorPerms.has(this.permissions[index])) {
-                    if (botSystem.env == envType.dev) console.log("Permissions missing");
                     return false; // The needed permission was missing
                 }
             };
@@ -147,11 +144,11 @@ export default abstract class Command implements CommandType {
                 return;
             }
         });
-        
+
         return inAnyGroupAsLeader; // Should return true if user is a team leader
     }
     private async authorizedTeam(message: Message, botSystem: BotSystem): Promise<boolean> {
-        
+
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
@@ -176,6 +173,7 @@ export default abstract class Command implements CommandType {
         if (botSystem.guild?.teamConfig.allowEveryone) {
             hasRole = true;
         }
+
         return hasRole;
     }
 }

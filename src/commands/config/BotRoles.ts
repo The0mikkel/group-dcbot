@@ -15,7 +15,9 @@ export default class BotRoles extends ConfigCommand {
             false,
             0,
             '[prefix]',
-            undefined
+            undefined,
+            undefined,
+            UserLevel.admin
         );
 
         this.botImage = "";

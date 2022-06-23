@@ -127,7 +127,7 @@ async function handleMessageCreateEvent(message: Message) {
 
 		// Permissions checking
 		if (command.permissions) {
-			let authorized = command.authorized(message, botSystem);
+			let authorized = await command.authorized(message, botSystem);
 			if (!authorized) {
 				return message.reply('You do not have the right permissions to use this command!');
 			}

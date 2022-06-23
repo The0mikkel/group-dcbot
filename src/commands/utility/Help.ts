@@ -65,7 +65,7 @@ export default class help extends UtilityCommand {
 
 	private async pageHelp(message: Message, botSystem: BotSystem, page: string = this.category) {
 
-		const pageContent = this.generateHelpPage(page, botSystem);
+		const pageContent = await this.generateHelpPage(page, message, botSystem);
 		if (!pageContent) {
 			return;
 		}
@@ -81,7 +81,7 @@ export default class help extends UtilityCommand {
 			}
 
 			if (i.customId.startsWith("help-message;")) {
-				const pageContent = this.generateHelpPage(i.customId.split(";")[1], botSystem);
+				const pageContent = await this.generateHelpPage(i.customId.split(";")[1], message, botSystem);
 				if (!pageContent) {
 					return;
 				}
@@ -91,7 +91,7 @@ export default class help extends UtilityCommand {
 		collector.on('end', () => BotSystem.autoDeleteMessageByUser(helpMessage, 0));
 	}
 
-	generateHelpPage(page: string = this.category, botSystem: BotSystem): { embeds: any[], components: any[] } | false {
+	async generateHelpPage(page: string = this.category, message: Message, botSystem: BotSystem): Promise<{ embeds: any[], components: any[] } | false> {
 		if (!this.typemap.has(page)) {
 			return false;
 		}
@@ -99,10 +99,25 @@ export default class help extends UtilityCommand {
 		if (this.pages.length <= 0) {
 			let pages: CommandType[];
 			pages = [];
-			this.typemap.forEach(commandList => {
-				if (!commandList[0]) return;
+			
+			for (const commandListArray of this.typemap) {
+				const commandList = commandListArray[1];
+				if (!commandList[0]) continue;
+
+				let hasOne = false;
+				for (let index = 0; index < commandList.length; index++) {
+					let command = commandList[index];
+					const authorized = (await command.authorized(message, botSystem));
+					if (authorized === true) {
+						hasOne = true;
+					}
+				}
+				if (!hasOne) {
+					continue;
+				}
+
 				pages.push(commandList[0]);
-			});
+			};
 
 			this.pages = pages;
 		}
@@ -114,9 +129,13 @@ export default class help extends UtilityCommand {
 
 
 		let pageText = `***${pageCommands[0].categoryEmoji} ${page}*** \n`;
-		pageCommands.forEach(command => {
-			pageText += `**${command.name}**\n${command.description}\n`;
-		});
+
+		for (let index = 0; index < pageCommands.length; index++) {
+			let command = pageCommands[index];
+			if ((await command.authorized(message, botSystem)) == true) {
+				pageText += `**${command.name}**\n${command.description}\n`;
+			}
+		}
 
 		const pageEmbed = new MessageEmbed()
 			.setColor('#0099ff')
