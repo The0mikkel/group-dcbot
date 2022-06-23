@@ -51,25 +51,12 @@ export default class GuidedTeamCreation {
     }
 
     async removeMessages() {
-        try {
-            this.userMessages.forEach(async message => {
-                try {
-                    await message.delete();
-                } catch (error) {
-                    console.log("Tried to delete message, but an error occurred!");
-                }
-            })
-            this.botMessages.forEach(async message => {
-                try {
-                    await message.delete();
-                } catch (error) {
-                    console.log("Tried to delete message, but an error occurred!");
-                }
-            })
-        } catch (error) {
-            console.log(error)
-        }
-
+        this.userMessages.forEach(async message => {
+            BotSystem.autoDeleteMessageByUser(message);
+        })
+        this.botMessages.forEach(async message => {
+            BotSystem.autoDeleteMessageByUser(message);
+        })
     }
 
     async step(message: Message | undefined, botSystem: BotSystem) {
