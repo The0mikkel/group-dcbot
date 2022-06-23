@@ -7,7 +7,7 @@ import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
 
 require("dotenv").config();
-const { MessageEmbed } = require('discord.js');
+import { MessageEmbed } from 'discord.js';
 
 export default class help extends UtilityCommand {
 	constructor() {
@@ -141,7 +141,7 @@ export default class help extends UtilityCommand {
 			.setColor('#0099ff')
 			.setTitle('Command list:')
 			.setDescription(pageText)
-			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix })
+			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix ?? "gr!" })
 			.addFields({ name: 'Detailed help:', value: "Write the command name, after the help command, to see more details about the command" })
 			.setFooter({ text: 'Grouper', iconURL: this.image });
 
@@ -170,7 +170,7 @@ export default class help extends UtilityCommand {
 			.setColor('#0099ff')
 			.setTitle('Command list:')
 			.setDescription(commands.map(command => command.name).join('\n'))
-			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix })
+			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix ?? "gr!" })
 			.addFields({ name: 'Detailed help:', value: "Write the command name, after the help command, to see more details about the command" })
 			.setFooter({ text: 'Grouper', iconURL: this.image });
 
@@ -192,7 +192,7 @@ export default class help extends UtilityCommand {
 			.setColor('#0099ff')
 			.setTitle('Command usage:')
 			.setDescription(data.join('\n'))
-			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix })
+			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix ?? "gr!" })
 			.setFooter({ text: 'Grouper', iconURL: this.image });
 		message.channel.send({ embeds: [specificHelp] });
 	}
