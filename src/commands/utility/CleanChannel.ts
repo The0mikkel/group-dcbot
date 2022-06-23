@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import UtilityCommand from "../../data/Command/Types/UtilityCommand";
+import { UserLevel } from "../../data/Command/UserLevel";
 import { Config } from "../../data/guild/Config";
 import ArrayRemover from "../../data/helper/ArrayRemover";
 import ASCIIFolder from "../../data/helper/ascii-folder";
@@ -17,11 +18,12 @@ export default class CleanChannel extends UtilityCommand {
 			undefined,
 			'[true/false]',
 			undefined,
-			["ADMINISTRATOR"]
+			["ADMINISTRATOR"],
+			UserLevel.admin
 		)
 	}
 
-	async execute(message: Message, args: any): Promise<void> {
+	async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
 		if (
 			!message.member
 			|| !message.member.permissions.has("ADMINISTRATOR")
@@ -32,8 +34,6 @@ export default class CleanChannel extends UtilityCommand {
 
 		const answer = ASCIIFolder.foldReplacing(args.shift() ?? "");
 		answer.trim().toLowerCase();
-
-		const botSystem = BotSystem.getInstance();
 
 		if (answer == "true" || answer == "yes" || answer == "1") {
 			if (botSystem.guild?.cleanChannels.includes(message.channelId)) {

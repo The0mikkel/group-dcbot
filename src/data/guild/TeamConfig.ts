@@ -2,9 +2,21 @@ import { Guild, Message } from "discord.js";
 import { InviteType } from "./InviteType";
 
 export class TeamConfig {
+    /**
+     * Roles that are allowed to create a team
+     */
     creatorRole: string[] = [];
+    /**
+     * If this is true, creator role will be ignored, and everyone can create a team
+     */
     allowEveryone: boolean;
+    /**
+     * Teams require an invite to be send, before a member is added to the team (member confirmation before added to team)
+     */
     requireInvite: boolean;
+    /**
+     * Who can invite new members to the team - This can always be overwritten by users that can add or remove roles from members
+     */
     teamInviteType: InviteType;
 
     constructor(creatorRole: string[] = [], allowEveryone = false, requireInvite = false, teamInviteType = InviteType.admin) {

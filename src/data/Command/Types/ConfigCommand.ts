@@ -1,5 +1,6 @@
 import { PermissionResolvable } from "discord.js";
 import Command from "../Command";
+import { UserLevel } from "../UserLevel";
 
 export default abstract class ConfigCommand extends Command {
     constructor(
@@ -10,7 +11,8 @@ export default abstract class ConfigCommand extends Command {
         args_quantity: number = 0,
         usage: string = "",
         cooldown: number = 5,
-        permissions: PermissionResolvable[] = [],
+        permissions: PermissionResolvable[] = ["ADMINISTRATOR"],
+        level: UserLevel = UserLevel.admin,
         aliases: string[] = []
     ) {
         super(
@@ -22,6 +24,7 @@ export default abstract class ConfigCommand extends Command {
             usage,
             cooldown,
             permissions,
+            level,
             aliases,
             "config",
             "⚙️"

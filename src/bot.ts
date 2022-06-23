@@ -9,11 +9,19 @@ import { TeamConfig } from "./data/guild/TeamConfig";
 import { DBInvite } from "./data/roles/DBInvite";
 import GuidedTeamCreation from "./data/GuidedTeamCreation/GuidedTeamCreation";
 import { GuidedTeamCreationState } from "./data/GuidedTeamCreation/GuidedTeamCreationState";
+import DBConnection from "./data/DBConnection";
+import GuidedTeamCreationPlatform from "./data/GuidedTeamCreation/GuidedTeamCreationPlatform";
+import Commands from "./data/Command/Commands";
 
 // Initialize system
 require("dotenv").config();
 require('./setup.js');
 
+const database = DBConnection.getInstance();
+const guidedTeamCreation = GuidedTeamCreationPlatform.getInstance();
+Commands.loadCommands();
+
+// Booting bot
 const client = new Discord.Client({
 	partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
 	intents: [
@@ -26,9 +34,6 @@ const client = new Discord.Client({
 	]
 });
 
-const botSystem = BotSystem.getInstance();
-
-// Booting bot
 client.on("ready", () => {
 	if (!client.user) {
 		return;
@@ -63,10 +68,11 @@ client.on("guildDelete", async (guild: Guild) => {
 // React on message
 client.on('messageCreate', (message: Message) => { handleMessageCreateEvent(message) });
 async function handleMessageCreateEvent(message: Message) {
+	const botSystem = new BotSystem();
 	if (message.author.bot) {
 		return; // Do not run system if it was a bot message
 	}
-	// console.log(["Env:",botSystem.env]);
+	console.log("Message recieved", message.content);
 	try {
 		let guild: DBGuild | undefined | boolean;
 		guild = undefined;
@@ -84,9 +90,9 @@ async function handleMessageCreateEvent(message: Message) {
 		}
 
 		if (!message.author.bot) {
-			let guidedTeamCreation = botSystem.getGuidedTeamCreation(message.channel, message.author);
-			if (guidedTeamCreation && guidedTeamCreation.state != GuidedTeamCreationState.teamCreated) {
-				guidedTeamCreation.step(message);
+			let currentGuidedTeamCreation = guidedTeamCreation.getGuidedTeamCreation(message.channel, message.author);
+			if (currentGuidedTeamCreation && currentGuidedTeamCreation.state != GuidedTeamCreationState.teamCreated) {
+				currentGuidedTeamCreation.step(message, botSystem);
 				return;
 			}
 		}
@@ -104,8 +110,8 @@ async function handleMessageCreateEvent(message: Message) {
 		let args = message.content.slice(prefix.length).trim().split(/ +/);
 		const commandName = (args.shift() ?? "").toLowerCase();
 
-		const command = botSystem.commands.get(commandName)
-			|| botSystem.commands.find((cmd: any) => cmd.aliases && cmd.aliases.includes(commandName));
+		const command = Commands.commands.get(commandName)
+			|| Commands.commands.find((cmd: any) => cmd.aliases && cmd.aliases.includes(commandName));
 
 		if (!command) {
 			if (botSystem.env == envType.dev) console.log("Message not a command");
@@ -121,22 +127,10 @@ async function handleMessageCreateEvent(message: Message) {
 
 		// Permissions checking
 		if (command.permissions) {
-			if (!(message.channel instanceof BaseGuildTextChannel)) {
-				message.reply('I can\'t execute that command outside guilds!')
-				return;
+			let authorized = command.authorized(message, botSystem);
+			if (!authorized) {
+				return message.reply('You do not have the right permissions to use this command!');
 			}
-			const authorPerms = message.channel.permissionsFor(message.author);
-			if (!authorPerms) {
-				if (botSystem.env == envType.dev) console.log("Permissions missing");
-				return message.reply('You can not do this!');
-			}
-			// || !authorPerms.has(command.permissions)
-			for (let index = 0; index < command.permissions.length; index++) {
-				if (!authorPerms.has(command.permissions[index])) {
-					if (botSystem.env == envType.dev) console.log("Permissions missing");
-					return message.reply('You do not have the right permissions to use this command!');
-				}
-			};
 		}
 
 		// Argument length validation
@@ -152,32 +146,15 @@ async function handleMessageCreateEvent(message: Message) {
 		}
 
 		// Cooldown checking
-		const cooldowns = botSystem.cooldowns;
-
-		if (!cooldowns.has(command.name)) {
-			cooldowns.set(command.name, new Discord.Collection());
+		const cooldown = Commands.cooldownCheck(command, message.author.id);
+		if (cooldown !== true) {
+			message.reply(`please wait ${cooldown} more second(s) before reusing the \`${command.name}\` command.`);
+			return;
 		}
-
-		const now = Date.now();
-		const timestamps = cooldowns.get(command.name);
-		const cooldownAmount = (command.cooldown || 0) * 1000;
-
-		if (timestamps?.has(message.author.id)) {
-			const expirationTime = (timestamps?.get(message.author.id) ?? now) + cooldownAmount;
-
-			if (now < expirationTime) {
-				const timeLeft = (expirationTime - now) / 1000;
-				if (botSystem.env == envType.dev) console.log("Cooldown reached");
-				return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-			}
-		}
-
-		timestamps?.set(message.author.id, now);
-		setTimeout(() => timestamps?.delete(message.author.id), cooldownAmount);
 
 		// Execure command
 		try {
-			command.execute(message, args, false, 0);
+			command.execute(message, botSystem, args, false, 0);
 		} catch (error) {
 			if (botSystem.env == envType.dev) console.log(error);
 			console.error(error);
@@ -189,6 +166,8 @@ async function handleMessageCreateEvent(message: Message) {
 }
 
 client.on('messageReactionAdd', async (reaction, user) => {
+	const botSystem = new BotSystem;
+
 	if (reaction.message.partial) {
 		try {
 			await reaction.message.fetch();
@@ -244,9 +223,9 @@ client.on('messageReactionAdd', async (reaction, user) => {
 				}
 
 				let guidedCreation = new GuidedTeamCreation(botSystem.guild, reaction.message.channel, user);
-				botSystem.addGuidedTeamCreation(guidedCreation);
+				guidedTeamCreation.addGuidedTeamCreation(guidedCreation);
 
-				guidedCreation.step(undefined);
+				guidedCreation.step(undefined, botSystem);
 			}
 		}
 		if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);

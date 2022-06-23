@@ -17,7 +17,7 @@ export default class TeamGuided extends TeamCommand {
         );
     }
 
-    async execute(message: Message, args: any) {
+    async execute(message: Message, botSystem: BotSystem, args: any) {
         if (
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
@@ -33,13 +33,11 @@ export default class TeamGuided extends TeamCommand {
 
         let messageId = ASCIIFolder.foldReplacing(args.shift().trim());
         let emoji = args.shift().trim();
-
-        const botSystem = BotSystem.getInstance();
         
         (await message.channel.messages.fetch(messageId)).react(emoji)
 
         botSystem.guild?.guidedTeamStart.push(messageId);
-        botSystem.guild?.save();
+        await botSystem.guild?.save();
 
         BotSystem.autoDeleteMessageByUser(message);
         BotSystem.sendAutoDeleteMessage(message.channel, "Guided team creator has been setup!");

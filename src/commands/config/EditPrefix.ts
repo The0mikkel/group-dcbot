@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import ConfigCommand from "../../data/Command/Types/ConfigCommand";
+import { UserLevel } from "../../data/Command/UserLevel";
 
 require("dotenv").config();
 
@@ -16,11 +17,12 @@ export default class EditPrefix extends ConfigCommand {
             '[prefix]',
             undefined,
             ["ADMINISTRATOR"],
+            UserLevel.admin,
             ["prefix"]
         );
     }
 
-    async execute(message: Message, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void> {
+    async execute(message: Message, botSystem: BotSystem, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void> {
         if (
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
@@ -37,7 +39,7 @@ export default class EditPrefix extends ConfigCommand {
 
         let prefix = args[0];
 
-        let guild = BotSystem.getInstance().guild;
+        let guild = botSystem.guild;
         if (!guild) {
             message.reply(`This command cannot be executed outside a guild!`);
             return
@@ -46,7 +48,7 @@ export default class EditPrefix extends ConfigCommand {
         var ASCIIFolder = require("./../../data/helper/ascii-folder");
         guild.config.prefix = ASCIIFolder.foldReplacing(prefix).trim();
 
-        guild.save();
+        await guild.save();
 
         message.reply(`The prefix of the bot is now: ${guild.config.prefix}`);
     }

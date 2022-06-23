@@ -1,5 +1,7 @@
 import { Message, MessageEmbed } from "discord.js";
+import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
+import { UserLevel } from "../../data/Command/UserLevel";
 import { DBGroup } from "../../data/roles/DBGroup";
 
 require("dotenv").config();
@@ -9,11 +11,17 @@ export default class GroupsCreated extends GroupCommand {
         super(
             'groups-created',
             'List all groups created by bot',
-            true
+            true,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            ["ADMINISTRATOR"],
+            UserLevel.admin
         );
     }
 
-    async execute(message: Message, args: any) {
+    async execute(message: Message, botSystem: BotSystem, args: any) {
         // Check permissions
         if (
             !message.member

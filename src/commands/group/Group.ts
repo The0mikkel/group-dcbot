@@ -1,5 +1,7 @@
 import { Message } from "discord.js";
+import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
+import { UserLevel } from "../../data/Command/UserLevel";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 import { DBGroup } from "../../data/roles/DBGroup";
 
@@ -14,10 +16,13 @@ export default class Group extends GroupCommand {
             true,
             2,
             '[group name] [group members]',
+            undefined,
+            ["ADMINISTRATOR"],
+            UserLevel.admin
         )
     }
 
-    async execute(message: Message, args: any) {
+    async execute(message: Message, botSystem: BotSystem, args: any) {
         // Check permissions
         if (
             !message.member
@@ -47,7 +52,7 @@ export default class Group extends GroupCommand {
         })
 
         try {
-            new DBGroup(role.id, message.guild.id, role.name, message.author.id, "", Date.now()).save()
+            await (new DBGroup(role.id, message.guild.id, role.name, message.author.id, "", Date.now())).save()
         } catch (error) {
             console.log(error);
         }

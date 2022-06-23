@@ -1,8 +1,10 @@
 import { Message, MessageActionRow, MessageButton } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import Command from "../../data/Command/Command";
+import Commands from "../../data/Command/Commands";
 import CommandType from "../../data/Command/Types/CommandType";
 import UtilityCommand from "../../data/Command/Types/UtilityCommand";
+import { UserLevel } from "../../data/Command/UserLevel";
 
 require("dotenv").config();
 const { MessageEmbed } = require('discord.js');
@@ -18,31 +20,32 @@ export default class help extends UtilityCommand {
 			'[command name]',
 			undefined,
 			[],
+			UserLevel.user,
 			['commands'],
 		)
 
-		this.typemap = BotSystem.getInstance().commandTypeMap;
+		this.typemap = Commands.commandTypeMap;
 		this.pages = [];
 		this.image = BotSystem.client?.user?.avatarURL() ?? "";
 	}
 
-	async execute(message: Message, args: any): Promise<void> {
+	async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
 		if (this.image == "") {
 			this.image = BotSystem.client?.user?.avatarURL() ?? "";
 		}
 
-		let commands = BotSystem.getInstance().commands;
+		let commands = Commands.commands;
 
 		if (!args.length) { // General command
 			let helpPage = new help();
-			helpPage.pageHelp(message);
+			helpPage.pageHelp(message, botSystem);
 			return;
 		}
 
 		const name = args[0].toLowerCase();
 
 		if (name == "all") {
-			this.commonHelp(message);
+			this.commonHelp(message, botSystem);
 			return;
 		}
 
@@ -53,19 +56,21 @@ export default class help extends UtilityCommand {
 			return
 		}
 
-		this.commandSpecificHelp(message, command);
+		this.commandSpecificHelp(message, botSystem, command);
 	}
 
 	typemap: Map<string, Command[]>;
 	pages: CommandType[];
 	image: string;
 
-	private async pageHelp(message: Message, page: string = this.category) {
-		
-		const pageContent = this.generateHelpPage(page);
+	private async pageHelp(message: Message, botSystem: BotSystem, page: string = this.category) {
+
+		const pageContent = this.generateHelpPage(page, botSystem);
 		if (!pageContent) {
 			return;
 		}
+
+		BotSystem.autoDeleteMessageByUser(message, 0);
 
 		let helpMessage = await message.channel.send(pageContent);
 
@@ -76,7 +81,7 @@ export default class help extends UtilityCommand {
 			}
 
 			if (i.customId.startsWith("help-message;")) {
-				const pageContent = this.generateHelpPage(i.customId.split(";")[1]);
+				const pageContent = this.generateHelpPage(i.customId.split(";")[1], botSystem);
 				if (!pageContent) {
 					return;
 				}
@@ -86,7 +91,7 @@ export default class help extends UtilityCommand {
 		collector.on('end', () => BotSystem.autoDeleteMessageByUser(helpMessage, 0));
 	}
 
-	generateHelpPage(page: string = this.category): { embeds: any[], components: any[] } | false  {
+	generateHelpPage(page: string = this.category, botSystem: BotSystem): { embeds: any[], components: any[] } | false {
 		if (!this.typemap.has(page)) {
 			return false;
 		}
@@ -117,7 +122,7 @@ export default class help extends UtilityCommand {
 			.setColor('#0099ff')
 			.setTitle('Command list:')
 			.setDescription(pageText)
-			.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild)?.config.prefix })
+			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix })
 			.addFields({ name: 'Detailed help:', value: "Write the command name, after the help command, to see more details about the command" })
 			.setFooter({ text: 'Grouper', iconURL: this.image });
 
@@ -139,14 +144,14 @@ export default class help extends UtilityCommand {
 		return { embeds: [pageEmbed], components: [buttons] };
 	}
 
-	private commonHelp(message: Message) {
-		let commands = BotSystem.getInstance().commands;
+	private commonHelp(message: Message, botSystem: BotSystem) {
+		let commands = Commands.commands;
 
 		const exampleEmbed = new MessageEmbed()
 			.setColor('#0099ff')
 			.setTitle('Command list:')
 			.setDescription(commands.map(command => command.name).join('\n'))
-			.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild)?.config.prefix })
+			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix })
 			.addFields({ name: 'Detailed help:', value: "Write the command name, after the help command, to see more details about the command" })
 			.setFooter({ text: 'Grouper', iconURL: this.image });
 
@@ -154,13 +159,13 @@ export default class help extends UtilityCommand {
 		return;
 	}
 
-	private commandSpecificHelp(message: Message, command: Command) {
+	private commandSpecificHelp(message: Message, botSystem: BotSystem, command: Command) {
 		let data = [];
 		data.push(`**Name:** ${command.name}`);
 
 		if (command.aliases.length > 0) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
 		if (command.description) data.push(`**Description:** ${command.description}`);
-		if (command.usage) data.push(`**Usage:** ${(BotSystem.getInstance().guild)?.config.prefix}${command.name} ${command.usage}`);
+		if (command.usage) data.push(`**Usage:** ${(botSystem.guild)?.config.prefix}${command.name} ${command.usage}`);
 
 		if (command.cooldown > 0) data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
 
@@ -168,7 +173,7 @@ export default class help extends UtilityCommand {
 			.setColor('#0099ff')
 			.setTitle('Command usage:')
 			.setDescription(data.join('\n'))
-			.addFields({ name: 'Prefix:', value: (BotSystem.getInstance().guild)?.config.prefix })
+			.addFields({ name: 'Prefix:', value: (botSystem.guild)?.config.prefix })
 			.setFooter({ text: 'Grouper', iconURL: this.image });
 		message.channel.send({ embeds: [specificHelp] });
 	}

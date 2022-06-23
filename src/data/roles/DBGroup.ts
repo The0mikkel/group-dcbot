@@ -1,7 +1,9 @@
 import BotSystem from "../BotSystem";
+import DBConnection from "../DBConnection";
+import DBElement from "../DBElement";
 import ASCIIFolder from "../helper/ascii-folder";
 
-export class DBGroup {
+export class DBGroup implements DBElement {
     _id: undefined | string
     id: any;
     guildId: string;
@@ -20,13 +22,13 @@ export class DBGroup {
     }
 
     static async load(id: string): Promise<undefined | DBGroup> {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         let result: any;
         try {
             await mongoClient.connect();
-            const groups = botSystem.mongoDatabase.collection("groups");
+            const groups = dbConnection.mongoDatabase.collection("groups");
 
             const query = { id: id };
             const options = {
@@ -46,13 +48,13 @@ export class DBGroup {
     }
 
     static async loadFromGuild(guildId: string): Promise<DBGroup[]> {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         let result: DBGroup[] = [];
         try {
             await mongoClient.connect();
-            const groups = botSystem.mongoDatabase.collection("groups");
+            const groups = dbConnection.mongoDatabase.collection("groups");
 
             const query = { guildId: guildId };
             const cursor = groups.find(query);
@@ -83,12 +85,12 @@ export class DBGroup {
     }
 
     async save() {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         try {
             await mongoClient.connect();
-            const groups = botSystem.mongoDatabase.collection("groups");
+            const groups = dbConnection.mongoDatabase.collection("groups");
             const filter = { id: this.id };
             const options = { upsert: true };
             const updateDoc = {

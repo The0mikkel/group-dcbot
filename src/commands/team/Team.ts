@@ -18,8 +18,7 @@ export default class Team extends TeamCommand {
         )
     }
 
-    async execute(message: Message, args: any): Promise<void> {
-        const botSystem = BotSystem.getInstance();
+    async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 

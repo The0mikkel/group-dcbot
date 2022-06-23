@@ -1,33 +1,52 @@
+import { Message } from "discord.js";
 import BotSystem from "../BotSystem";
+import DBConnection from "../DBConnection";
+import DBElement from "../DBElement";
 import ASCIIFolder from "../helper/ascii-folder";
 import { Config } from "./Config";
 import { InviteType } from "./InviteType";
 import { TeamConfig } from "./TeamConfig";
 
-export class DBGuild {
+export class DBGuild implements DBElement {
     _id: undefined | string
     id: any;
     config: Config;
     teamConfig: TeamConfig
-    guidedTeamStart: string[] // Message ids for guided team creations
-    cleanChannels: string[] // Channel ids for clean channels
+    /**
+     * Roles that are represented as "admin" by the bot
+     */
+    adminRoles: string[];
+    /**
+     * Roles that are represented as "teamAdmin" by the bot - They are admins for teams and cannot access admin features that are beyond teams
+     */
+    teamAdminRoles: string[];
+    /**
+     * Message ids for guided team creations
+     */
+    guidedTeamStart: string[]
+    /**
+     * Channel ids for clean channels
+     */
+    cleanChannels: string[]
 
-    constructor(id = "", config = new Config, teamConfig = new TeamConfig, guidedTeamStart: string[] = [], cleanChannels: string[] = []) {
+    constructor(id = "", config = new Config, teamConfig = new TeamConfig, guidedTeamStart: string[] = [], cleanChannels: string[] = [], adminRoles: string[] = [], teamAdminRoles: string[] = []) {
         this.id = ASCIIFolder.foldReplacing(id);
         this.config = config;
         this.teamConfig = teamConfig;
         this.guidedTeamStart = guidedTeamStart;
         this.cleanChannels = cleanChannels;
+        this.adminRoles = adminRoles;
+        this.teamAdminRoles = teamAdminRoles;
     }
 
     static async load(id: string): Promise<undefined | DBGuild> {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         let result: any;
         try {
             await mongoClient.connect();
-            const guilds = botSystem.mongoDatabase.collection("guilds");
+            const guilds = dbConnection.mongoDatabase.collection("guilds");
 
             const query = { id: id };
             result = await guilds.findOne(query);
@@ -57,19 +76,21 @@ export class DBGuild {
             config, 
             teamConfig, 
             result.guidedTeamStart ?? [],
-            result.cleanChannels ?? []
+            result.cleanChannels ?? [],
+            result.adminRoles ?? [],
+            result.teamAdminRoles ?? [],
         );
         guild._id = result._id;
         return guild;
     }
 
     async save() {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         try {
             await mongoClient.connect();
-            const guilds = botSystem.mongoDatabase.collection("guilds");
+            const guilds = dbConnection.mongoDatabase.collection("guilds");
             const filter = { id: this.id };
             const options = { upsert: true };
             const updateDoc = {
@@ -78,7 +99,9 @@ export class DBGuild {
                     config: this.config,
                     teamConfig: this.teamConfig,
                     guidedTeamStart: this.guidedTeamStart,
-                    cleanChannels: this.cleanChannels
+                    cleanChannels: this.cleanChannels,
+                    adminRoles: this.adminRoles,
+                    teamAdminRoles: this.teamAdminRoles,
                 }
             };
             const result = await guilds.updateOne(filter, updateDoc, options);
@@ -92,12 +115,12 @@ export class DBGuild {
     }
 
     static async remove(id: string) {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         try {
             await mongoClient.connect();
-            const mongoClientGuilds = botSystem.mongoDatabase.collection("guilds");
+            const mongoClientGuilds = dbConnection.mongoDatabase.collection("guilds");
 
             // Check if guild have been joined before
             const query = { id: id };
@@ -108,5 +131,49 @@ export class DBGuild {
         } finally {
             await mongoClient.close();
         }
+    }
+
+    addAdminRole(roleId: string): boolean {
+        if (this.adminRoles.includes(roleId)) {
+            return false;
+        }
+        this.adminRoles.push(roleId);
+        return true;
+    }
+    removeAdminRole(roleId: string): boolean {
+        if (!this.adminRoles.includes(roleId)) {
+            return false;
+        }
+        this.adminRoles = this.arrayRemove(this.adminRoles, roleId);
+        return true;
+    }
+    addTeamAdminRole(roleId: string): boolean {
+        if (this.teamAdminRoles.includes(roleId)) {
+            return false;
+        }
+        this.teamAdminRoles.push(roleId);
+        return true;
+    }
+    removeTeamAdminRole(roleId: string): boolean {
+        if (!this.teamAdminRoles.includes(roleId)) {
+            return false;
+        }
+        this.teamAdminRoles = this.arrayRemove(this.teamAdminRoles, roleId);
+        return true;
+    }
+
+    filterRemoved(message: Message): void {
+        this.adminRoles = this.adminRoles.filter(function (role) {
+            return message.guild?.roles.cache.get(role)?.name
+        });
+        this.teamAdminRoles = this.teamAdminRoles.filter(function (role) {
+            return message.guild?.roles.cache.get(role)?.name
+        });
+    }
+
+    private arrayRemove(arr: string[], value: string) {
+        return arr.filter(function (ele) {
+            return ele != value;
+        });
     }
 }

@@ -21,8 +21,7 @@ export default class TeamInvite extends TeamCommand {
         
     }
 
-    async execute(message: Message, args: any): Promise<void> {
-        const botSystem = BotSystem.getInstance();
+    async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 
@@ -104,7 +103,7 @@ export default class TeamInvite extends TeamCommand {
                         dmMessage.react("✅");
                         dmMessage.react("❌");
 
-                        (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
+                        await (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
                     } catch (error) {
                         console.log(`There was an error sending invite to user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
                     }

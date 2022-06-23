@@ -12,9 +12,9 @@ export default class Stop extends UtilityCommand {
 		)
 	}
 
-	async execute(message: Message) {
-		if (BotSystem.getInstance().env == envType.dev) console.log("stopping");
+	async execute(message: Message, botSystem: BotSystem) {
+		if (botSystem.env == envType.dev) console.log("stopping");
 		else console.log("User is not allowed to stop system");
-		if (BotSystem.getInstance().env == envType.dev) process.exit();
+		if (botSystem.env == envType.dev) process.exit();
 	}
 };

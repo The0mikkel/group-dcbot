@@ -1,8 +1,10 @@
 import { Client, Message } from "discord.js";
 import BotSystem from "../BotSystem";
+import DBConnection from "../DBConnection";
+import DBElement from "../DBElement";
 import ASCIIFolder from "../helper/ascii-folder";
 
-export class DBInvite {
+export class DBInvite implements DBElement {
     _id: undefined | string
     userId: string;
     messageId: string;
@@ -17,13 +19,13 @@ export class DBInvite {
     }
 
     static async load(id: string): Promise<undefined | DBInvite> {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         let result: any;
         try {
             await mongoClient.connect();
-            const invites = botSystem.mongoDatabase.collection("invites");
+            const invites = dbConnection.mongoDatabase.collection("invites");
 
             const query = { _id: ASCIIFolder.foldReplacing(id) };
             const options = {
@@ -42,13 +44,13 @@ export class DBInvite {
         return DBInvite.generateClassFromDB(result);
     }
     static async loadByMessageId(id: string): Promise<undefined | DBInvite> {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         let result: any;
         try {
             await mongoClient.connect();
-            const invites = botSystem.mongoDatabase.collection("invites");
+            const invites = dbConnection.mongoDatabase.collection("invites");
 
             const query = { messageId: ASCIIFolder.foldReplacing(id) };
             const options = {};
@@ -66,13 +68,13 @@ export class DBInvite {
         return DBInvite.generateClassFromDB(result);
     }
     static async loadByguildId(id: string): Promise<undefined | DBInvite> {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         let result: any;
         try {
             await mongoClient.connect();
-            const invites = botSystem.mongoDatabase.collection("invites");
+            const invites = dbConnection.mongoDatabase.collection("invites");
 
             const query = { guildId: ASCIIFolder.foldReplacing(id) };
             const options = {};
@@ -90,13 +92,13 @@ export class DBInvite {
         return DBInvite.generateClassFromDB(result);
     }
     static async loadByRoleId(id: string): Promise<undefined | DBInvite> {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         let result: any;
         try {
             await mongoClient.connect();
-            const invites = botSystem.mongoDatabase.collection("invites");
+            const invites = dbConnection.mongoDatabase.collection("invites");
 
             const query = { roleId: ASCIIFolder.foldReplacing(id) };
             const options = {};
@@ -115,13 +117,13 @@ export class DBInvite {
     }
 
     static async loadFromGuild(guildId: string): Promise<DBInvite[]> {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         let result: DBInvite[] = [];
         try {
             await mongoClient.connect();
-            const invites = botSystem.mongoDatabase.collection("invites");
+            const invites = dbConnection.mongoDatabase.collection("invites");
 
             const query = { guildId: ASCIIFolder.foldReplacing(guildId) };
             const cursor = invites.find(query);
@@ -145,12 +147,12 @@ export class DBInvite {
     }
 
     async save() {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         try {
             await mongoClient.connect();
-            const invites = botSystem.mongoDatabase.collection("invites");
+            const invites = dbConnection.mongoDatabase.collection("invites");
             const filter = {
                 userId: this.userId,
                 messageId: this.messageId,
@@ -173,12 +175,12 @@ export class DBInvite {
     }
 
     static async remove(id: string) {
-        const botSystem = BotSystem.getInstance();
-        const mongoClient = botSystem.mongoClient;
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
 
         try {
             await mongoClient.connect();
-            const invites = botSystem.mongoDatabase.collection("invites");
+            const invites = dbConnection.mongoDatabase.collection("invites");
 
             // Check if guild have been joined before
             const query = { _id: ASCIIFolder.foldReplacing(id+"") };

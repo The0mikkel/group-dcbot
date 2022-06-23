@@ -19,12 +19,11 @@ export default class TeamCreate extends TeamCommand {
         )
     }
 
-    async execute(message: Message, args: any, autoDelete = false): Promise<void> {
-        await this.createTeam(message, args, autoDelete);
+    async execute(message: Message, botSystem: BotSystem, args: any, autoDelete = false): Promise<void> {
+        await this.createTeam(message, botSystem, args, autoDelete);
     }
 
-    async createTeam(message: Message, args: any, autoDelete = false): Promise<false | DBGroup> {
-        const botSystem = BotSystem.getInstance();
+    async createTeam(message: Message, botSystem: BotSystem, args: any, autoDelete = false): Promise<false | DBGroup> {
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 
@@ -118,7 +117,7 @@ export default class TeamCreate extends TeamCommand {
                         dmMessage.react("✅");
                         dmMessage.react("❌");
 
-                        (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
+                        await (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
                     } catch (error) {
                         console.log(`There was an error sending invite to user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
                     }

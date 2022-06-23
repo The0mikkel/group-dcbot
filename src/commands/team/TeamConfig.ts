@@ -1,6 +1,7 @@
 import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
+import { UserLevel } from "../../data/Command/UserLevel";
 import { InviteType } from "../../data/guild/InviteType";
 import { TeamConfig as DBTeamConfig } from "../../data/guild/TeamConfig";
 
@@ -15,10 +16,13 @@ export default class TeamConfig extends TeamCommand {
             false,
             0,
             '[command]',
+            undefined,
+            ["ADMINISTRATOR"],
+			UserLevel.admin,
         );
     }
 
-    async execute(message: Message, args: any) {
+    async execute(message: Message, botSystem: BotSystem, args: any) {
         if (
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
@@ -27,7 +31,6 @@ export default class TeamConfig extends TeamCommand {
             return;
         }
 
-        const botSystem = BotSystem.getInstance();
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 
@@ -42,7 +45,7 @@ export default class TeamConfig extends TeamCommand {
         switch (secondCommandWord) {
             case "roles":
                 console.log("Roles reached!")
-                writeRolesCreateTeamList(message);
+                writeRolesCreateTeamList(message, botSystem);
                 break;
             case "add-role":
                 message.mentions.roles.forEach(async (role) => {
@@ -56,7 +59,7 @@ export default class TeamConfig extends TeamCommand {
                 await botSystem.guild?.save();
 
                 message.reply("Roles added!");
-                writeRolesCreateTeamList(message);
+                writeRolesCreateTeamList(message, botSystem);
                 break;
             case "role-everyone":
 
@@ -68,7 +71,7 @@ export default class TeamConfig extends TeamCommand {
                     message.reply("Everyone can now create a team.");
                 } else {
                     message.reply("Team creation has been restricted to the following roles:")
-                    writeRolesCreateTeamList(message);
+                    writeRolesCreateTeamList(message, botSystem);
                 }
                 break;
             case "rem-role":
@@ -83,7 +86,7 @@ export default class TeamConfig extends TeamCommand {
                 await botSystem.guild?.save();
 
                 message.reply("Roles removed!");
-                writeRolesCreateTeamList(message);
+                writeRolesCreateTeamList(message, botSystem);
                 break;
             case "invite":
                 message.reply("Invite to join team is currently " + (botSystem.guild?.teamConfig.requireInvite ? "active" : "inactive"));
@@ -95,7 +98,7 @@ export default class TeamConfig extends TeamCommand {
                 } else {
                     botSystem.guild.teamConfig.requireInvite = false;
                 }
-                botSystem.guild.save();
+                await botSystem.guild.save();
                 message.reply("Invite to join team is now " + (botSystem.guild?.teamConfig.requireInvite ? "active" : "inactive"));
                 break;
             case "invite-by":
@@ -122,7 +125,7 @@ export default class TeamConfig extends TeamCommand {
                         break;
                 }
 
-                botSystem.guild.save();
+                await botSystem.guild.save();
 
                 break;
             default:
@@ -148,12 +151,12 @@ export default class TeamConfig extends TeamCommand {
     }
 };
 
-function writeRolesCreateTeamList(message: Message) {
+function writeRolesCreateTeamList(message: Message, botSystem: BotSystem) {
     const botImage = message.client.user?.avatarURL() ?? "";
     const teamRoles = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle('Roles, that can create teams:')
-        .setDescription((BotSystem.getInstance().guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
+        .setDescription((botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
         .setFooter({ text: 'Grouper', iconURL: botImage });
     message.channel.send({ embeds: [teamRoles] });
 }

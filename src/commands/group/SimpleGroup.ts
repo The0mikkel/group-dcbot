@@ -1,5 +1,7 @@
 import { CategoryChannel, DMChannel, GuildChannel, Message } from "discord.js";
+import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
+import { UserLevel } from "../../data/Command/UserLevel";
 import ASCIIFolder from "../../data/helper/ascii-folder";
 
 require("dotenv").config();
@@ -13,10 +15,13 @@ export default class SimpleGroup extends GroupCommand {
             true,
             2,
             '[group name] [group members / roles]',
+            undefined,
+            ["ADMINISTRATOR", "MANAGE_CHANNELS"],
+            UserLevel.admin
         )
     }
 
-    async execute(message: Message, args: any) {
+    async execute(message: Message, botSystem: BotSystem, args: any) {
         // Check permissions
         if (
             !message.member
