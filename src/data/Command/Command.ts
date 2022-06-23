@@ -139,7 +139,10 @@ export default abstract class Command implements CommandType {
 
         let inAnyGroupAsLeader = false;
         groups.forEach(group => {
-            if (message?.member?.id == group.teamLeader) {
+            if (
+                message?.member?.roles.cache.has(group.id)
+                && message?.member?.id == group.teamLeader
+            ) {
                 inAnyGroupAsLeader = true;
                 return;
             }
