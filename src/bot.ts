@@ -1,19 +1,27 @@
 import { BaseGuildTextChannel, Guild, Interaction, Message, User } from "discord.js";
-import { DBGuild } from "./data/guild/DBGuild";
+import { DBGuild } from "./data/Guild/DBGuild";
 import fs from 'fs';
 import Discord from "discord.js";
 import BotSystem from "./data/BotSystem";
-import { Config } from "./data/guild/Config";
+import { Config } from "./data/Guild/Config";
 import { envType } from "./data/envType";
-import { TeamConfig } from "./data/guild/TeamConfig";
-import { DBInvite } from "./data/roles/DBInvite";
-import GuidedTeamCreation from "./data/GuidedTeamCreation/GuidedTeamCreation";
-import { GuidedTeamCreationState } from "./data/GuidedTeamCreation/GuidedTeamCreationState";
+import { TeamConfig } from "./data/Guild/TeamConfig";
+import { DBInvite } from "./data/Group/DBInvite";
+import GuidedTeamCreation from "./data/GuidedTeam/GuidedTeamCreation";
+import { GuidedTeamCreationState } from "./data/GuidedTeam/GuidedTeamCreationState";
+import DBConnection from "./data/DBConnection";
+import GuidedTeamCreationPlatform from "./data/GuidedTeam/GuidedTeamCreationPlatform";
+import Commands from "./data/Command/Commands";
 
 // Initialize system
 require("dotenv").config();
 require('./setup.js');
 
+const database = DBConnection.getInstance();
+const guidedTeamCreation = GuidedTeamCreationPlatform.getInstance();
+Commands.loadCommands();
+
+// Booting bot
 const client = new Discord.Client({
 	partials: ['MESSAGE', 'CHANNEL', 'REACTION'],
 	intents: [
@@ -26,22 +34,6 @@ const client = new Discord.Client({
 	]
 });
 
-const botSystem = BotSystem.getInstance();
-botSystem.commands = new Discord.Collection();
-botSystem.cooldowns = new Discord.Collection();
-
-// Get all command files
-const commandFolders = fs.readdirSync('./dist/commands');
-
-for (const folder of commandFolders) {
-	const commandFiles = fs.readdirSync(`./dist/commands/${folder}`).filter(file => file.endsWith('.js'));
-	for (const file of commandFiles) {
-		const command = require(`./commands/${folder}/${file}`);
-		botSystem.commands.set(command.name, command);
-	}
-}
-
-// Booting bot
 client.on("ready", () => {
 	if (!client.user) {
 		return;
@@ -76,7 +68,11 @@ client.on("guildDelete", async (guild: Guild) => {
 // React on message
 client.on('messageCreate', (message: Message) => { handleMessageCreateEvent(message) });
 async function handleMessageCreateEvent(message: Message) {
-	// console.log(["Env:",botSystem.env]);
+	const botSystem = new BotSystem();
+	if (message.author.bot) {
+		return; // Do not run system if it was a bot message
+	}
+	console.log("Message recieved", message.content);
 	try {
 		let guild: DBGuild | undefined | boolean;
 		guild = undefined;
@@ -94,9 +90,9 @@ async function handleMessageCreateEvent(message: Message) {
 		}
 
 		if (!message.author.bot) {
-			let guidedTeamCreation = botSystem.getGuidedTeamCreation(message.channel, message.author);
-			if (guidedTeamCreation && guidedTeamCreation.state != GuidedTeamCreationState.teamCreated) {
-				guidedTeamCreation.step(message);
+			let currentGuidedTeamCreation = guidedTeamCreation.getGuidedTeamCreation(message.channel, message.author);
+			if (currentGuidedTeamCreation && currentGuidedTeamCreation.state != GuidedTeamCreationState.teamCreated) {
+				currentGuidedTeamCreation.step(message, botSystem);
 				return;
 			}
 		}
@@ -106,7 +102,7 @@ async function handleMessageCreateEvent(message: Message) {
 			prefix = (guild.config.prefix ?? process.env.bot_prefix).trim();
 		}
 		if (!message.content.startsWith(prefix) || message.author.bot) {
-			if (botSystem.env = envType.dev) console.log("Message not send to bot");
+			if (botSystem.env == envType.dev) console.log("Message not send to bot");
 			return
 		};
 
@@ -114,27 +110,26 @@ async function handleMessageCreateEvent(message: Message) {
 		let args = message.content.slice(prefix.length).trim().split(/ +/);
 		const commandName = (args.shift() ?? "").toLowerCase();
 
-		const command = botSystem.commands.get(commandName)
-			|| botSystem.commands.find((cmd: any) => cmd.aliases && cmd.aliases.includes(commandName));
+		const command = Commands.commands.get(commandName)
+			|| Commands.commands.find((cmd: any) => cmd.aliases && cmd.aliases.includes(commandName));
 
 		if (!command) {
-			if (botSystem.env = envType.dev) console.log("Message not a command");
+			if (botSystem.env == envType.dev) console.log("Message not a command");
 			message.reply("I don't know that command.");
 			return
 		};
 
 		// Checking dm compatebility
 		if (command.guildOnly && (message.channel.type === 'DM')) {
-			if (botSystem.env = envType.dev) console.log("Message send in a DM, when not available in DMs");
+			if (botSystem.env == envType.dev) console.log("Message send in a DM, when not available in DMs");
 			return message.reply('I can\'t execute that command inside DMs!');
 		}
 
 		// Permissions checking
-		if (command.permissions && message.channel instanceof BaseGuildTextChannel) {
-			const authorPerms = message.channel.permissionsFor(message.author);
-			if (!authorPerms || !authorPerms.has(command.permissions)) {
-				if (botSystem.env = envType.dev) console.log("Permissions missing");
-				return message.reply('You can not do this!');
+		if (command.permissions) {
+			let authorized = await command.authorized(message, botSystem);
+			if (!authorized) {
+				return message.reply('You do not have the right permissions to use this command!');
 			}
 		}
 
@@ -146,39 +141,22 @@ async function handleMessageCreateEvent(message: Message) {
 				reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
 			}
 
-			if (botSystem.env = envType.dev) console.log("Arguments missing");
+			if (botSystem.env == envType.dev) console.log("Arguments missing");
 			return message.channel.send(reply);
 		}
 
 		// Cooldown checking
-		const cooldowns = botSystem.cooldowns;
-
-		if (!cooldowns.has(command.name)) {
-			cooldowns.set(command.name, new Discord.Collection());
+		const cooldown = Commands.cooldownCheck(command, message.author.id);
+		if (cooldown !== true) {
+			message.reply(`please wait ${cooldown} more second(s) before reusing the \`${command.name}\` command.`);
+			return;
 		}
-
-		const now = Date.now();
-		const timestamps = cooldowns.get(command.name);
-		const cooldownAmount = (command.cooldown || 0) * 1000;
-
-		if (timestamps.has(message.author.id)) {
-			const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
-			if (now < expirationTime) {
-				const timeLeft = (expirationTime - now) / 1000;
-				if (botSystem.env = envType.dev) console.log("Cooldown reached");
-				return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-			}
-		}
-
-		timestamps.set(message.author.id, now);
-		setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
 		// Execure command
 		try {
-			command.execute(message, args);
+			command.execute(message, botSystem, args, false, 0);
 		} catch (error) {
-			if (botSystem.env = envType.dev) console.log(error);
+			if (botSystem.env == envType.dev) console.log(error);
 			console.error(error);
 			message.reply('there was an error trying to execute that command!');
 		}
@@ -188,6 +166,8 @@ async function handleMessageCreateEvent(message: Message) {
 }
 
 client.on('messageReactionAdd', async (reaction, user) => {
+	const botSystem = new BotSystem;
+
 	if (reaction.message.partial) {
 		try {
 			await reaction.message.fetch();
@@ -208,7 +188,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		}
 	}
 	botSystem.guild = guild;
-	if (botSystem.env = envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on ${reaction.message.id}`);
+	if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on ${reaction.message.id}`);
 
 	if (reaction.message.id != "" && reaction.message.author?.id == client.user?.id) { // Execute only on messages created by the bot
 		console.log(`${user.username} reacted with "${reaction.emoji.name}".`);
@@ -243,12 +223,12 @@ client.on('messageReactionAdd', async (reaction, user) => {
 				}
 
 				let guidedCreation = new GuidedTeamCreation(botSystem.guild, reaction.message.channel, user);
-				botSystem.addGuidedTeamCreation(guidedCreation);
+				guidedTeamCreation.addGuidedTeamCreation(guidedCreation);
 
-				guidedCreation.step(undefined);
+				guidedCreation.step(undefined, botSystem);
 			}
 		}
-		if (botSystem.env = envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
+		if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
 	}
 });
 

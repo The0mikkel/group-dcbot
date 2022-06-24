@@ -1,13 +1,10 @@
+import DBConnection from "./data/DBConnection";
 
 // DB setup
-
-import { MongoClient } from "mongodb";
-import BotSystem from "./data/BotSystem";
 const COLLECTIONS = ['guilds', 'groups', 'invites'];
 
-const botSystem = BotSystem.getInstance();
-const mongoClient = botSystem.mongoClient;
-const mongoDatabase = botSystem.mongoDatabase;
+const mongoClient = DBConnection.getInstance().mongoClient;
+const mongoDatabase = DBConnection.getInstance().mongoDatabase;
 
 setupDatabase();
 
@@ -28,10 +25,11 @@ async function setupDatabase() {
 async function setupCollection(collection: string) {
     await mongoClient.connect();
     mongoDatabase.createCollection(collection, function (err: any, res: any) {
-        if (err)
-            console.log("Collection already exist!")
-        else
+        if (err) {
+            // console.log("Collection already exist!")
+        } else {
             console.log("Collection created!");
+        }
     });
 }
 
