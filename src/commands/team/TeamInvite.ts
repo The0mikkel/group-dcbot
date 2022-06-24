@@ -5,6 +5,7 @@ import { InviteType } from "../../data/Guild/InviteType";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
 import { DBGroup } from "../../data/Group/DBGroup";
 import { DBInvite } from "../../data/Group/DBInvite";
+import { UserLevel } from "../../data/Command/UserLevel";
 
 require("dotenv").config();
 
@@ -17,6 +18,9 @@ export default class TeamInvite extends TeamCommand {
             true,
             2,
             '[team] [team member]',
+            undefined,
+            undefined,
+            UserLevel.team
         )
         
     }

@@ -1,6 +1,7 @@
 import { Message, MessageEmbed } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
+import { UserLevel } from "../../data/Command/UserLevel";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
 
 require("dotenv").config();
@@ -14,18 +15,13 @@ export default class TeamGuided extends TeamCommand {
             true,
             2,
             '[message id] [emoji]',
+            undefined,
+            undefined,
+            UserLevel.admin
         );
     }
 
     async execute(message: Message, botSystem: BotSystem, args: any) {
-        if (
-            !message.member
-            || !message.member.permissions.has("ADMINISTRATOR")
-        ) {
-            message.channel.send("You don't have permission to add new teams!");
-            return;
-        }
-
         if (args.length < 2) {
             message.reply(`You need to specify a message id and an emoji to use as a reaction!`);
             return;
