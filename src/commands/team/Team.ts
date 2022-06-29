@@ -22,13 +22,6 @@ export default class Team extends TeamCommand {
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 
-        if (
-            !message.member
-        ) {
-            message.channel.send("You don't have permission to add new team members!");
-            return;
-        }
-
         if (args.length < 1) {
             message.reply(`You need to specify a group`);
             return;
