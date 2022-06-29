@@ -12,7 +12,7 @@ export default class TeamCreate extends TeamCommand {
     constructor() {
         super(
             'create-team',
-            'Create team with mentioned users - Remember to mention yourself. The first mentioned user, will be the team leader',
+            'Create a team',
             true,
             true,
             1,
