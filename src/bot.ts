@@ -6,7 +6,6 @@ import BotSystem from "./data/BotSystem";
 import { Config } from "./data/Guild/Config";
 import { envType } from "./data/envType";
 import { TeamConfig } from "./data/Guild/TeamConfig";
-import { DBInvite } from "./data/Group/DBInvite";
 import GuidedTeamCreation from "./data/GuidedTeam/GuidedTeamCreation";
 import { GuidedTeamCreationState } from "./data/GuidedTeam/GuidedTeamCreationState";
 import DBConnection from "./data/DBConnection";
@@ -191,26 +190,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
 	if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on ${reaction.message.id}`);
 
 	if (reaction.message.id != "" && reaction.message.author?.id == client.user?.id) { // Execute only on messages created by the bot
-		console.log(`${user.username} reacted with "${reaction.emoji.name}".`);
+		if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}".`);
 		if (user.id == client.user?.id) { // Execute only when bot reacts
 
 		} else { // Execute only when a user reacts
-			// Team invite handling
-			let invite = await DBInvite.loadByMessageId(reaction.message.id);
-			if (
-				invite != undefined
-				&& invite._id != undefined
-				&& invite.guildId != ""
-				&& invite.roleId != ""
-				&& invite.userId != ""
-			) {
-				if (reaction.emoji.name == "✅") {
-					invite.acceptInvite(client);
-				} else {
-					DBInvite.remove(invite._id);
-					user.send("You have denied the invite.");
-				}
-			}
+			
 		}
 	} else {
 		if (botSystem.guild && (user instanceof User) && !user.bot) {
