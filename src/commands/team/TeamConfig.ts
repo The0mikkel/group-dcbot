@@ -16,7 +16,7 @@ export default class TeamConfig extends TeamCommand {
             false,
             0,
             '[command]',
-            undefined,
+            0,
             ["ADMINISTRATOR"],
 			UserLevel.admin,
         );
@@ -156,7 +156,7 @@ function writeRolesCreateTeamList(message: Message, botSystem: BotSystem) {
     const teamRoles = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle('Roles, that can create teams:')
-        .setDescription((botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
+        .setDescription(botSystem.guild?.teamConfig.allowEveryone ? "***Everyone***" : (botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
         .setFooter({ text: 'Grouper', iconURL: botImage });
     message.channel.send({ embeds: [teamRoles] });
 }
