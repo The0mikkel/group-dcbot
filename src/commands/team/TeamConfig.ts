@@ -141,6 +141,10 @@ export default class TeamConfig extends TeamCommand {
                             - invite - Check if invite is currently required before a member is added to a team
                             - set-invite [true/false] - Set if a member can only be added through an invite
                             - invite-by [admin/leader/team] - Set, who can add new members to a team
+                            // - defaults - See the default settings for a team role
+                            // - default-hoist - Set if the team role should be displayed seperatly in the users list
+                            // - default-color - Set the default color of the role for a team
+                            // - default-mentionable - Set iif the team role should be mentionable
                         `
                     )
                     .setFooter({ text: 'Grouper', iconURL: botImage });
