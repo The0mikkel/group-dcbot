@@ -67,7 +67,7 @@ export default class GuidedTeamCreation {
                 if (!message) return;
                 this.addUserMessage(message);
 
-                let groupName = ASCIIFolder.foldReplacing(message.content);
+                let groupName = ASCIIFolder.foldReplacing(message.content.trim());
 
                 let messageGuildMember = message.guild?.members.cache.get(message.author.id);
                 if (messageGuildMember) {

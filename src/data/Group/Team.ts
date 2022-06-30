@@ -80,7 +80,7 @@ export default class Team {
         let actions = ["✅ Accept", "❌ Decline"];
         for (let index = 0; index < actions.length; index++) {
             try {
-                const buttonType = actions[index] == actions[0] ? 'SUCCESS' : 'SECONDARY';
+                const buttonType = actions[index] == actions[0] ? 'SUCCESS' : 'DANGER';
                 buttons.addComponents(
                     new MessageButton()
                         .setCustomId(`confirm-team-invite;${actions[index]}`)
@@ -106,7 +106,7 @@ export default class Team {
                     let role = message.guild?.roles.cache.get(dbGroup.id);
                     if (!role) {
                         try {
-                            i.update({ embeds: [Team.createSimpleEmbed("An error occured!", "The team is no longer available " + `in the guild "${message.guild?.name}"`)], components: [] });
+                            i.update({ embeds: [Team.createSimpleEmbed("An error occured!", `The team is no longer available in the guild "${message.guild?.name}"`)], components: [] });
                         } catch (error) {
                             console.log(error)
                         }
@@ -116,12 +116,12 @@ export default class Team {
                     // Add role to user
                     try {
                         await user.roles.add(dbGroup.id);
-                        i.update({ embeds: [Team.createSimpleEmbed("Invite accepted!", "You have been added to the team " + role.name + ` in the guild "${message.guild?.name}"`)], components: [] });
+                        i.update({ embeds: [Team.createSimpleEmbed("Invite accepted!", `You have been added to the team "${role.name}" in the guild "${message.guild?.name}"`)], components: [] });
                     } catch (error) {
                         console.log(error)
                     }
                 } else {
-                    i.update({ embeds: [Team.createSimpleEmbed("Invite declined!", "You declined the invite to the team to the team " + dbGroup.name + ` in the guild "${message.guild?.name}"`)], components: [] });
+                    i.update({ embeds: [Team.createSimpleEmbed("Invite declined!", `You declined the invite to the team to the team ${dbGroup.name} in the guild "${message.guild?.name}"`)], components: [] });
                 }
             }
         });
