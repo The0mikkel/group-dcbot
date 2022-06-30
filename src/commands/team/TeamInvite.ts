@@ -38,13 +38,14 @@ export default class TeamInvite extends TeamCommand {
 
         if (
             botSystem.guild?.teamConfig.teamInviteType == InviteType.admin
-            && !message.member.permissions.has("ADMINISTRATOR")
+            && (this.level = UserLevel.admin)
+            && !this.authorized(message, botSystem)
         ) {
             message.channel.send("You don't have permission to add new team members - Only admins can do that.");
             return;
         }
 
-        if (args.length < 2) {
+        if (args.length < 1) {
             message.reply(`You need to specify a group name and group members!`);
             return;
         }
@@ -81,8 +82,7 @@ export default class TeamInvite extends TeamCommand {
             }
         } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("ADMINISTRATOR")) {
             let currentUser = await message.guild?.members.fetch(message.author.id);
-            currentUser?.roles.cache.has(role?.id);
-            if (role?.teamLeader != message.author.id) {
+            if (!currentUser?.roles.cache.has(role.id)) {
                 message.reply("This action can only be performed by a member of the team!");
                 return;
             }
