@@ -24,8 +24,9 @@ export default class Team {
 
         let role = await message.guild?.roles.create({
             name: groupName,
-            color: undefined,
-            mentionable: true,
+            color: botSystem.guild?.teamConfig.defaultColor ?? "DEFAULT",
+            mentionable: botSystem.guild?.teamConfig.defaultMentionable ?? false,
+            hoist: botSystem.guild?.teamConfig.defaultHoist ?? false,
             reason: 'Group was created by grouper, as per request by ' + message.author.tag,
         })
 

@@ -80,6 +80,11 @@ export default class GuidedTeamCreation {
                     return;
                 }
                 this.team = groupCreation;
+                let guildMember = message.guild?.members.cache.find(member => member.id === message.author.id);
+                if (!guildMember) {
+                    return false;
+                }
+                guildMember.roles.add(this.team.id);
 
                 this.sendBotMessage("Mention users, that is to join the team, to continue")
                 this.state = GuidedTeamCreationState.awaitTeamMembers;

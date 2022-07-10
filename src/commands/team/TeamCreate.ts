@@ -88,6 +88,12 @@ export default class TeamCreate extends TeamCommand {
         }
         dbGroup = teamCreationReturn;
 
+        let guildMember = message.guild?.members.cache.find(member => member.id === message.author.id);
+        if (!guildMember) {
+            return false;
+        }
+        guildMember.roles.add(dbGroup.id);
+
         return dbGroup;
     }
 };

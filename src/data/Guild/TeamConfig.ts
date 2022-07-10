@@ -1,4 +1,4 @@
-import { ColorResolvable, Guild, Message } from "discord.js";
+import { ColorResolvable, Guild, Message, Util } from "discord.js";
 import { UserLevel } from "../Command/UserLevel";
 import { InviteType } from "./InviteType";
 
@@ -57,6 +57,11 @@ export class TeamConfig {
         this.requireInvite = requireInvite;
         this.teamInviteType = teamInviteType;
         this.defaultHoist = defaultHoist;
+        try {
+            this.defaultColor = Util.resolveColor(defaultColor ?? "DEFAULT")
+        } catch (error) {
+            defaultColor = "DEFAULT"
+        }
         this.defaultColor = defaultColor;
         this.enableColorChange = enableColorChange;
         this.colorChangeBy = colorChangeBy;
