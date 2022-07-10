@@ -1,7 +1,7 @@
 import DBConnection from "./data/DBConnection";
 
 // DB setup
-const COLLECTIONS = ['guilds', 'groups', 'invites'];
+const COLLECTIONS = ['guilds', 'groups'];
 
 const mongoClient = DBConnection.getInstance().mongoClient;
 const mongoDatabase = DBConnection.getInstance().mongoDatabase;

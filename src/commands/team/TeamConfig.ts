@@ -1,9 +1,11 @@
-import { Message, MessageEmbed } from "discord.js";
+import { Message, MessageEmbed, Util } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
 import { InviteType } from "../../data/Guild/InviteType";
 import { TeamConfig as DBTeamConfig } from "../../data/Guild/TeamConfig";
+import BotSystemEmbed from "../../data/Helper/BotSystemEmbed";
+import Colors from "../../data/Helper/Colors";
 
 require("dotenv").config();
 
@@ -16,9 +18,9 @@ export default class TeamConfig extends TeamCommand {
             false,
             0,
             '[command]',
-            undefined,
+            0,
             ["ADMINISTRATOR"],
-			UserLevel.admin,
+            UserLevel.admin,
         );
     }
 
@@ -126,7 +128,52 @@ export default class TeamConfig extends TeamCommand {
                 }
 
                 await botSystem.guild.save();
-
+                break;
+            case "defaults":
+                let colorDisplay;
+                colorDisplay = Colors.getColor(botSystem.guild.teamConfig.defaultColor);
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Default settings for new team roles", (
+                        "**Hoist:** " + (botSystem.guild.teamConfig.defaultHoist ? "True" : "False") + "\n"
+                        + "**Color:** " + colorDisplay + "\n"
+                        + "**Mentionable:** " + (botSystem.guild.teamConfig.defaultMentionable ? "True" : "False")
+                    ))]
+                })
+                break;
+            case "default-hoist":
+                botSystem.guild.teamConfig.defaultHoist = !botSystem.guild.teamConfig.defaultHoist;
+                botSystem.guild.save();
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Default setting of hoist on new team roles has been updated!", (
+                        "Hoist is now set to " + (botSystem.guild.teamConfig.defaultHoist ? "True" : "False")
+                    ))]
+                })
+                break;
+            case "default-color":
+                try {
+                    botSystem.guild.teamConfig.defaultColor = Util.resolveColor(args?.shift()?.trim().toUpperCase() ?? "DEFAULT");
+                    botSystem.guild.save();
+                    message.reply({
+                        embeds: [BotSystemEmbed.embedCreator("Default color for new team roles has been updated!", (
+                            "The default color for new team roles is now set to " + Colors.getColor(botSystem.guild.teamConfig.defaultColor)
+                        ), botSystem.guild.teamConfig.defaultColor)]
+                    })
+                } catch (error) {
+                    message.reply({
+                        embeds: [BotSystemEmbed.embedCreator("Error updating default team color", (
+                            "The default color has not been updated, due to an error that occured - Maybe the color you tried to enter is not a valid color."
+                        ))]
+                    })
+                }
+                break;
+            case "default-mentionable":
+                botSystem.guild.teamConfig.defaultMentionable = !botSystem.guild.teamConfig.defaultMentionable;
+                botSystem.guild.save();
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Default setting of mentionable on new team roles has been updated!", (
+                        "Mentionable is now set to " + (botSystem.guild.teamConfig.defaultMentionable ? "True" : "False")
+                    ))]
+                })
                 break;
             default:
                 const DBTeamConfigCommandEmbed = new MessageEmbed()
@@ -141,6 +188,10 @@ export default class TeamConfig extends TeamCommand {
                             - invite - Check if invite is currently required before a member is added to a team
                             - set-invite [true/false] - Set if a member can only be added through an invite
                             - invite-by [admin/leader/team] - Set, who can add new members to a team
+                            - defaults - See the default settings for a team role
+                            - default-hoist - Set if the team role should be displayed seperatly in the users list
+                            - default-color - Set the default color of the role for a team
+                            - default-mentionable - Set if the team role should be mentionable
                         `
                     )
                     .setFooter({ text: 'Grouper', iconURL: botImage });
@@ -156,7 +207,7 @@ function writeRolesCreateTeamList(message: Message, botSystem: BotSystem) {
     const teamRoles = new MessageEmbed()
         .setColor('#0099ff')
         .setTitle('Roles, that can create teams:')
-        .setDescription((botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
+        .setDescription(botSystem.guild?.teamConfig.allowEveryone ? "***Everyone***" : (botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
         .setFooter({ text: 'Grouper', iconURL: botImage });
     message.channel.send({ embeds: [teamRoles] });
 }

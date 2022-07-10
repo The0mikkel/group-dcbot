@@ -3,7 +3,8 @@ import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
 import { DBGroup } from "../../data/Group/DBGroup";
-import { DBInvite } from "../../data/Group/DBInvite";
+import Team, { TeamCreationErrors } from "../../data/Group/Team";
+import TeamInvite from "./TeamInvite";
 
 require("dotenv").config();
 
@@ -11,16 +12,21 @@ export default class TeamCreate extends TeamCommand {
     constructor() {
         super(
             'create-team',
-            'Create team with mentioned users - Remember to mention yourself. The first mentioned user, will be the team leader',
+            'Create a team',
             true,
             true,
-            2,
-            '[team name] [team-leader] [members...]',
+            1,
+            '[team name]',
         )
     }
 
     async execute(message: Message, botSystem: BotSystem, args: any, autoDelete = false): Promise<void> {
-        await this.createTeam(message, botSystem, args, autoDelete);
+        let returnValue = await this.createTeam(message, botSystem, args, autoDelete);
+
+        if (returnValue instanceof DBGroup) {
+            let botMessage = message.channel.send(`Group <@&${returnValue.id}> was created.\nTo add members beside yourself, please use the ${new TeamInvite().name} command!`);
+            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
+        }
     }
 
     async createTeam(message: Message, botSystem: BotSystem, args: any, autoDelete = false): Promise<false | DBGroup> {
@@ -50,13 +56,12 @@ export default class TeamCreate extends TeamCommand {
             return false;
         }
 
-        if (args.length < 2) {
-            let botMessage = message.reply(`You need to specify a group name and group members!`);
-            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
-            return false;
+        var rawGroupName = "";
+        for (const word in args) {
+            rawGroupName = rawGroupName + args[word] + " ";
         }
 
-        const groupName = ASCIIFolder.foldReplacing(args.shift());
+        const groupName = ASCIIFolder.foldReplacing(rawGroupName);
         groupName.trim();
 
         if (groupName == "") {
@@ -65,71 +70,36 @@ export default class TeamCreate extends TeamCommand {
             return false;
         }
 
-        let roleLookup = message.guild?.roles.cache.find(role => role.name === groupName);
-        if (roleLookup) {
-            let botMessage = message.reply("The team already exist, please select another name for the team!");
-            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
-            return false;
-        }
-
-        let role = await message.guild?.roles.create({
-            name: groupName,
-            color: undefined,
-            mentionable: true,
-            reason: 'Group was created by grouper, as per request by ' + message.author.tag,
-        })
-
-        if (role == undefined) {
-            let botMessage = message.reply("Could not create group " + groupName);
-            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
-            return false;
-        }
-
         let dbGroup: DBGroup;
-        dbGroup = new DBGroup(role?.id, message.guild?.id ?? "", ASCIIFolder.foldReplacing(role?.name ?? ""), message.author.id, "", Date.now());
+        let teamCreationReturn = await Team.createTeam(botSystem, message, groupName);
 
-
-        let users = [];
-
-        if (!botSystem.guild?.teamConfig.requireInvite) { // Invite not required
-            if (message.mentions.members) {
-                message.mentions.members.forEach(async (member) => {
-                    try {
-                        member.roles.add(role?.id ?? "");
-                        users.push(member);
-                    } catch (error) {
-                        console.log(`There was an error adding user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
-                    }
-                });
+        if (!(teamCreationReturn instanceof DBGroup)) {
+            let botMessage: Promise<Message>;
+            switch (teamCreationReturn) {
+                case TeamCreationErrors.roleCreationFailure:
+                    botMessage = message.reply("Could not create group " + groupName);
+                    break;
+                case TeamCreationErrors.alreadyExist:
+                    botMessage = message.reply("The team already exist, please select another name for the team!");
+                    break;
+                case TeamCreationErrors.nameLength:
+                    botMessage = message.reply("The team name must not be longer than 100 characters!");
+                    break;
+                default:
+                    botMessage = message.reply("An error occured while processing the creation of the team - Please try again or contact an admin.");
+                    break;
             }
-            let botMessage = message.channel.send(`Group ${role} was created. Role was added to mentioned users.`);
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
-        } else { // Invite required
-            let membersCount = 0;
-            let randomMemberId = "";
-            if (message.mentions.members) {
-                message.mentions.members.forEach(async (member) => {
-                    if (membersCount == 0) {
-                        randomMemberId = member.id;
-                    }
-                    try {
-                        let dmMessage = await member.send(`You have been invited to the team "${groupName}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nReact below, to join the team!.`);
-                        dmMessage.react("✅");
-                        dmMessage.react("❌");
-
-                        await (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
-                    } catch (error) {
-                        console.log(`There was an error sending invite to user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
-                    }
-                });
-
-                dbGroup.teamLeader = args.shift().toLowerCase().substring(2).trim().slice(0, -1) ?? randomMemberId;
-            }
-            let botMessage = message.channel.send(`Group ${role} was created. Invites was send to all mentioned users.`);
-            if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
+            return false;
         }
+        dbGroup = teamCreationReturn;
 
-        await dbGroup.save();
+        let guildMember = message.guild?.members.cache.find(member => member.id === message.author.id);
+        if (!guildMember) {
+            return false;
+        }
+        guildMember.roles.add(dbGroup.id);
+
         return dbGroup;
     }
 };

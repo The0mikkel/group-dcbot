@@ -22,13 +22,6 @@ export default class Team extends TeamCommand {
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 
-        if (
-            !message.member
-        ) {
-            message.channel.send("You don't have permission to add new team members!");
-            return;
-        }
-
         if (args.length < 1) {
             message.reply(`You need to specify a group`);
             return;
@@ -37,7 +30,12 @@ export default class Team extends TeamCommand {
         let DiscordRole: Role | undefined;
         let groupName: string;
         if (!message.mentions.roles || message.mentions.roles.first() == undefined) {
-            groupName = ASCIIFolder.foldReplacing(args.shift().trim());
+            var rawGroupName = "";
+            for (const word in args) {
+                rawGroupName = rawGroupName + args[word] + " ";
+            }
+
+            groupName = ASCIIFolder.foldReplacing(rawGroupName.trim());
             console.log(groupName);
             DiscordRole = message.guild?.roles.cache.find(role => role.name === groupName);
         } else {
@@ -55,18 +53,18 @@ export default class Team extends TeamCommand {
             message.reply("The team does not exist!");
             return;
         }
-        
+
         const botImage = message.client.user?.avatarURL() ?? "";
         const teamInformation = new MessageEmbed()
-				.setColor('#0099ff')
-				.setTitle('Team information:')
-				.setDescription(`
+            .setColor('#0099ff')
+            .setTitle('Team information:')
+            .setDescription(`
                     **Name:** ${DiscordRole.name} 
                     **Team leader:** ${(await message.guild?.members.fetch(role.teamLeader))?.displayName ?? "*Ingen*"} 
                 `)
-                .addField("Members:", DiscordRole.members.map(member => member.displayName).join("\n"))
-				.setFooter({ text: 'Grouper', iconURL: botImage });
-		message.channel.send({ embeds: [teamInformation] });
+            .addField("Members:", DiscordRole.members.map(member => member.displayName).join("\n"))
+            .setFooter({ text: 'Grouper', iconURL: botImage });
+        message.channel.send({ embeds: [teamInformation] });
 
     }
 };

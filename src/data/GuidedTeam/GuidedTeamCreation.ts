@@ -4,9 +4,9 @@ import BotSystem from "../BotSystem";
 import { DBGuild } from "../Guild/DBGuild";
 import ASCIIFolder from "../Helper/ascii-folder";
 import { DBGroup } from "../Group/DBGroup";
-import { DBInvite } from "../Group/DBInvite";
 import GuidedTeamCreationPlatform from "./GuidedTeamCreationPlatform";
 import { GuidedTeamCreationState } from "./GuidedTeamCreationState";
+import Team from "../Group/Team";
 
 export default class GuidedTeamCreation {
     guild: DBGuild;
@@ -15,7 +15,6 @@ export default class GuidedTeamCreation {
     channel: DMChannel | PartialDMChannel | NewsChannel | TextChannel | ThreadChannel;
     user: User;
     team: DBGroup | null;
-    invites: DBInvite[];
     timestamp: Date;
     key: number | undefined;
     state: GuidedTeamCreationState;
@@ -28,7 +27,6 @@ export default class GuidedTeamCreation {
         this.userMessages = [];
         this.botMessages = [];
         this.team = null;
-        this.invites = [];
 
         this.timestamp = new Date();
         this.state = GuidedTeamCreationState.created;
@@ -69,7 +67,7 @@ export default class GuidedTeamCreation {
                 if (!message) return;
                 this.addUserMessage(message);
 
-                let groupName = ASCIIFolder.foldReplacing(message.content);
+                let groupName = ASCIIFolder.foldReplacing(message.content.trim());
 
                 let messageGuildMember = message.guild?.members.cache.get(message.author.id);
                 if (messageGuildMember) {
@@ -77,11 +75,17 @@ export default class GuidedTeamCreation {
                 }
 
                 const teamCreate = new TeamCreate();
-                let groupCreation = await teamCreate.createTeam(message, botSystem, [groupName, "<!" + message.author.id + ">"], true);
+                let groupCreation = await teamCreate.createTeam(message, botSystem, [groupName], true);
                 if (!groupCreation) {
                     return;
                 }
                 this.team = groupCreation;
+                let guildMember = message.guild?.members.cache.find(member => member.id === message.author.id);
+                if (!guildMember) {
+                    return false;
+                }
+                guildMember.roles.add(this.team.id);
+
                 this.sendBotMessage("Mention users, that is to join the team, to continue")
                 this.state = GuidedTeamCreationState.awaitTeamMembers;
                 break;
@@ -91,35 +95,10 @@ export default class GuidedTeamCreation {
 
                 let role = this.team;
 
-                if (!botSystem.guild?.teamConfig.requireInvite) { // Invite not required
-                    if (message.mentions.members) {
-                        message.mentions.members.forEach(async (member) => {
-                            try {
-                                member.roles.add(role.id ?? "");
-                            } catch (error) {
-                                console.log(`There was an error adding user: ${member} for the role "${this.team?.name ?? "ukendt"}" and this was caused by: ${error}`)
-                            }
-                        });
-                    }
-                    // this.sendBotMessage(`Mentioned members, has been added.`);
-                } else { // Invite required
-                    if (message.mentions.members) {
-                        message.mentions.members.forEach(async (member) => {
-                            if (member.roles.cache.has(role.id)) {
-                                return;
-                            }
-                            try {
-                                let dmMessage = await member.send(`You have been invited to the team "${this.team?.name ?? "ukendt"}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nReact below, to join the team!.`);
-                                dmMessage.react("✅");
-                                dmMessage.react("❌");
-
-                                await (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
-                            } catch (error) {
-                                console.log(`There was an error sending invite to user: ${member} for the role "${this.team?.name ?? "ukendt"}" and this was caused by: ${error}`)
-                            }
-                        });
-                    }
-                    // this.sendBotMessage(`Invites to team has been send to all mentioned users.`);
+                if (message.mentions.members) {
+                    message.mentions.members.forEach(async (member) => {
+                        Team.sendInvite(botSystem, role, member, message);
+                    });
                 }
 
                 this.state = GuidedTeamCreationState.teamCreated;

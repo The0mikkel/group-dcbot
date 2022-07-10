@@ -66,11 +66,7 @@ export class DBGuild implements DBElement {
 
     private static generateClassFromDB(result: any): DBGuild {
         const config = new Config(ASCIIFolder.foldReplacing(result.config.prefix) ?? ASCIIFolder.foldReplacing(process.env.bot_prefix) ?? "gr!");
-        const teamConfig = new TeamConfig(
-            result.teamConfig?.creatorRole ?? [], 
-            result.teamConfig?.allowEveryone ?? false, 
-            result.teamConfig?.requireInvite ?? false, 
-            InviteType[(result.teamConfig?.teamInviteType ?? "admin") as keyof typeof InviteType]) ?? InviteType.admin;
+        const teamConfig = TeamConfig.generateClassFromDB(result);
         const guild = new DBGuild(
             result.id ?? undefined, 
             config, 

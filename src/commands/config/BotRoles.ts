@@ -197,7 +197,7 @@ export default class BotRoles extends ConfigCommand {
             }
 
             if (i.customId.startsWith("confirm-embed-bot-roles;")) {
-                const action = i.customId.split(";")[1];
+                const action = i.customId.split(";")[1] ?? "";
                 if (action == "Confirm") {
                     confirmEvent(i);
                 } else {

@@ -4,7 +4,8 @@ import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { InviteType } from "../../data/Guild/InviteType";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
 import { DBGroup } from "../../data/Group/DBGroup";
-import { DBInvite } from "../../data/Group/DBInvite";
+import { UserLevel } from "../../data/Command/UserLevel";
+import Team from "../../data/Group/Team";
 
 require("dotenv").config();
 
@@ -17,8 +18,11 @@ export default class TeamInvite extends TeamCommand {
             true,
             2,
             '[team] [team member]',
+            undefined,
+            undefined,
+            UserLevel.team
         )
-        
+
     }
 
     async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
@@ -34,13 +38,14 @@ export default class TeamInvite extends TeamCommand {
 
         if (
             botSystem.guild?.teamConfig.teamInviteType == InviteType.admin
-            && !message.member.permissions.has("ADMINISTRATOR")
+            && (this.level = UserLevel.admin)
+            && !this.authorized(message, botSystem)
         ) {
             message.channel.send("You don't have permission to add new team members - Only admins can do that.");
             return;
         }
 
-        if (args.length < 2) {
+        if (args.length < 1) {
             message.reply(`You need to specify a group name and group members!`);
             return;
         }
@@ -61,10 +66,13 @@ export default class TeamInvite extends TeamCommand {
             return;
         }
 
-        let role = await DBGroup.load(roleId ?? "");
-        if (role == undefined) {
+        let role: DBGroup;
+        let loadReturn = await DBGroup.load(roleId ?? "") ?? undefined;
+        if (loadReturn == undefined) {
             message.reply("The team does not exist!");
             return;
+        } else {
+            role = loadReturn
         }
 
         if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("ADMINISTRATOR")) {
@@ -74,42 +82,18 @@ export default class TeamInvite extends TeamCommand {
             }
         } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("ADMINISTRATOR")) {
             let currentUser = await message.guild?.members.fetch(message.author.id);
-            currentUser?.roles.cache.has(role?.id);
-            if (role?.teamLeader != message.author.id) {
+            if (!currentUser?.roles.cache.has(role.id)) {
                 message.reply("This action can only be performed by a member of the team!");
                 return;
             }
         }
 
-        if (!botSystem.guild?.teamConfig.requireInvite) { // Invite not required
-            if (message.mentions.members) {
-                message.mentions.members.forEach(async (member) => {
-                    try {
-                        member.roles.add(role?.id ?? "");
-                    } catch (error) {
-                        console.log(`There was an error adding user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
-                    }
-                });
-            }
-            message.channel.send(`Mentioned members, has been added.`);
-        } else { // Invite required
-            if (message.mentions.members) {
-                message.mentions.members.forEach(async (member) => {
-                    if (member.roles.cache.has(role?.id)) {
-                        return;
-                    }
-                    try {
-                        let dmMessage = await member.send(`You have been invited to the team "${groupName}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nReact below, to join the team!.`);
-                        dmMessage.react("✅");
-                        dmMessage.react("❌");
-
-                        await (new DBInvite(member.id, dmMessage.id, role?.id ?? "", message.guild?.id ?? "")).save();
-                    } catch (error) {
-                        console.log(`There was an error sending invite to user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
-                    }
-                });
-            }
-            message.channel.send(`Invites to team has been send to all mentioned users.`);
+        if (message.mentions.members) {
+            message.mentions.members.forEach(async (member) => {
+                Team.sendInvite(botSystem, role, member, message);
+            });
         }
+
+        message.channel.send(`Invites to team has been send to all mentioned users.`);
     }
 };
