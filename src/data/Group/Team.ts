@@ -22,6 +22,10 @@ export default class Team {
             return TeamCreationErrors.alreadyExist;
         }
 
+        if (groupName.length > 100) {
+            return TeamCreationErrors.nameLength;
+        }
+
         let role = await message.guild?.roles.create({
             name: groupName,
             color: botSystem.guild?.teamConfig.defaultColor ?? "DEFAULT",
@@ -140,6 +144,7 @@ export default class Team {
 export enum TeamCreationErrors {
     generalError,
     roleCreationFailure,
+    nameLength,
     alreadyExist
 }
 

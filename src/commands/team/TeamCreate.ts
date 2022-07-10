@@ -78,10 +78,16 @@ export default class TeamCreate extends TeamCommand {
             switch (teamCreationReturn) {
                 case TeamCreationErrors.roleCreationFailure:
                     botMessage = message.reply("Could not create group " + groupName);
+                    break;
                 case TeamCreationErrors.alreadyExist:
                     botMessage = message.reply("The team already exist, please select another name for the team!");
+                    break;
+                case TeamCreationErrors.nameLength:
+                    botMessage = message.reply("The team name must not be longer than 100 characters!");
+                    break;
                 default:
                     botMessage = message.reply("An error occured while processing the creation of the team - Please try again or contact an admin.");
+                    break;
             }
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
             return false;
