@@ -175,6 +175,15 @@ export default class TeamConfig extends TeamCommand {
                     ))]
                 })
                 break;
+            case "channel-creation":
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Settings for channel creation on team creation", (
+                        "**Text channel:** " + (botSystem.guild.teamConfig.createTextOnTeamCreation ? "True" : "False") + "\n"
+                        + "**Voice channel:** " + (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? "True" : "False") + "\n"
+                        + "**Category:** " + botSystem.guild.teamConfig.defaultCategory
+                    ))]
+                })
+                break;
             default:
                 const DBTeamConfigCommandEmbed = new MessageEmbed()
                     .setColor('#0099ff')
@@ -192,6 +201,10 @@ export default class TeamConfig extends TeamCommand {
                             - default-hoist - Set if the team role should be displayed seperatly in the users list
                             - default-color - Set the default color of the role for a team
                             - default-mentionable - Set if the team role should be mentionable
+                            - channel-creation - See current setup for creation of channel on team creation
+                            - channel-category - Set category where new channels will be created in
+                            - toogle-text-channel - Toggle creation of text channel on team creation
+                            - toogle-voice-channel - Toggle creation of voice channel on team creation
                         `
                     )
                     .setFooter({ text: 'Grouper', iconURL: botImage });
