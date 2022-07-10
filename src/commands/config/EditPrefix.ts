@@ -45,7 +45,7 @@ export default class EditPrefix extends ConfigCommand {
             return
         }
 
-        var ASCIIFolder = require("./../../data/helper/ascii-folder");
+        var ASCIIFolder = require("./../../data/Helper/ascii-folder");
         guild.config.prefix = ASCIIFolder.foldReplacing(prefix).trim();
 
         await guild.save();
