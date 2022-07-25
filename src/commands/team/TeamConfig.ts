@@ -2,8 +2,10 @@ import { Message, MessageEmbed, Util } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
+import { DBGuild } from "../../data/Guild/DBGuild";
 import { InviteType } from "../../data/Guild/InviteType";
 import { TeamConfig as DBTeamConfig } from "../../data/Guild/TeamConfig";
+import ASCIIFolder from "../../data/Helper/ascii-folder";
 import BotSystemEmbed from "../../data/Helper/BotSystemEmbed";
 import Colors from "../../data/Helper/Colors";
 
@@ -43,7 +45,7 @@ export default class TeamConfig extends TeamCommand {
 
         const botImage = message.client.user?.avatarURL() ?? "";
 
-        const secondCommandWord = args?.shift()?.trim().toLowerCase() ?? "";
+        const secondCommandWord = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? "");
         switch (secondCommandWord) {
             case "roles":
                 console.log("Roles reached!")
@@ -104,7 +106,7 @@ export default class TeamConfig extends TeamCommand {
                 message.reply("Invite to join team is now " + (botSystem.guild?.teamConfig.requireInvite ? "active" : "inactive"));
                 break;
             case "invite-by":
-                const setInviteTypeText = (args?.shift()?.trim().toLowerCase() ?? "");
+                const setInviteTypeText = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? "");
 
                 switch (setInviteTypeText) {
                     case "":
@@ -180,7 +182,36 @@ export default class TeamConfig extends TeamCommand {
                     embeds: [BotSystemEmbed.embedCreator("Settings for channel creation on team creation", (
                         "**Text channel:** " + (botSystem.guild.teamConfig.createTextOnTeamCreation ? "True" : "False") + "\n"
                         + "**Voice channel:** " + (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? "True" : "False") + "\n"
-                        + "**Category:** " + botSystem.guild.teamConfig.defaultCategory
+                        + "**Category:** " + (message.guild ? DBGuild.getCategoryFromId(botSystem.guild.teamConfig.defaultCategory, message.guild)?.name ?? "*Unknown*" : "*Unknown*")
+                    ))]
+                })
+                break;
+            case "channel-category":
+                if (message.guild) {
+                    botSystem.guild.teamConfig.defaultCategory = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? "");
+                    botSystem.guild.save();
+                    message.reply({
+                        embeds: [BotSystemEmbed.embedCreator("Category for creation of channesl in has been updated!", (
+                            "Default category is now set to: " + (DBGuild.getCategoryFromId(botSystem.guild.teamConfig.defaultCategory, message.guild)?.name ?? "*Unknown*")
+                        ))]
+                    })
+                }
+                break;
+            case "toogle-text-channel":
+                botSystem.guild.teamConfig.createTextOnTeamCreation = !botSystem.guild.teamConfig.createTextOnTeamCreation;
+                botSystem.guild.save();
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Text channel creation for team on team creation has been updated!", (
+                        "Text channel creation is now set to " + (botSystem.guild.teamConfig.createTextOnTeamCreation ? "True" : "False")
+                    ))]
+                })
+                break;
+            case "toogle-voice-channel":
+                botSystem.guild.teamConfig.createVoiceOnTeamCreation = !botSystem.guild.teamConfig.createVoiceOnTeamCreation;
+                botSystem.guild.save();
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Voice channel creation for team on team creation has been updated!", (
+                        "Voice channel creation is now set to " + (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? "True" : "False")
                     ))]
                 })
                 break;
@@ -209,7 +240,7 @@ export default class TeamConfig extends TeamCommand {
 
                             **Channel creation:**
                             - channel-creation - See current setup for creation of channel on team creation
-                            - channel-category - Set category where new channels will be created in
+                            - channel-category - Set category (id) where new channels will be created in
                             - toogle-text-channel - Toggle creation of text channel on team creation
                             - toogle-voice-channel - Toggle creation of voice channel on team creation
                         `
