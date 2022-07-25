@@ -190,17 +190,24 @@ export default class TeamConfig extends TeamCommand {
                     .setTitle('Command list:')
                     .setDescription(
                         `
+                            **Roles:**
                             - roles - See list of roles, that can create teams 
                             - role-everyone - Toggle if everyone should be able to create a team 
                             - add-role [role] - Add role, that can create team 
                             - rem-role [role] - Remove role, that can create team 
+
+                            **Invite:**
                             - invite - Check if invite is currently required before a member is added to a team
                             - set-invite [true/false] - Set if a member can only be added through an invite
                             - invite-by [admin/leader/team] - Set, who can add new members to a team
+
+                            **Default role:**
                             - defaults - See the default settings for a team role
                             - default-hoist - Set if the team role should be displayed seperatly in the users list
                             - default-color - Set the default color of the role for a team
                             - default-mentionable - Set if the team role should be mentionable
+
+                            **Channel creation:**
                             - channel-creation - See current setup for creation of channel on team creation
                             - channel-category - Set category where new channels will be created in
                             - toogle-text-channel - Toggle creation of text channel on team creation
