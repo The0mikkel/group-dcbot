@@ -1,6 +1,8 @@
-import { GuildMember, Message, MessageActionRow, MessageButton, MessageEmbed, Role, User } from "discord.js";
+import { CategoryChannel, GuildChannel, GuildMember, Message, MessageActionRow, MessageButton, MessageEmbed, OverwriteData, Role, TextChannel, User, VoiceChannel } from "discord.js";
+import { ChannelTypes } from "discord.js/typings/enums";
 import BotSystem from "../BotSystem";
 import { envType } from "../envType";
+import { DBGuild } from "../Guild/DBGuild";
 import ASCIIFolder from "../Helper/ascii-folder";
 import { DBGroup } from "./DBGroup";
 
@@ -46,9 +48,60 @@ export default class Team {
 
         let dbGroup: DBGroup;
         dbGroup = new DBGroup(role.id, botSystem.guild.id, ASCIIFolder.foldReplacing(role.name), message.author.id, message.author.id, Date.now());
+        Team.channelCreationHandler(botSystem, message, dbGroup);
         await dbGroup.save();
 
         return dbGroup;
+    }
+
+    private static async channelCreationHandler(botSystem: BotSystem, message: Message, dbGroup: DBGroup): Promise<void> {
+        if (botSystem.guild?.teamConfig.createTextOnTeamCreation) {
+            Team.channelCreation(botSystem, message, dbGroup, ChannelTypes.GUILD_TEXT);
+        }
+        if (botSystem.guild?.teamConfig.createVoiceOnTeamCreation) {
+            Team.channelCreation(botSystem, message, dbGroup, ChannelTypes.GUILD_VOICE);
+        }
+    }
+
+    private static async channelCreation(botSystem: BotSystem, message: Message, dbGroup: DBGroup, channelType: ChannelTypes.GUILD_TEXT | ChannelTypes.GUILD_VOICE): Promise<void> {
+        if (!message.guild) {
+            return;
+
+        }
+        let channel: void | TextChannel | VoiceChannel;
+        channel = await message.guild.channels.create(dbGroup.name, { type: channelType, reason: 'Team text channel created for team ' + dbGroup.name }).catch(console.error);
+        if (!channel) {
+            return;
+        }
+        if (!(message.channel instanceof GuildChannel)) {
+            return;
+        }
+        try {
+            channel.setParent(botSystem.guild?.teamConfig.defaultCategory ?? "");
+        } catch (error) {
+            console.log(`There was an error creating channel "${dbGroup.name}" and this was caused by: ${error}`);
+            return;
+        }
+
+        const everyoneRole = message.guild.roles.everyone;
+
+        let newPermissions: OverwriteData[] = [
+            { type: 'role', id: everyoneRole.id, deny: ['VIEW_CHANNEL', 'CONNECT'] }
+        ];
+        botSystem.guild?.adminRoles.forEach(role => {
+            newPermissions.push({ type: 'role', id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+        });
+        botSystem.guild?.teamAdminRoles.forEach(role => {
+            newPermissions.push({ type: 'role', id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+        });
+        newPermissions.push({ type: 'role', id: dbGroup.id, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+
+        try {
+            await channel.permissionOverwrites.set(newPermissions, "Updated permissions to default team channel permissions");
+        } catch (error) {
+            console.log(`There was an error updating base channel permissions for channel "${dbGroup.name}" and this was caused by: ${error}`);
+            return;
+        }
     }
 
     static async sendInvite(botSystem: BotSystem, dbGroup: DBGroup, user: GuildMember, message: Message): Promise<boolean | TeamInviteErrors> {
