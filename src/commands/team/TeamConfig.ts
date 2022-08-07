@@ -178,26 +178,80 @@ export default class TeamConfig extends TeamCommand {
                 })
                 break;
             case "channel-creation":
+                let categoriesNamesOverviewText: string = "";
+                botSystem.guild.teamConfig.defaultCategoryText.forEach(category => {
+                    if (!message.guild) return;
+                    const searchedCategory = DBGuild.getCategoryFromId(category, message.guild);
+                    if (!searchedCategory) return;
+                    categoriesNamesOverviewText += ", " + searchedCategory.name;
+                });
+                categoriesNamesOverviewText = categoriesNamesOverviewText.substring(2);
+                categoriesNamesOverviewText = categoriesNamesOverviewText == "" ? "-" : categoriesNamesOverviewText;
+
+                let categoriesNamesOverviewVoice: string = "";
+                botSystem.guild.teamConfig.defaultCategoryVoice.forEach(category => {
+                    if (!message.guild) return;
+                    const searchedCategory = DBGuild.getCategoryFromId(category, message.guild);
+                    if (!searchedCategory) return;
+                    categoriesNamesOverviewVoice += ", " + searchedCategory.name;
+                });
+                categoriesNamesOverviewVoice = categoriesNamesOverviewVoice.substring(2);
+                categoriesNamesOverviewVoice = categoriesNamesOverviewVoice == "" ? "-" : categoriesNamesOverviewVoice;
+
                 message.reply({
                     embeds: [BotSystemEmbed.embedCreator("Settings for channel creation on team creation", (
                         "**Text channel:** " + (botSystem.guild.teamConfig.createTextOnTeamCreation ? "True" : "False") + "\n"
                         + "**Voice channel:** " + (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? "True" : "False") + "\n"
-                        + "**Category:** " + (message.guild ? DBGuild.getCategoryFromId(botSystem.guild.teamConfig.defaultCategory, message.guild)?.name ?? "*Unknown*" : "*Unknown*")
+                        + "**Text Category:** " + categoriesNamesOverviewText + "\n"
+                        + "**Voice Category:** " + categoriesNamesOverviewVoice
                     ))]
                 })
                 break;
-            case "channel-category":
-                if (message.guild) {
-                    botSystem.guild.teamConfig.defaultCategory = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? "");
-                    botSystem.guild.save();
-                    message.reply({
-                        embeds: [BotSystemEmbed.embedCreator("Category for creation of channesl in has been updated!", (
-                            "Default category is now set to: " + (DBGuild.getCategoryFromId(botSystem.guild.teamConfig.defaultCategory, message.guild)?.name ?? "*Unknown*")
-                        ))]
-                    })
+            case "channel-category-text":
+                let categoriesText = [];
+                for (let index = 0; index < args.length; index++) {
+                    categoriesText.push(ASCIIFolder.foldReplacing(args[index].trim().toLowerCase() ?? ""));
                 }
+
+                botSystem.guild.teamConfig.defaultCategoryText = categoriesText;
+                botSystem.guild.save();
+
+                let categoriesNames = "";
+                categoriesText.forEach(category => {
+                    if (!message.guild) return;
+                    categoriesNames += ", " + DBGuild.getCategoryFromId(category, message.guild)?.name;
+                });
+                categoriesNames = categoriesNames.substring(2);
+
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Category for creation of **text** channesl in has been updated!", (
+                        "Default category is now set to: " + (categoriesNames ?? "*Unknown*")
+                    ))]
+                })
                 break;
-            case "toogle-text-channel":
+            case "channel-category-voice":
+                let categoriesVoice = [];
+                for (let index = 0; index < args.length; index++) {
+                    categoriesVoice.push(ASCIIFolder.foldReplacing(args[index].trim().toLowerCase() ?? ""));
+                }
+
+                botSystem.guild.teamConfig.defaultCategoryVoice = categoriesVoice;
+                botSystem.guild.save();
+
+                let categoriesNamesVoice = "";
+                categoriesVoice.forEach(category => {
+                    if (!message.guild) return;
+                    categoriesNamesVoice += ", " + DBGuild.getCategoryFromId(category, message.guild)?.name;
+                });
+                categoriesNamesVoice = categoriesNamesVoice.substring(2);
+
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Category for creation of **voice** channesl in has been updated!", (
+                        "Default category is now set to: " + (categoriesNamesVoice ?? "*Unknown*")
+                    ))]
+                })
+                break;
+            case "toggle-text-channel":
                 botSystem.guild.teamConfig.createTextOnTeamCreation = !botSystem.guild.teamConfig.createTextOnTeamCreation;
                 botSystem.guild.save();
                 message.reply({
@@ -206,7 +260,7 @@ export default class TeamConfig extends TeamCommand {
                     ))]
                 })
                 break;
-            case "toogle-voice-channel":
+            case "toggle-voice-channel":
                 botSystem.guild.teamConfig.createVoiceOnTeamCreation = !botSystem.guild.teamConfig.createVoiceOnTeamCreation;
                 botSystem.guild.save();
                 message.reply({
@@ -240,9 +294,10 @@ export default class TeamConfig extends TeamCommand {
 
                             **Channel creation:**
                             - channel-creation - See current setup for creation of channel on team creation
-                            - channel-category - Set category (id) where new channels will be created in
-                            - toogle-text-channel - Toggle creation of text channel on team creation
-                            - toogle-voice-channel - Toggle creation of voice channel on team creation
+                            - channel-category-text - Set category (id) where new text channels will be created in
+                            - channel-category-voice - Set category (id) where new voice channels will be created in
+                            - toggle-text-channel - Toggle creation of text channel on team creation
+                            - toggle-voice-channel - Toggle creation of voice channel on team creation
                         `
                     )
                     .setFooter({ text: 'Grouper', iconURL: botImage });

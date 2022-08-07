@@ -12,6 +12,10 @@ import DBConnection from "./data/DBConnection";
 import GuidedTeamCreationPlatform from "./data/GuidedTeam/GuidedTeamCreationPlatform";
 import Commands from "./data/Command/Commands";
 
+// process.on('unhandledRejection', error => {
+// 	console.error('Unhandled promise rejection:', error);
+// });
+
 // Initialize system
 require("dotenv").config();
 require('./setup.js');
