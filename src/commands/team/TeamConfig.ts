@@ -2,8 +2,10 @@ import { Message, MessageEmbed, Util } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
+import { DBGuild } from "../../data/Guild/DBGuild";
 import { InviteType } from "../../data/Guild/InviteType";
 import { TeamConfig as DBTeamConfig } from "../../data/Guild/TeamConfig";
+import ASCIIFolder from "../../data/Helper/ascii-folder";
 import BotSystemEmbed from "../../data/Helper/BotSystemEmbed";
 import Colors from "../../data/Helper/Colors";
 
@@ -43,7 +45,7 @@ export default class TeamConfig extends TeamCommand {
 
         const botImage = message.client.user?.avatarURL() ?? "";
 
-        const secondCommandWord = args?.shift()?.trim().toLowerCase() ?? "";
+        const secondCommandWord = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? "");
         switch (secondCommandWord) {
             case "roles":
                 console.log("Roles reached!")
@@ -104,7 +106,7 @@ export default class TeamConfig extends TeamCommand {
                 message.reply("Invite to join team is now " + (botSystem.guild?.teamConfig.requireInvite ? "active" : "inactive"));
                 break;
             case "invite-by":
-                const setInviteTypeText = (args?.shift()?.trim().toLowerCase() ?? "");
+                const setInviteTypeText = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? "");
 
                 switch (setInviteTypeText) {
                     case "":
@@ -175,23 +177,127 @@ export default class TeamConfig extends TeamCommand {
                     ))]
                 })
                 break;
+            case "channel-creation":
+                let categoriesNamesOverviewText: string = "";
+                botSystem.guild.teamConfig.defaultCategoryText.forEach(category => {
+                    if (!message.guild) return;
+                    const searchedCategory = DBGuild.getCategoryFromId(category, message.guild);
+                    if (!searchedCategory) return;
+                    categoriesNamesOverviewText += ", " + searchedCategory.name;
+                });
+                categoriesNamesOverviewText = categoriesNamesOverviewText.substring(2);
+                categoriesNamesOverviewText = categoriesNamesOverviewText == "" ? "-" : categoriesNamesOverviewText;
+
+                let categoriesNamesOverviewVoice: string = "";
+                botSystem.guild.teamConfig.defaultCategoryVoice.forEach(category => {
+                    if (!message.guild) return;
+                    const searchedCategory = DBGuild.getCategoryFromId(category, message.guild);
+                    if (!searchedCategory) return;
+                    categoriesNamesOverviewVoice += ", " + searchedCategory.name;
+                });
+                categoriesNamesOverviewVoice = categoriesNamesOverviewVoice.substring(2);
+                categoriesNamesOverviewVoice = categoriesNamesOverviewVoice == "" ? "-" : categoriesNamesOverviewVoice;
+
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Settings for channel creation on team creation", (
+                        "**Text channel:** " + (botSystem.guild.teamConfig.createTextOnTeamCreation ? "True" : "False") + "\n"
+                        + "**Voice channel:** " + (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? "True" : "False") + "\n"
+                        + "**Text Category:** " + categoriesNamesOverviewText + "\n"
+                        + "**Voice Category:** " + categoriesNamesOverviewVoice
+                    ))]
+                })
+                break;
+            case "channel-category-text":
+                let categoriesText = [];
+                for (let index = 0; index < args.length; index++) {
+                    categoriesText.push(ASCIIFolder.foldReplacing(args[index].trim().toLowerCase() ?? ""));
+                }
+
+                botSystem.guild.teamConfig.defaultCategoryText = categoriesText;
+                botSystem.guild.save();
+
+                let categoriesNames = "";
+                categoriesText.forEach(category => {
+                    if (!message.guild) return;
+                    categoriesNames += ", " + DBGuild.getCategoryFromId(category, message.guild)?.name;
+                });
+                categoriesNames = categoriesNames.substring(2);
+
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Category for creation of **text** channesl in has been updated!", (
+                        "Default category is now set to: " + (categoriesNames ?? "*Unknown*")
+                    ))]
+                })
+                break;
+            case "channel-category-voice":
+                let categoriesVoice = [];
+                for (let index = 0; index < args.length; index++) {
+                    categoriesVoice.push(ASCIIFolder.foldReplacing(args[index].trim().toLowerCase() ?? ""));
+                }
+
+                botSystem.guild.teamConfig.defaultCategoryVoice = categoriesVoice;
+                botSystem.guild.save();
+
+                let categoriesNamesVoice = "";
+                categoriesVoice.forEach(category => {
+                    if (!message.guild) return;
+                    categoriesNamesVoice += ", " + DBGuild.getCategoryFromId(category, message.guild)?.name;
+                });
+                categoriesNamesVoice = categoriesNamesVoice.substring(2);
+
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Category for creation of **voice** channesl in has been updated!", (
+                        "Default category is now set to: " + (categoriesNamesVoice ?? "*Unknown*")
+                    ))]
+                })
+                break;
+            case "toggle-text-channel":
+                botSystem.guild.teamConfig.createTextOnTeamCreation = !botSystem.guild.teamConfig.createTextOnTeamCreation;
+                botSystem.guild.save();
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Text channel creation for team on team creation has been updated!", (
+                        "Text channel creation is now set to " + (botSystem.guild.teamConfig.createTextOnTeamCreation ? "True" : "False")
+                    ))]
+                })
+                break;
+            case "toggle-voice-channel":
+                botSystem.guild.teamConfig.createVoiceOnTeamCreation = !botSystem.guild.teamConfig.createVoiceOnTeamCreation;
+                botSystem.guild.save();
+                message.reply({
+                    embeds: [BotSystemEmbed.embedCreator("Voice channel creation for team on team creation has been updated!", (
+                        "Voice channel creation is now set to " + (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? "True" : "False")
+                    ))]
+                })
+                break;
             default:
                 const DBTeamConfigCommandEmbed = new MessageEmbed()
                     .setColor('#0099ff')
                     .setTitle('Command list:')
                     .setDescription(
                         `
+                            **Roles:**
                             - roles - See list of roles, that can create teams 
                             - role-everyone - Toggle if everyone should be able to create a team 
                             - add-role [role] - Add role, that can create team 
                             - rem-role [role] - Remove role, that can create team 
+
+                            **Invite:**
                             - invite - Check if invite is currently required before a member is added to a team
                             - set-invite [true/false] - Set if a member can only be added through an invite
                             - invite-by [admin/leader/team] - Set, who can add new members to a team
+
+                            **Default role:**
                             - defaults - See the default settings for a team role
                             - default-hoist - Set if the team role should be displayed seperatly in the users list
                             - default-color - Set the default color of the role for a team
                             - default-mentionable - Set if the team role should be mentionable
+
+                            **Channel creation:**
+                            - channel-creation - See current setup for creation of channel on team creation
+                            - channel-category-text - Set category (id) where new text channels will be created in
+                            - channel-category-voice - Set category (id) where new voice channels will be created in
+                            - toggle-text-channel - Toggle creation of text channel on team creation
+                            - toggle-voice-channel - Toggle creation of voice channel on team creation
                         `
                     )
                     .setFooter({ text: 'Grouper', iconURL: botImage });

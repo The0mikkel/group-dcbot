@@ -11,14 +11,18 @@ export class DBGroup implements DBElement {
     author: undefined | string;
     teamLeader: string;
     timestamp: any;
+    textChannel: string | undefined;
+    voiceChannel: string | undefined;
 
-    constructor(id: any, guildId: string, name: string, author: string, teamLeader: string, timestamp: any) {
+    constructor(id: any, guildId: string, name: string, author: string, teamLeader: string, timestamp: any, textChannel: string | undefined = undefined, voiceChannel: string | undefined = undefined) {
         this.id = ASCIIFolder.foldReplacing(id);
         this.guildId = ASCIIFolder.foldReplacing(guildId);
         this.name = ASCIIFolder.foldReplacing(name);
         this.author = ASCIIFolder.foldReplacing(author);
         this.teamLeader = ASCIIFolder.foldReplacing(teamLeader);
         this.timestamp = timestamp;
+        this.textChannel = textChannel;
+        this.voiceChannel = voiceChannel;
     }
 
     static async load(id: string): Promise<undefined | DBGroup> {
@@ -38,7 +42,7 @@ export class DBGroup implements DBElement {
             if (!result) {
                 return undefined;
             }
-        } catch(error) {
+        } catch (error) {
             console.log(error)
         } finally {
             await mongoClient.close();
@@ -62,7 +66,7 @@ export class DBGroup implements DBElement {
             await cursor.forEach(element => {
                 result.push(DBGroup.generateClassFromDB(element));
             });
-        } catch(error) {
+        } catch (error) {
             console.log(error)
         } finally {
             await mongoClient.close();
@@ -73,12 +77,14 @@ export class DBGroup implements DBElement {
 
     private static generateClassFromDB(result: any): DBGroup {
         const group = new DBGroup(
-            ASCIIFolder.foldReplacing(result.id ?? undefined), 
-            ASCIIFolder.foldReplacing(result.guildId ?? ""), 
-            ASCIIFolder.foldReplacing(result.name ?? ""), 
-            ASCIIFolder.foldReplacing(result.author ?? ""), 
-            ASCIIFolder.foldReplacing(result.teamLeader ?? ""), 
-            result.timestamp ?? ""
+            ASCIIFolder.foldReplacing(result.id ?? undefined),
+            ASCIIFolder.foldReplacing(result.guildId ?? ""),
+            ASCIIFolder.foldReplacing(result.name ?? ""),
+            ASCIIFolder.foldReplacing(result.author ?? ""),
+            ASCIIFolder.foldReplacing(result.teamLeader ?? ""),
+            result.timestamp ?? "",
+            ASCIIFolder.foldReplacing(result.textChannel ?? ""),
+            ASCIIFolder.foldReplacing(result.voiceChannel ?? ""),
         )
         group._id = result._id;
         return group;
@@ -100,12 +106,33 @@ export class DBGroup implements DBElement {
                     name: ASCIIFolder.foldReplacing(this.name),
                     author: ASCIIFolder.foldReplacing(this.author),
                     teamLeader: ASCIIFolder.foldReplacing(this.teamLeader),
-                    timestamp: this.timestamp
+                    timestamp: this.timestamp,
+                    textChannel: ASCIIFolder.foldReplacing(this.textChannel),
+                    voiceChannel: ASCIIFolder.foldReplacing(this.voiceChannel)
                 }
             };
             const result = await groups.updateOne(filter, updateDoc, options);
             if (result)
                 this._id = result.upsertedId?.toString() ?? this._id;
+        } finally {
+            await mongoClient.close();
+        }
+    }
+
+    static async deleteAllFromGuild(guildId: string): Promise<void> {
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
+
+        try {
+            await mongoClient.connect();
+            const groups = dbConnection.mongoDatabase.collection("groups");
+
+            const query = { guildId: guildId };
+            const options = {
+            };
+            await groups.deleteMany(query, options);
+        } catch (error) {
+            console.log(error)
         } finally {
             await mongoClient.close();
         }

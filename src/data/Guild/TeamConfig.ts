@@ -39,6 +39,22 @@ export class TeamConfig {
      * Default setting of role being mentionable
      */
     defaultMentionable: boolean = false;
+    /**
+     * Category(ies) that text channel will be created in
+     */
+    defaultCategoryText: string[] = [];
+    /**
+     * Category(ies) that text channel will be created in
+     */
+    defaultCategoryVoice: string[] = [];
+    /**
+     * Enable/disable creation of text channel when a new team is created for the team
+     */
+    createTextOnTeamCreation: boolean = false;
+    /**
+     * Enable/disable creation of void channel when a new team is created for the team
+     */
+    createVoiceOnTeamCreation: boolean = false;
 
 
     constructor(
@@ -50,7 +66,11 @@ export class TeamConfig {
         defaultColor: ColorResolvable = "DEFAULT",
         enableColorChange: boolean = false,
         colorChangeBy: UserLevel = 0,
-        defaultMentionable: boolean = false
+        defaultMentionable: boolean = false,
+        defaultCategoryText: string[] = [],
+        defaultCategoryVoice: string[] = [],
+        createTextOnTeamCreation: boolean = false,
+        createVoiceOnTeamCreation: boolean = false
     ) {
         this.creatorRole = creatorRole;
         this.allowEveryone = allowEveryone;
@@ -66,6 +86,12 @@ export class TeamConfig {
         this.enableColorChange = enableColorChange;
         this.colorChangeBy = colorChangeBy;
         this.defaultMentionable = defaultMentionable;
+        if (!Array.isArray(defaultCategoryText)) defaultCategoryText = [defaultCategoryText];
+        this.defaultCategoryText = defaultCategoryText;
+        if (!Array.isArray(defaultCategoryVoice)) defaultCategoryVoice = [defaultCategoryVoice];
+        this.defaultCategoryVoice = defaultCategoryVoice;
+        this.createTextOnTeamCreation = createTextOnTeamCreation;
+        this.createVoiceOnTeamCreation = createVoiceOnTeamCreation;
     }
 
     addCreatorRole(roleId: string) {
@@ -92,7 +118,11 @@ export class TeamConfig {
                 result.teamConfig?.defaultColor ?? undefined,
                 result.teamConfig?.enableColorChange ?? undefined,
                 result.teamConfig?.colorChangeBy ?? undefined,
-                result.teamConfig?.defaultMentionable ?? undefined
+                result.teamConfig?.defaultMentionable ?? undefined,
+                result.teamConfig?.defaultCategoryText ?? undefined,
+                result.teamConfig?.defaultCategoryVoice ?? undefined,
+                result.teamConfig?.createTextOnTeamCreation ?? undefined,
+                result.teamConfig?.createVoiceOnTeamCreation ?? undefined
             );
         } catch (error) {
             console.error(error);
@@ -105,7 +135,6 @@ export class TeamConfig {
     }
 
     private arrayRemove(arr: string[], value: string) {
-
         return arr.filter(function (ele) {
             return ele != value;
         });

@@ -67,7 +67,7 @@ export default class GuidedTeamCreation {
                 if (!message) return;
                 this.addUserMessage(message);
 
-                let groupName = ASCIIFolder.foldReplacing(message.content.trim());
+                let groupName = ASCIIFolder.foldReplacing(message.content.trim()).trim();
 
                 let messageGuildMember = message.guild?.members.cache.get(message.author.id);
                 if (messageGuildMember) {
@@ -97,7 +97,7 @@ export default class GuidedTeamCreation {
 
                 if (message.mentions.members) {
                     message.mentions.members.forEach(async (member) => {
-                        Team.sendInvite(botSystem, role, member, message);
+                        Team.invite(botSystem, role, member, message);
                     });
                 }
 

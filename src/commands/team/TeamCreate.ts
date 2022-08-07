@@ -61,8 +61,7 @@ export default class TeamCreate extends TeamCommand {
             rawGroupName = rawGroupName + args[word] + " ";
         }
 
-        const groupName = ASCIIFolder.foldReplacing(rawGroupName);
-        groupName.trim();
+        const groupName = ASCIIFolder.foldReplacing(rawGroupName).trim();
 
         if (groupName == "") {
             let botMessage = message.reply(`You need to specify a group name!`);
@@ -85,12 +84,18 @@ export default class TeamCreate extends TeamCommand {
                 case TeamCreationErrors.nameLength:
                     botMessage = message.reply("The team name must not be longer than 100 characters!");
                     break;
+                case TeamCreationErrors.channelCreationFailure:
+                    botMessage = message.reply("Team was created, but an error occured while creating channel(s) for the team - Please contact an admin to further assist")
+                    break;
+                case TeamCreationErrors.max:
+                    botMessage = message.reply("There cannot be created anymore teams - Please contact an admin to further assist")
+                    break;
                 default:
                     botMessage = message.reply("An error occured while processing the creation of the team - Please try again or contact an admin.");
                     break;
             }
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
-            return false;
+            return false
         }
         dbGroup = teamCreationReturn;
 

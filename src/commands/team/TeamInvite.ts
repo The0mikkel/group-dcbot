@@ -90,7 +90,7 @@ export default class TeamInvite extends TeamCommand {
 
         if (message.mentions.members) {
             message.mentions.members.forEach(async (member) => {
-                Team.sendInvite(botSystem, role, member, message);
+                Team.invite(botSystem, role, member, message);
             });
         }
 

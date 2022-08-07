@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Guild, GuildBasedChannel, Message } from "discord.js";
 import BotSystem from "../BotSystem";
 import DBConnection from "../DBConnection";
 import DBElement from "../DBElement";
@@ -172,4 +172,9 @@ export class DBGuild implements DBElement {
             return ele != value;
         });
     }
+
+    public static getCategoryFromId(id: string, guild: Guild): GuildBasedChannel | undefined {
+        return guild.channels.cache.find(channel => channel.type == "GUILD_CATEGORY" && channel.id == id);
+    }
+    
 }
