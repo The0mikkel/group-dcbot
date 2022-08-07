@@ -119,6 +119,25 @@ export class DBGroup implements DBElement {
         }
     }
 
+    async delete() {
+        const dbConnection = DBConnection.getInstance();
+        const mongoClient = dbConnection.mongoClient;
+
+        try {
+            await mongoClient.connect();
+            const groups = dbConnection.mongoDatabase.collection("groups");
+
+            const query = { _id: this._id };
+            const options = {
+            };
+            await groups.deleteOne(query, options);
+        } catch (error) {
+            console.log(error)
+        } finally {
+            await mongoClient.close();
+        }
+    }
+
     static async deleteAllFromGuild(guildId: string): Promise<void> {
         const dbConnection = DBConnection.getInstance();
         const mongoClient = dbConnection.mongoClient;

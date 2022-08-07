@@ -16,7 +16,7 @@ export default class Team {
      * @param groupName Name of the new group - Will be validated to ensure it is unique but not sanitized
      * @returns 
      */
-    static async createTeam(botSystem: BotSystem, message: Message, groupName: string): Promise<DBGroup | TeamCreationErrors> {
+    static async create(botSystem: BotSystem, message: Message, groupName: string): Promise<DBGroup | TeamCreationErrors> {
         try {
             if (!message.guild) {
                 if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
@@ -242,6 +242,43 @@ export default class Team {
             .setTitle(title)
             .setDescription(text)
     }
+
+    static async delete(botSystem: BotSystem, message: Message, dbGroup: DBGroup): Promise<true | TeamDeleteErrors> {
+        try {
+            if (!message.guild || !dbGroup.id) {
+                if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
+                return TeamDeleteErrors.generalError;
+            }
+
+            let textChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.textChannel);
+            let voiceChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.voiceChannel);
+
+            if (textChannel) {
+                try {
+                    textChannel.delete("Team deleted").catch();
+                } catch (error) { }
+            }
+            if (voiceChannel) {
+                try {
+                    voiceChannel.delete("Team deleted").catch();
+                } catch (error) { }
+            }
+
+            let role = await message.guild.roles.fetch(dbGroup.id);
+            if (role) {
+                try {
+                    role.delete("Team deleted").catch();
+                } catch (error) { }
+            }
+
+            dbGroup.delete();
+
+            return true;
+        } catch (error) {
+            return TeamDeleteErrors.generalError;
+        }
+
+    }
 }
 
 export enum TeamCreationErrors {
@@ -254,5 +291,9 @@ export enum TeamCreationErrors {
 }
 
 export enum TeamInviteErrors {
+    generalError
+}
+
+export enum TeamDeleteErrors {
     generalError
 }
