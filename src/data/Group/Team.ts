@@ -101,27 +101,7 @@ export default class Team {
             if (!channel || !(message.channel instanceof GuildChannel)) {
                 return TeamCreationErrors.channelCreationFailure;
             }
-
-            // Permissions
-            const everyoneRole = message.guild.roles.everyone;
-            let newPermissions: OverwriteData[] = [
-                { type: 'role', id: everyoneRole.id, deny: ['VIEW_CHANNEL', 'CONNECT'] }
-            ];
-            botSystem.guild?.adminRoles.forEach(role => {
-                newPermissions.push({ type: 'role', id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
-            });
-            botSystem.guild?.teamAdminRoles.forEach(role => {
-                newPermissions.push({ type: 'role', id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
-            });
-            newPermissions.push({ type: 'role', id: dbGroup.id, allow: ['VIEW_CHANNEL', 'CONNECT'] })
-
-            try {
-                await channel.permissionOverwrites.set(newPermissions, "Updated permissions to default team channel permissions");
-            } catch (error) {
-                console.log(`There was an error updating base channel permissions for channel "${dbGroup.name}" and this was caused by: ${error}`);
-                return TeamCreationErrors.channelCreationFailure;
-            }
-
+            
             // Parent / category
             let cateogies: string[] | undefined;
 
@@ -142,9 +122,29 @@ export default class Team {
                         continue;
                     }
 
-                    channel.setParent(category.id);
-                    return channel;
+                    await channel.setParent(category.id);
+                    break;
                 }
+            }
+
+            // Permissions
+            const everyoneRole = message.guild.roles.everyone;
+            let newPermissions: OverwriteData[] = [
+                { id: everyoneRole.id, deny: ['VIEW_CHANNEL', 'CONNECT'] }
+            ];
+            botSystem.guild?.adminRoles.forEach(role => {
+                newPermissions.push({ id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+            });
+            botSystem.guild?.teamAdminRoles.forEach(role => {
+                newPermissions.push({ id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+            });
+            newPermissions.push({ id: dbGroup.id, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+
+            try {
+                await channel.permissionOverwrites.set(newPermissions);
+            } catch (error) {
+                console.log(`There was an error updating base channel permissions for channel "${dbGroup.name}" and this was caused by: ${error}`);
+                return TeamCreationErrors.channelCreationFailure;
             }
 
             return channel;
