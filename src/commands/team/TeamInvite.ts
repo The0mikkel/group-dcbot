@@ -6,6 +6,7 @@ import ASCIIFolder from "../../data/Helper/ascii-folder";
 import { DBGroup } from "../../data/Group/DBGroup";
 import { UserLevel } from "../../data/Command/UserLevel";
 import Team from "../../data/Group/Team";
+import Command from "../../data/Command/Command";
 
 require("dotenv").config();
 
@@ -75,17 +76,19 @@ export default class TeamInvite extends TeamCommand {
             role = loadReturn
         }
 
-        if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("ADMINISTRATOR")) {
-            let currentUser = await message.guild?.members.fetch(message.author.id);
-            if (!(currentUser?.roles.cache.has(role.id) && role?.teamLeader == message.author.id)) {
-                message.reply("This action can only be performed by the team leader!");
-                return;
-            }
-        } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("ADMINISTRATOR")) {
-            let currentUser = await message.guild?.members.fetch(message.author.id);
-            if (!currentUser?.roles.cache.has(role.id)) {
-                message.reply("This action can only be performed by a member of the team!");
-                return;
+        if (!(await this.authorizedAdmin(message, botSystem) && await this.authorizedTeamAdmin)) {
+            if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("ADMINISTRATOR")) {
+                let currentUser = await message.guild?.members.fetch(message.author.id);
+                if (!(currentUser?.roles.cache.has(role.id) && role?.teamLeader == message.author.id)) {
+                    message.reply("This action can only be performed by the team leader!");
+                    return;
+                }
+            } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("ADMINISTRATOR")) {
+                let currentUser = await message.guild?.members.fetch(message.author.id);
+                if (!currentUser?.roles.cache.has(role.id)) {
+                    message.reply("This action can only be performed by a member of the team!");
+                    return;
+                }
             }
         }
 
