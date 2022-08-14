@@ -76,7 +76,8 @@ export default class TeamInvite extends TeamCommand {
         }
 
         if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("ADMINISTRATOR")) {
-            if (role?.teamLeader != message.author.id) {
+            let currentUser = await message.guild?.members.fetch(message.author.id);
+            if (!(currentUser?.roles.cache.has(role.id) && role?.teamLeader == message.author.id)) {
                 message.reply("This action can only be performed by the team leader!");
                 return;
             }
