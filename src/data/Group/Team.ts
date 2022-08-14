@@ -16,7 +16,7 @@ export default class Team {
      * @param groupName Name of the new group - Will be validated to ensure it is unique but not sanitized
      * @returns 
      */
-    static async createTeam(botSystem: BotSystem, message: Message, groupName: string): Promise<DBGroup | TeamCreationErrors> {
+    static async create(botSystem: BotSystem, message: Message, groupName: string): Promise<DBGroup | TeamCreationErrors> {
         try {
             if (!message.guild) {
                 if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
@@ -82,6 +82,7 @@ export default class Team {
             if (!(voiceChannel instanceof GuildChannel)) return voiceChannel;
             dbGroup.voiceChannel = voiceChannel.id ?? undefined;
         }
+        await dbGroup.save();
         return false;
     }
 
@@ -99,26 +100,6 @@ export default class Team {
                 return TeamCreationErrors.channelCreationFailure;
             }
             if (!channel || !(message.channel instanceof GuildChannel)) {
-                return TeamCreationErrors.channelCreationFailure;
-            }
-
-            // Permissions
-            const everyoneRole = message.guild.roles.everyone;
-            let newPermissions: OverwriteData[] = [
-                { type: 'role', id: everyoneRole.id, deny: ['VIEW_CHANNEL', 'CONNECT'] }
-            ];
-            botSystem.guild?.adminRoles.forEach(role => {
-                newPermissions.push({ type: 'role', id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
-            });
-            botSystem.guild?.teamAdminRoles.forEach(role => {
-                newPermissions.push({ type: 'role', id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
-            });
-            newPermissions.push({ type: 'role', id: dbGroup.id, allow: ['VIEW_CHANNEL', 'CONNECT'] })
-
-            try {
-                await channel.permissionOverwrites.set(newPermissions, "Updated permissions to default team channel permissions");
-            } catch (error) {
-                console.log(`There was an error updating base channel permissions for channel "${dbGroup.name}" and this was caused by: ${error}`);
                 return TeamCreationErrors.channelCreationFailure;
             }
 
@@ -142,9 +123,29 @@ export default class Team {
                         continue;
                     }
 
-                    channel.setParent(category.id);
-                    return channel;
+                    await channel.setParent(category.id);
+                    break;
                 }
+            }
+
+            // Permissions
+            const everyoneRole = message.guild.roles.everyone;
+            let newPermissions: OverwriteData[] = [
+                { id: everyoneRole.id, deny: ['VIEW_CHANNEL', 'CONNECT'] }
+            ];
+            botSystem.guild?.adminRoles.forEach(role => {
+                newPermissions.push({ id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+            });
+            botSystem.guild?.teamAdminRoles.forEach(role => {
+                newPermissions.push({ id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+            });
+            newPermissions.push({ id: dbGroup.id, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+
+            try {
+                await channel.permissionOverwrites.set(newPermissions);
+            } catch (error) {
+                console.log(`There was an error updating base channel permissions for channel "${dbGroup.name}" and this was caused by: ${error}`);
+                return TeamCreationErrors.channelCreationFailure;
             }
 
             return channel;
@@ -242,6 +243,46 @@ export default class Team {
             .setTitle(title)
             .setDescription(text)
     }
+
+    static async delete(botSystem: BotSystem, message: Message, dbGroup: DBGroup): Promise<true | TeamDeleteErrors> {
+        try {
+            if (!message.guild || !dbGroup.id) {
+                if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
+                return TeamDeleteErrors.generalError;
+            }
+
+            let textChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.textChannel);
+            let voiceChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.voiceChannel);
+
+            console.log("text", dbGroup.textChannel, textChannel, "voice", dbGroup.voiceChannel, voiceChannel);
+
+            if (textChannel) {
+                try {
+                    await textChannel.delete("Team deleted").catch(error => console.log(error));
+                } catch (error) { console.log(error) }
+            }
+            if (voiceChannel) {
+                try {
+                    await voiceChannel.delete("Team deleted").catch(error => console.log(error));
+                } catch (error) { console.log(error) }
+            }
+
+            let role = await message.guild.roles.fetch(dbGroup.id);
+            if (role) {
+                try {
+                    await role.delete("Team deleted").catch(error => console.log(error));
+                } catch (error) { console.log(error) }
+            }
+
+            dbGroup.delete();
+
+            return true;
+        } catch (error) {
+            console.log(error);
+            return TeamDeleteErrors.generalError;
+        }
+
+    }
 }
 
 export enum TeamCreationErrors {
@@ -254,5 +295,9 @@ export enum TeamCreationErrors {
 }
 
 export enum TeamInviteErrors {
+    generalError
+}
+
+export enum TeamDeleteErrors {
     generalError
 }

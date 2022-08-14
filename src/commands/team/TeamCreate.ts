@@ -70,7 +70,7 @@ export default class TeamCreate extends TeamCommand {
         }
 
         let dbGroup: DBGroup;
-        let teamCreationReturn = await Team.createTeam(botSystem, message, groupName);
+        let teamCreationReturn = await Team.create(botSystem, message, groupName);
 
         if (!(teamCreationReturn instanceof DBGroup)) {
             let botMessage: Promise<Message>;
