@@ -94,7 +94,7 @@ export default abstract class Command implements CommandType {
         }
     }
 
-    private async authorizedAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
         let hasRole = true;
         botSystem.guild?.adminRoles.forEach(role => {
             if (!message?.member?.roles.cache.has(role)) {
@@ -112,7 +112,7 @@ export default abstract class Command implements CommandType {
 
         return hasRole;
     }
-    private async authorizedTeamAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
         let hasRole = true;
         botSystem.guild?.teamAdminRoles.forEach(role => {
             if (!message?.member?.roles.cache.has(role)) {
@@ -130,7 +130,7 @@ export default abstract class Command implements CommandType {
 
         return hasRole;
     }
-    private async authorizedTeamLeader(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamLeader(message: Message, botSystem: BotSystem): Promise<boolean> {
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
@@ -147,7 +147,7 @@ export default abstract class Command implements CommandType {
 
         return inAnyGroupAsLeader; // Should return true if user is a team leader
     }
-    private async authorizedTeam(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeam(message: Message, botSystem: BotSystem): Promise<boolean> {
 
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
@@ -163,7 +163,7 @@ export default abstract class Command implements CommandType {
         return inAnyGroup; // Should return true if user is part of a team
     }
 
-    private async authorizedTeamCreate(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamCreate(message: Message, botSystem: BotSystem): Promise<boolean> {
         let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
             if (message.member?.roles.cache.has(role)) {
