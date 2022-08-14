@@ -82,6 +82,7 @@ export default class Team {
             if (!(voiceChannel instanceof GuildChannel)) return voiceChannel;
             dbGroup.voiceChannel = voiceChannel.id ?? undefined;
         }
+        await dbGroup.save();
         return false;
     }
 
@@ -101,7 +102,7 @@ export default class Team {
             if (!channel || !(message.channel instanceof GuildChannel)) {
                 return TeamCreationErrors.channelCreationFailure;
             }
-            
+
             // Parent / category
             let cateogies: string[] | undefined;
 
@@ -253,28 +254,31 @@ export default class Team {
             let textChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.textChannel);
             let voiceChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.voiceChannel);
 
+            console.log("text", dbGroup.textChannel, textChannel, "voice", dbGroup.voiceChannel, voiceChannel);
+
             if (textChannel) {
                 try {
-                    textChannel.delete("Team deleted").catch();
-                } catch (error) { }
+                    await textChannel.delete("Team deleted").catch(error => console.log(error));
+                } catch (error) { console.log(error) }
             }
             if (voiceChannel) {
                 try {
-                    voiceChannel.delete("Team deleted").catch();
-                } catch (error) { }
+                    await voiceChannel.delete("Team deleted").catch(error => console.log(error));
+                } catch (error) { console.log(error) }
             }
 
             let role = await message.guild.roles.fetch(dbGroup.id);
             if (role) {
                 try {
-                    role.delete("Team deleted").catch();
-                } catch (error) { }
+                    await role.delete("Team deleted").catch(error => console.log(error));
+                } catch (error) { console.log(error) }
             }
 
             dbGroup.delete();
 
             return true;
         } catch (error) {
+            console.log(error);
             return TeamDeleteErrors.generalError;
         }
 

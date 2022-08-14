@@ -67,9 +67,23 @@ export default class TeamDelete extends TeamCommand {
                 }
                 await i.update(pageContent);
             } else if (i.customId.startsWith("team-delete;")) {
-                const pageContent = await this.generatePage(currentPage, message, botSystem);
+                let teamToDelete = i.customId.split(";")[1];
+                console.log(teamToDelete);
+                const role = await message.guild?.roles.fetch(teamToDelete);
+                let teamName = "";
+                if (role) {
+                    teamName = role.name;
+                    let dbGroupToDelete = await DBGroup.load(role.id);
+                    if (dbGroupToDelete) {
+                        console.log(await Team.delete(botSystem, message, dbGroupToDelete));
+                    }
+                    this.teams = this.teams.filter(item => item !== dbGroupToDelete)
+                }
+                if (teamName !== "") BotSystem.sendAutoDeleteMessage(message.channel, "Team " + teamName + " was deleted");
+
+                let pageContent: any = await this.generatePage(currentPage, message, botSystem);
                 if (!pageContent) {
-                    return;
+                    pageContent = "";
                 }
                 await i.update(pageContent);
             }
@@ -120,10 +134,12 @@ export default class TeamDelete extends TeamCommand {
 
         let currentTeams = []
         for (let index = 0; index < 10; index++) {
-            if (index + ((pageNumber - 1) * 10) > this.teams.length) {
+            let currentIndex = (index + ((pageNumber) * 10));
+
+            if (currentIndex > this.teams.length) {
                 break;
             }
-            const currentTeam = this.teams[index + ((pageNumber - 1) * 10)];
+            const currentTeam = this.teams[currentIndex];
             if (!currentTeam) {
                 break;
             }
@@ -131,6 +147,7 @@ export default class TeamDelete extends TeamCommand {
             pageText += ":" + keys[index] + ": " + currentTeam.name + "\n";
             currentTeams.push(currentTeam);
         }
+
 
         const pageEmbed = new MessageEmbed()
             .setColor('#0099ff')
@@ -141,11 +158,11 @@ export default class TeamDelete extends TeamCommand {
 
 
         let componentCount = 0;
-        const buttons = [new MessageActionRow()];
+        const buttons: MessageActionRow[] = [];
 
         if (pageButtons && pageNumber != 0) {
             const buttonType = 'SECONDARY';
-            buttons[Math.floor(componentCount / 5)].addComponents(
+            this.addComponent(buttons, componentCount,
                 new MessageButton()
                     .setCustomId(`team-delete-new-page;${pageNumber - 1}`)
                     .setLabel(`Previus page`)
@@ -156,10 +173,10 @@ export default class TeamDelete extends TeamCommand {
         for (let index = 0; index < currentTeams.length; index++) {
             try {
                 const buttonType = 'SECONDARY';
-                buttons[Math.floor(componentCount / 5)].addComponents(
+                this.addComponent(buttons, componentCount,
                     new MessageButton()
                         .setCustomId(`team-delete;${currentTeams[index].id}`)
-                        .setLabel(`${index}`)
+                        .setLabel(`${index + 1}`)
                         .setStyle(buttonType),
                 );
             } catch (error) {
@@ -169,7 +186,7 @@ export default class TeamDelete extends TeamCommand {
         }
         if (pageButtons && pageNumber != (pages - 1)) {
             const buttonType = 'SECONDARY';
-            buttons[Math.floor(componentCount / 5)].addComponents(
+            this.addComponent(buttons, componentCount,
                 new MessageButton()
                     .setCustomId(`team-delete-new-page;${pageNumber + 1}`)
                     .setLabel(`Next page`)
@@ -179,5 +196,14 @@ export default class TeamDelete extends TeamCommand {
         }
 
         return { embeds: [pageEmbed], components: buttons };
+    }
+
+    addComponent(buttons: MessageActionRow[] = [], componentCount: number, component: MessageButton) {
+        let index = Math.floor(componentCount / 5);
+        let element = buttons[index];
+        if (!element) {
+            buttons[index] = new MessageActionRow();
+        }
+        buttons[index].addComponents(component)
     }
 }
