@@ -182,7 +182,7 @@ export default class Team {
     private static async sendUserInvite(botSystem: BotSystem, dbGroup: DBGroup, user: GuildMember, message: Message): Promise<void> {
         let confirmEmbed = Team.createSimpleEmbed(
             "You have been invited!",
-            `You have been invited to the team "${dbGroup.name}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nThe invite is valid for 1 hour!`
+            `You have been invited to the team "${dbGroup.name}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nThe invite is valid for 24 hour(s)!`
         )
         const buttons = new MessageActionRow();
 
@@ -202,7 +202,7 @@ export default class Team {
         }
         const inviteMessage = await user.send({ embeds: [confirmEmbed], components: [buttons] });
 
-        const collector = inviteMessage.createMessageComponentCollector({ time: 3600000 });
+        const collector = inviteMessage.createMessageComponentCollector({ time: 86400000 });
         collector.on('collect', async i => {
             if (!i.customId) {
                 return;
