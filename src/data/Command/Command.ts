@@ -1,6 +1,7 @@
 import { BaseGuildTextChannel, Message, PermissionResolvable } from "discord.js";
 import BotSystem from "../BotSystem";
 import { DBGroup } from "../Group/DBGroup";
+import Translate from "../Language/Translate";
 import CommandType from "./Types/CommandType";
 import { UserLevel } from "./UserLevel";
 
@@ -14,7 +15,7 @@ export default abstract class Command implements CommandType {
     cooldown: number;
     permissions: PermissionResolvable[];
     level: UserLevel;
-    aliases: string[];
+    aliases: string[] = [];
     category: string;
     categoryEmoji: string;
 
@@ -32,15 +33,17 @@ export default abstract class Command implements CommandType {
         category: string,
         categoryEmoji: string
     ) {
-        this.name = name;
-        this.description = description;
+        this.name = Translate.getInstance().translate(name);
+        this.description = Translate.getInstance().translateUppercase(description);
         this.guildOnly = guildOnly;
         this.args = args;
         this.args_quantity = args_quantity;
         this.usage = usage;
         this.cooldown = cooldown;
         this.permissions = permissions;
-        this.aliases = aliases;
+        aliases.forEach(alias => {
+            this.aliases.push(Translate.getInstance().translate(alias))
+        })
         this.category = category;
         this.categoryEmoji = categoryEmoji;
         this.level = level;

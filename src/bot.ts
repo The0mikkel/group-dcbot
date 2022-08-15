@@ -1,6 +1,5 @@
 import { BaseGuildTextChannel, Guild, Interaction, Message, User } from "discord.js";
 import { DBGuild } from "./data/Guild/DBGuild";
-import fs from 'fs';
 import Discord from "discord.js";
 import BotSystem from "./data/BotSystem";
 import { Config } from "./data/Guild/Config";

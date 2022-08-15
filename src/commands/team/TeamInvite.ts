@@ -27,13 +27,15 @@ export default class TeamInvite extends TeamCommand {
     }
 
     async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
+        const translator = botSystem.translator;
+
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 
         if (
             !message.member
         ) {
-            message.channel.send("You don't have permission to add new team members!");
+            message.channel.send(translator.translateUppercase("you don't have permission to add new team members"));
             return;
         }
 
@@ -42,12 +44,12 @@ export default class TeamInvite extends TeamCommand {
             && (this.level = UserLevel.admin)
             && !this.authorized(message, botSystem)
         ) {
-            message.channel.send("You don't have permission to add new team members - Only admins can do that.");
+            message.channel.send(translator.translateUppercase("you don't have permission to add new team members") + " - " + translator.translateUppercase("only admins can do that"));
             return;
         }
 
         if (args.length < 1) {
-            message.reply(`You need to specify a group name and group members!`);
+            message.reply(translator.translateUppercase(`you need to specify a group name and group members`));
             return;
         }
 
@@ -63,14 +65,14 @@ export default class TeamInvite extends TeamCommand {
             groupName = ASCIIFolder.foldReplacing(message.mentions.roles.first()?.name);
         }
         if (!roleId) {
-            message.reply("The team does not exist!");
+            message.reply(translator.translateUppercase("the team does not exist"));
             return;
         }
 
         let role: DBGroup;
         let loadReturn = await DBGroup.load(roleId ?? "") ?? undefined;
         if (loadReturn == undefined) {
-            message.reply("The team does not exist!");
+            message.reply(translator.translateUppercase("the team does not exist"));
             return;
         } else {
             role = loadReturn
@@ -80,13 +82,13 @@ export default class TeamInvite extends TeamCommand {
             if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("ADMINISTRATOR")) {
                 let currentUser = await message.guild?.members.fetch(message.author.id);
                 if (!(currentUser?.roles.cache.has(role.id) && role?.teamLeader == message.author.id)) {
-                    message.reply("This action can only be performed by the team leader!");
+                    message.reply(translator.translateUppercase("this action can only be performed by :role:", ["the team leader"]));
                     return;
                 }
             } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("ADMINISTRATOR")) {
                 let currentUser = await message.guild?.members.fetch(message.author.id);
                 if (!currentUser?.roles.cache.has(role.id)) {
-                    message.reply("This action can only be performed by a member of the team!");
+                    message.reply(translator.translateUppercase("this action can only be performed by :role:", ["a member of the team"]));
                     return;
                 }
             }
@@ -98,6 +100,6 @@ export default class TeamInvite extends TeamCommand {
             });
         }
 
-        message.channel.send(`Invites to team has been send to all mentioned users.`);
+        message.channel.send(translator.translateUppercase(`Invites to team has been send to all mentioned users`));
     }
 };

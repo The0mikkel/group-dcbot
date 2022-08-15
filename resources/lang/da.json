@@ -1,0 +1,26 @@
+{
+    "information": {
+        "language": "en"
+    },
+    "translation": {
+        "grouper": "grouper",
+
+        "your username": "dit brugernavn: %data%",
+        "your id": "dit bruger id: %data%",
+        "display info about yourself": "vis information omkring digselv",
+        
+        "server name": "server navn: %data%",
+        "total members": "total antal medlemmer: %data%",
+        "display info about this server": "vis informationer omkring denne server",
+        
+        "command usage": "command usage",
+        
+
+        "name": "name",
+        "aliases": "aliases",
+        "description": "description",
+        "usage": "usage",
+        "cooldown": "cooldown",
+        "prefix": "prefix"
+    }
+}

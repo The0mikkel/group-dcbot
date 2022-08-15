@@ -9,7 +9,7 @@ import ASCIIFolder from "../../data/Helper/ascii-folder";
 import BotSystemEmbed from "../../data/Helper/BotSystemEmbed";
 import Colors from "../../data/Helper/Colors";
 
-require("dotenv").config();
+require(`dotenv`).config();
 
 export default class TeamConfig extends TeamCommand {
     constructor() {
@@ -21,17 +21,19 @@ export default class TeamConfig extends TeamCommand {
             0,
             '[command]',
             0,
-            ["ADMINISTRATOR"],
+            [`ADMINISTRATOR`],
             UserLevel.admin,
         );
     }
 
     async execute(message: Message, botSystem: BotSystem, args: any) {
+        const translator = botSystem.translator;
+
         if (
             !message.member
-            || !message.member.permissions.has("ADMINISTRATOR")
+            || !message.member.permissions.has(`ADMINISTRATOR`)
         ) {
-            message.channel.send("You don't have permission to add new teams!");
+            message.channel.send(translator.translateUppercase(`you don't have permission to add new teams`));
             return;
         }
 
@@ -39,19 +41,19 @@ export default class TeamConfig extends TeamCommand {
         await botSystem.guild?.save();
 
         if (!botSystem.guild) {
-            message.reply("Cannot execute the command here");
+            message.reply(translator.translateUppercase(`cannot execute the command here`));
             return;
         }
 
-        const botImage = message.client.user?.avatarURL() ?? "";
+        const botImage = message.client.user?.avatarURL() ?? ``;
 
-        const secondCommandWord = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? "");
+        // TODO: Make switch use translation for key words for allow for full language change
+        const secondCommandWord = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? ``);
         switch (secondCommandWord) {
-            case "roles":
-                console.log("Roles reached!")
+            case `roles`:
                 writeRolesCreateTeamList(message, botSystem);
                 break;
-            case "add-role":
+            case `add-role`:
                 message.mentions.roles.forEach(async (role) => {
                     try {
                         botSystem.guild?.teamConfig.addCreatorRole(role.id);
@@ -62,23 +64,23 @@ export default class TeamConfig extends TeamCommand {
 
                 await botSystem.guild?.save();
 
-                message.reply("Roles added!");
+                message.reply(translator.translateUppercase(`roles added`));
                 writeRolesCreateTeamList(message, botSystem);
                 break;
-            case "role-everyone":
+            case `role-everyone`:
 
                 botSystem.guild.teamConfig.allowEveryone = !botSystem.guild.teamConfig.allowEveryone;
 
                 await botSystem.guild?.save();
 
                 if (botSystem.guild.teamConfig.allowEveryone) {
-                    message.reply("Everyone can now create a team.");
+                    message.reply(translator.translateUppercase(`everyone can now create a team`));
                 } else {
-                    message.reply("Team creation has been restricted to the following roles:")
+                    message.reply(translator.translateUppercase(`Team creation has been restricted to the following roles`))
                     writeRolesCreateTeamList(message, botSystem);
                 }
                 break;
-            case "rem-role":
+            case `rem-role`:
                 message.mentions.roles.forEach(async (role) => {
                     try {
                         botSystem.guild?.teamConfig.removeCreatorRole(role.id);
@@ -89,190 +91,191 @@ export default class TeamConfig extends TeamCommand {
 
                 await botSystem.guild?.save();
 
-                message.reply("Roles removed!");
+                message.reply(translator.translateUppercase(`roles removed`));
                 writeRolesCreateTeamList(message, botSystem);
                 break;
-            case "invite":
-                message.reply("Invite to join team is currently " + (botSystem.guild?.teamConfig.requireInvite ? "active" : "inactive"));
+            case `invite`:
+                message.reply(translator.translateUppercase(`invite to join team is currently :boolean:`, [(botSystem.guild?.teamConfig.requireInvite ? `active` : `inactive`)]));
                 break;
-            case "set-invite":
-                const setInviteBooleanText = (args?.shift()?.trim().toLowerCase() ?? "false");
-                if (setInviteBooleanText === "true" || setInviteBooleanText === "yes" || setInviteBooleanText === "1") {
+            case `set-invite`:
+                const setInviteBooleanText = (args?.shift()?.trim().toLowerCase() ?? `false`);
+                if (setInviteBooleanText === `true` || setInviteBooleanText === `yes` || setInviteBooleanText === `1`) {
                     botSystem.guild.teamConfig.requireInvite = true;
                 } else {
                     botSystem.guild.teamConfig.requireInvite = false;
                 }
                 await botSystem.guild.save();
-                message.reply("Invite to join team is now " + (botSystem.guild?.teamConfig.requireInvite ? "active" : "inactive"));
+                message.reply(translator.translateUppercase(`invite to join team is now :boolean:`, [translator.translate((botSystem.guild?.teamConfig.requireInvite ? `active` : `inactive`))]));
                 break;
-            case "invite-by":
-                const setInviteTypeText = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? "");
+            case `invite-by`:
+                const setInviteTypeText = ASCIIFolder.foldReplacing(args?.shift()?.trim().toLowerCase() ?? ``);
 
                 switch (setInviteTypeText) {
-                    case "":
-                        message.reply("Sending invites, are currently limited to " + botSystem.guild.teamConfig.teamInviteType.toString())
+                    case ``:
+                        message.reply(translator.translateUppercase(`sending invites, are currently limited to :role:`, [translator.translate(botSystem.guild.teamConfig.teamInviteType.toString())]))
                         break;
-                    case "admin":
+                    case `admin`:
                         botSystem.guild.teamConfig.teamInviteType = InviteType.admin;
-                        message.reply("Sending invites, are now updated to be limited to " + InviteType[botSystem.guild.teamConfig.teamInviteType])
+                        message.reply(translator.translateUppercase(`sending invites, are now limited to :role:`, [translator.translate(botSystem.guild.teamConfig.teamInviteType.toString())]))
                         break;
-                    case "leader":
+                    case `leader`:
                         botSystem.guild.teamConfig.teamInviteType = InviteType.leader
-                        message.reply("Sending invites, are now updated to be limited to " + InviteType[botSystem.guild.teamConfig.teamInviteType])
+                        message.reply(translator.translateUppercase(`sending invites, are now limited to :role:`, [translator.translate(botSystem.guild.teamConfig.teamInviteType.toString())]))
                         break;
-                    case "team":
+                    case `team`:
                         botSystem.guild.teamConfig.teamInviteType = InviteType.team
-                        message.reply("Sending invites, are now updated to be limited to " + InviteType[botSystem.guild.teamConfig.teamInviteType])
+                        message.reply(translator.translateUppercase(`sending invites, are now limited to :role:`, [translator.translate(botSystem.guild.teamConfig.teamInviteType.toString())]))
                         break;
                     default:
-                        message.reply("I did not know the restriction type. Please use either admin, leader or team.")
+                        message.reply(`${translator.translateUppercase(`i did not know the restriction type`)}. ${translator.translateUppercase(`please use either admin, leader or team`)}.`)
                         break;
                 }
 
                 await botSystem.guild.save();
                 break;
-            case "defaults":
+            case `defaults`:
                 let colorDisplay;
                 colorDisplay = Colors.getColor(botSystem.guild.teamConfig.defaultColor);
                 message.reply({
-                    embeds: [BotSystemEmbed.embedCreator("Default settings for new team roles", (
-                        "**Hoist:** " + (botSystem.guild.teamConfig.defaultHoist ? "True" : "False") + "\n"
-                        + "**Color:** " + colorDisplay + "\n"
-                        + "**Mentionable:** " + (botSystem.guild.teamConfig.defaultMentionable ? "True" : "False")
+                    embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(`default settings for new team roles`), (
+                        `**${translator.translateUppercase("Hoist")}:** ${translator.translateUppercase((botSystem.guild.teamConfig.defaultHoist ? `True` : `False`))}\n`
+                        + `**${translator.translateUppercase("Color")}:** ` + colorDisplay + `\n`
+                        + `**${translator.translateUppercase("Mentionable")}:** ${translator.translateUppercase((botSystem.guild.teamConfig.defaultMentionable ? `True` : `False`))}`
                     ))]
                 })
                 break;
-            case "default-hoist":
+            case `default-hoist`:
                 botSystem.guild.teamConfig.defaultHoist = !botSystem.guild.teamConfig.defaultHoist;
                 botSystem.guild.save();
                 message.reply({
-                    embeds: [BotSystemEmbed.embedCreator("Default setting of hoist on new team roles has been updated!", (
-                        "Hoist is now set to " + (botSystem.guild.teamConfig.defaultHoist ? "True" : "False")
+                    embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase("default setting of hoist on new team roles has been updated"), (
+                        `${translator.translateUppercase("Hoist is now set to")} ` + translator.translate(botSystem.guild.teamConfig.defaultHoist ? `True` : `False`)
                     ))]
                 })
                 break;
-            case "default-color":
+            case `default-color`:
                 try {
-                    botSystem.guild.teamConfig.defaultColor = Util.resolveColor(args?.shift()?.trim().toUpperCase() ?? "DEFAULT");
+                    botSystem.guild.teamConfig.defaultColor = Util.resolveColor(args?.shift()?.trim().toUpperCase() ?? `DEFAULT`);
                     botSystem.guild.save();
                     message.reply({
-                        embeds: [BotSystemEmbed.embedCreator("Default color for new team roles has been updated!", (
-                            "The default color for new team roles is now set to " + Colors.getColor(botSystem.guild.teamConfig.defaultColor)
+                        embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(`default color for new team roles has been updated`), (
+                            translator.translateUppercase("the default color for new team roles is now set to :color:", [Colors.getColor(botSystem.guild.teamConfig.defaultColor)])
                         ), botSystem.guild.teamConfig.defaultColor)]
                     })
                 } catch (error) {
                     message.reply({
-                        embeds: [BotSystemEmbed.embedCreator("Error updating default team color", (
-                            "The default color has not been updated, due to an error that occured - Maybe the color you tried to enter is not a valid color."
+                        embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(`error updating default team color`), (
+                            translator.translateUppercase("default color error update failed")
                         ))]
                     })
                 }
                 break;
-            case "default-mentionable":
+            case `default-mentionable`:
                 botSystem.guild.teamConfig.defaultMentionable = !botSystem.guild.teamConfig.defaultMentionable;
                 botSystem.guild.save();
                 message.reply({
-                    embeds: [BotSystemEmbed.embedCreator("Default setting of mentionable on new team roles has been updated!", (
-                        "Mentionable is now set to " + (botSystem.guild.teamConfig.defaultMentionable ? "True" : "False")
+                    embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase("default setting of mentionable on new team roles has been updated"), (
+                        `${translator.translateUppercase("mentionable is now set to")} ${translator.translateUppercase((botSystem.guild.teamConfig.defaultMentionable ? `True` : `False`))} `
                     ))]
                 })
                 break;
-            case "channel-creation":
-                let categoriesNamesOverviewText: string = "";
+            case `channel-creation`:
+                let categoriesNamesOverviewText: string = ``;
                 botSystem.guild.teamConfig.defaultCategoryText.forEach(category => {
                     if (!message.guild) return;
                     const searchedCategory = DBGuild.getCategoryFromId(category, message.guild);
                     if (!searchedCategory) return;
-                    categoriesNamesOverviewText += ", " + searchedCategory.name;
+                    categoriesNamesOverviewText += `, ` + searchedCategory.name;
                 });
                 categoriesNamesOverviewText = categoriesNamesOverviewText.substring(2);
-                categoriesNamesOverviewText = categoriesNamesOverviewText == "" ? "-" : categoriesNamesOverviewText;
+                categoriesNamesOverviewText = categoriesNamesOverviewText == `` ? `-` : categoriesNamesOverviewText;
 
-                let categoriesNamesOverviewVoice: string = "";
+                let categoriesNamesOverviewVoice: string = ``;
                 botSystem.guild.teamConfig.defaultCategoryVoice.forEach(category => {
                     if (!message.guild) return;
                     const searchedCategory = DBGuild.getCategoryFromId(category, message.guild);
                     if (!searchedCategory) return;
-                    categoriesNamesOverviewVoice += ", " + searchedCategory.name;
+                    categoriesNamesOverviewVoice += `, ` + searchedCategory.name;
                 });
                 categoriesNamesOverviewVoice = categoriesNamesOverviewVoice.substring(2);
-                categoriesNamesOverviewVoice = categoriesNamesOverviewVoice == "" ? "-" : categoriesNamesOverviewVoice;
+                categoriesNamesOverviewVoice = categoriesNamesOverviewVoice == `` ? `-` : categoriesNamesOverviewVoice;
 
                 message.reply({
-                    embeds: [BotSystemEmbed.embedCreator("Settings for channel creation on team creation", (
-                        "**Text channel:** " + (botSystem.guild.teamConfig.createTextOnTeamCreation ? "True" : "False") + "\n"
-                        + "**Voice channel:** " + (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? "True" : "False") + "\n"
-                        + "**Text Category:** " + categoriesNamesOverviewText + "\n"
-                        + "**Voice Category:** " + categoriesNamesOverviewVoice
+                    embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(`settings for channel creation on team creation`), (
+                        `**${translator.translateUppercase("text channel")}:** ` + translator.translateUppercase(botSystem.guild.teamConfig.createTextOnTeamCreation ? `True` : `False`) + `\n`
+                        + `**${translator.translateUppercase("voice channel")}:** ` + translator.translateUppercase(botSystem.guild.teamConfig.createVoiceOnTeamCreation ? `True` : `False`) + `\n`
+                        + `**${translator.translateUppercase("text category")}:** ` + categoriesNamesOverviewText + `\n`
+                        + `**${translator.translateUppercase("voice category")}:** ` + categoriesNamesOverviewVoice
                     ))]
                 })
                 break;
-            case "channel-category-text":
+            case `channel-category-text`:
                 let categoriesText = [];
                 for (let index = 0; index < args.length; index++) {
-                    categoriesText.push(ASCIIFolder.foldReplacing(args[index].trim().toLowerCase() ?? ""));
+                    categoriesText.push(ASCIIFolder.foldReplacing(args[index].trim().toLowerCase() ?? ``));
                 }
 
                 botSystem.guild.teamConfig.defaultCategoryText = categoriesText;
                 botSystem.guild.save();
 
-                let categoriesNames = "";
+                let categoriesNames = ``;
                 categoriesText.forEach(category => {
                     if (!message.guild) return;
-                    categoriesNames += ", " + DBGuild.getCategoryFromId(category, message.guild)?.name;
+                    categoriesNames += `, ` + DBGuild.getCategoryFromId(category, message.guild)?.name;
                 });
                 categoriesNames = categoriesNames.substring(2);
 
                 message.reply({
-                    embeds: [BotSystemEmbed.embedCreator("Category for creation of **text** channesl in has been updated!", (
-                        "Default category is now set to: " + (categoriesNames ?? "*Unknown*")
+                    embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(`category for creation of :type: channel in has been updated`, [translator.translate('text')]), (
+                        translator.translateUppercase(`default category is now set to :names:`, [(categoriesNames ?? `*${translator.translateUppercase("Unknown")}*`)])
                     ))]
                 })
                 break;
-            case "channel-category-voice":
+            case `channel-category-voice`:
                 let categoriesVoice = [];
                 for (let index = 0; index < args.length; index++) {
-                    categoriesVoice.push(ASCIIFolder.foldReplacing(args[index].trim().toLowerCase() ?? ""));
+                    categoriesVoice.push(ASCIIFolder.foldReplacing(args[index].trim().toLowerCase() ?? ``));
                 }
 
                 botSystem.guild.teamConfig.defaultCategoryVoice = categoriesVoice;
                 botSystem.guild.save();
 
-                let categoriesNamesVoice = "";
+                let categoriesNamesVoice = ``;
                 categoriesVoice.forEach(category => {
                     if (!message.guild) return;
-                    categoriesNamesVoice += ", " + DBGuild.getCategoryFromId(category, message.guild)?.name;
+                    categoriesNamesVoice += `, ` + DBGuild.getCategoryFromId(category, message.guild)?.name;
                 });
                 categoriesNamesVoice = categoriesNamesVoice.substring(2);
 
                 message.reply({
-                    embeds: [BotSystemEmbed.embedCreator("Category for creation of **voice** channesl in has been updated!", (
-                        "Default category is now set to: " + (categoriesNamesVoice ?? "*Unknown*")
+                    embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(`category for creation of :type: channel in has been updated`, [translator.translate('voice')]), (
+                        translator.translateUppercase(`default category is now set to :names:`, [(categoriesNamesVoice ?? `*${translator.translateUppercase("Unknown")}*`)])
                     ))]
                 })
                 break;
-            case "toggle-text-channel":
+            case `toggle-text-channel`:
                 botSystem.guild.teamConfig.createTextOnTeamCreation = !botSystem.guild.teamConfig.createTextOnTeamCreation;
                 botSystem.guild.save();
                 message.reply({
-                    embeds: [BotSystemEmbed.embedCreator("Text channel creation for team on team creation has been updated!", (
-                        "Text channel creation is now set to " + (botSystem.guild.teamConfig.createTextOnTeamCreation ? "True" : "False")
+                    embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(":type: channel creation for team on team creation has been updated", [translator.translate("text")]), (
+                        translator.translateUppercase(`Text channel creation is now set to `, [translator.translateUppercase('text'), translator.translateUppercase(), (botSystem.guild.teamConfig.createTextOnTeamCreation ? `True` : `False`)])
                     ))]
                 })
                 break;
-            case "toggle-voice-channel":
+            case `toggle-voice-channel`:
                 botSystem.guild.teamConfig.createVoiceOnTeamCreation = !botSystem.guild.teamConfig.createVoiceOnTeamCreation;
                 botSystem.guild.save();
                 message.reply({
-                    embeds: [BotSystemEmbed.embedCreator("Voice channel creation for team on team creation has been updated!", (
-                        "Voice channel creation is now set to " + (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? "True" : "False")
+                    embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(":type: channel creation for team on team creation has been updated", [translator.translate("voice")]), (
+                        translator.translateUppercase(`Text channel creation is now set to `, [translator.translateUppercase('voice'), translator.translateUppercase(), (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? `True` : `False`)])
                     ))]
                 })
                 break;
             default:
+                // TODO: Make list implement translation
                 const DBTeamConfigCommandEmbed = new MessageEmbed()
                     .setColor('#0099ff')
-                    .setTitle('Command list:')
+                    .setTitle(translator.translateUppercase('command list')+":")
                     .setDescription(
                         `
                             **Roles:**
@@ -300,8 +303,8 @@ export default class TeamConfig extends TeamCommand {
                             - toggle-voice-channel - Toggle creation of voice channel on team creation
                         `
                     )
-                    .setFooter({ text: 'Grouper', iconURL: botImage });
-                message.reply("Currently, there are the following")
+                    .setFooter({ text: translator.translateUppercase('Grouper'), iconURL: botImage });
+                message.reply(translator.translateUppercase(`currently, there are the following`))
                 message.channel.send({ embeds: [DBTeamConfigCommandEmbed] });
                 return;
         }
@@ -309,11 +312,11 @@ export default class TeamConfig extends TeamCommand {
 };
 
 function writeRolesCreateTeamList(message: Message, botSystem: BotSystem) {
-    const botImage = message.client.user?.avatarURL() ?? "";
+    const botImage = message.client.user?.avatarURL() ?? ``;
     const teamRoles = new MessageEmbed()
         .setColor('#0099ff')
-        .setTitle('Roles, that can create teams:')
-        .setDescription(botSystem.guild?.teamConfig.allowEveryone ? "***Everyone***" : (botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
-        .setFooter({ text: 'Grouper', iconURL: botImage });
+        .setTitle(botSystem.translator.translateUppercase('Roles, that can create teams:'))
+        .setDescription(botSystem.guild?.teamConfig.allowEveryone ? `***${botSystem.translator.translateUppercase("Everyone")}***` : (botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
+        .setFooter({ text: botSystem.translator.translateUppercase('Grouper'), iconURL: botImage });
     message.channel.send({ embeds: [teamRoles] });
 }

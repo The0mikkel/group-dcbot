@@ -21,15 +21,19 @@ export default class TeamCreate extends TeamCommand {
     }
 
     async execute(message: Message, botSystem: BotSystem, args: any, autoDelete = false): Promise<void> {
+        const translator = botSystem.translator;
+
         let returnValue = await this.createTeam(message, botSystem, args, autoDelete);
 
         if (returnValue instanceof DBGroup) {
-            let botMessage = message.channel.send(`Group <@&${returnValue.id}> was created.\nTo add members beside yourself, please use the ${new TeamInvite().name} command!`);
+            let botMessage = message.channel.send(`${translator.translateUppercase("group :group: was created", [`<@&${returnValue.id}>`])}.\n${translator.translateUppercase("to add members beside yourself, please use the :invite command name: command", [new TeamInvite().name])}!`);
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
         }
     }
 
     async createTeam(message: Message, botSystem: BotSystem, args: any, autoDelete = false): Promise<false | DBGroup> {
+        const translator = botSystem.translator;
+
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 
@@ -51,7 +55,7 @@ export default class TeamCreate extends TeamCommand {
                 && !hasRole
             )
         ) {
-            let botMessage = message.channel.send("You don't have permission to add new teams!");
+            let botMessage = message.channel.send(translator.translateUppercase("you don't have permission to add new teams"));
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
             return false;
         }
@@ -64,7 +68,7 @@ export default class TeamCreate extends TeamCommand {
         const groupName = ASCIIFolder.foldReplacing(rawGroupName).trim();
 
         if (groupName == "") {
-            let botMessage = message.reply(`You need to specify a group name!`);
+            let botMessage = message.reply(`${translator.translateUppercase("you need to specify a group name")}!`);
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
             return false;
         }
@@ -76,22 +80,22 @@ export default class TeamCreate extends TeamCommand {
             let botMessage: Promise<Message>;
             switch (teamCreationReturn) {
                 case TeamCreationErrors.roleCreationFailure:
-                    botMessage = message.reply("Could not create group " + groupName);
+                    botMessage = message.reply(translator.translateUppercase("could not create group :name:", [groupName]));
                     break;
                 case TeamCreationErrors.alreadyExist:
-                    botMessage = message.reply("The team already exist, please select another name for the team!");
+                    botMessage = message.reply(translator.translateUppercase("the team already exist, please select another name for the team"));
                     break;
                 case TeamCreationErrors.nameLength:
-                    botMessage = message.reply("The team name must not be longer than 100 characters!");
+                    botMessage = message.reply(translator.translateUppercase("the team name must not be longer than 100 characters"));
                     break;
                 case TeamCreationErrors.channelCreationFailure:
-                    botMessage = message.reply("Team was created, but an error occured while creating channel(s) for the team - Please contact an admin to further assist")
+                    botMessage = message.reply(translator.translateUppercase("team was created, but an error occured while creating channel(s) for the team") + " - " + translator.translateUppercase("please contact an admin to further assist"))
                     break;
                 case TeamCreationErrors.max:
-                    botMessage = message.reply("There cannot be created anymore teams - Please contact an admin to further assist")
+                    botMessage = message.reply(translator.translateUppercase("there cannot be created anymore teams") + " - " + translator.translateUppercase("please contact an admin to further assist"))
                     break;
                 default:
-                    botMessage = message.reply("An error occured while processing the creation of the team - Please try again or contact an admin.");
+                    botMessage = message.reply(translator.translateUppercase("an error occured while processing the creation of the team") + " - " + translator.translateUppercase("please try again or contact an admin"));
                     break;
             }
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
