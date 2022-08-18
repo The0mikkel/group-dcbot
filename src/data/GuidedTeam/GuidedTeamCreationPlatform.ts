@@ -1,5 +1,6 @@
 import { DMChannel, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User } from "discord.js";
 import BotSystem from "../BotSystem";
+import Translate from "../Language/Translate";
 import GuidedTeamCreation from "./GuidedTeamCreation";
 
 export default class GuidedTeamCreationPlatform {
@@ -28,7 +29,7 @@ export default class GuidedTeamCreationPlatform {
             this.openGuidedTeamCreations.set(this.openGuidedTeamCreationsKey++, guidedTeamCreation);
             return true;
         } else {
-            BotSystem.sendAutoDeleteMessage(guidedTeamCreation.channel, "Please finish current team setup, before starting creation of a new team")
+            BotSystem.sendAutoDeleteMessage(guidedTeamCreation.channel, Translate.getInstance().translateUppercase("please finish current team setup, before starting creation of a new team"))
             return false;
         }
     }

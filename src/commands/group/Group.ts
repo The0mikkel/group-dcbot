@@ -11,7 +11,7 @@ export default class Group extends GroupCommand {
     constructor() {
         super(
             'group',
-            'Create a group, by naming the goup and mentioning all users in the group. A role of the same name as the group will be created. You need to be an administrator or have the "Manage channels" permission to use this command.',
+            'group command description',
             true,
             true,
             2,
@@ -28,17 +28,17 @@ export default class Group extends GroupCommand {
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            message.channel.send(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
             return;
         }
 
         if (!message.guild) {
-            message.reply('I can\'t execute outsite Guilds!');
+            message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
             return;
         }
 
         if (!args.length) {
-            message.reply(`You need to specify a group name and group members!`);
+            message.reply(botSystem.translator.translateUppercase("you need to specify a group name and group members"));
             return;
         }
 
@@ -71,7 +71,7 @@ export default class Group extends GroupCommand {
             });
         }
 
-        message.channel.send(`Group ${role} was created.`);
+        message.channel.send(botSystem.translator.translateUppercase("group :group name: was created", [role]));
         return;
     }
 };

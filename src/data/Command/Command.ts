@@ -44,7 +44,7 @@ export default abstract class Command implements CommandType {
         aliases.forEach(alias => {
             this.aliases.push(Translate.getInstance().translate(alias))
         })
-        this.category = category;
+        this.category = Translate.getInstance().translate(category);
         this.categoryEmoji = categoryEmoji;
         this.level = level;
     }

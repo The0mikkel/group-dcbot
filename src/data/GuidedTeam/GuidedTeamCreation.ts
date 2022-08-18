@@ -7,6 +7,7 @@ import { DBGroup } from "../Group/DBGroup";
 import GuidedTeamCreationPlatform from "./GuidedTeamCreationPlatform";
 import { GuidedTeamCreationState } from "./GuidedTeamCreationState";
 import Team from "../Group/Team";
+import Translate from "../Language/Translate";
 
 export default class GuidedTeamCreation {
     guild: DBGuild;
@@ -42,7 +43,7 @@ export default class GuidedTeamCreation {
 
     async sendBotMessage(message: string) {
         try {
-            this.addBotMessage(await this.channel.send(message));
+            this.addBotMessage(await this.channel.send(Translate.getInstance().translateUppercase(message)));
         } catch (error) {
             console.error(error);
         }
@@ -60,7 +61,7 @@ export default class GuidedTeamCreation {
     async step(message: Message | undefined, botSystem: BotSystem) {
         switch (this.state) {
             case GuidedTeamCreationState.created:
-                await this.sendBotMessage("Write the team name below, to continue");
+                await this.sendBotMessage("write the team name below, to continue");
                 this.state = GuidedTeamCreationState.awaitTeamName;
                 break;
             case GuidedTeamCreationState.awaitTeamName:
@@ -86,7 +87,7 @@ export default class GuidedTeamCreation {
                 }
                 guildMember.roles.add(this.team.id);
 
-                this.sendBotMessage("Mention users, that is to join the team, to continue")
+                this.sendBotMessage(".ention users, that is to join the team, to continue")
                 this.state = GuidedTeamCreationState.awaitTeamMembers;
                 break;
             case GuidedTeamCreationState.awaitTeamMembers:
@@ -103,7 +104,8 @@ export default class GuidedTeamCreation {
 
                 this.state = GuidedTeamCreationState.teamCreated;
 
-                this.sendBotMessage("The team has been created!\nMore members can be added, by running the team-invite command.")
+                this.sendBotMessage("the team has been created");
+                this.sendBotMessage("more members can be added, by running the team-invite command");
 
                 setTimeout(() => {
                     GuidedTeamCreationPlatform.getInstance().removeGuidedTeamCreation(this);

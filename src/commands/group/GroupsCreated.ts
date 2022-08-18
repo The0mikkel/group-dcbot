@@ -27,12 +27,12 @@ export default class GroupsCreated extends GroupCommand {
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            message.channel.send(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
             return;
         }
 
         if (!message.guild) {
-            message.reply('I can\'t execute outsite Guilds!');
+            message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
             return;
         }
 
@@ -40,9 +40,9 @@ export default class GroupsCreated extends GroupCommand {
 
         const exampleEmbed = new MessageEmbed()
             .setColor('#0099ff')
-            .setTitle('Group list:')
+            .setTitle(botSystem.translator.translateUppercase("Group list")+':')
             .setDescription(groups.map(group => group.name).join('\n'))
-            .setFooter({ text: 'Grouper', iconURL: 'https://cdn.discordapp.com/avatars/943231088438947890/31cfc4f6fe63a45a471c8c898e74efea.png?size=256' });
+			.setFooter({ text: botSystem.translator.translate('grouper'), iconURL: BotSystem.client?.user?.avatarURL() ?? "" });
 
         message.channel.send({ embeds: [exampleEmbed] });
         return;

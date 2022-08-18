@@ -1,4 +1,4 @@
-import { BaseGuildTextChannel, Guild, Interaction, Message, User } from "discord.js";
+import { Guild, Message, User } from "discord.js";
 import { DBGuild } from "./data/Guild/DBGuild";
 import Discord from "discord.js";
 import BotSystem from "./data/BotSystem";
@@ -117,30 +117,30 @@ async function handleMessageCreateEvent(message: Message) {
 
 		if (!command) {
 			if (botSystem.env == envType.dev) console.log("Message not a command");
-			message.reply("I don't know that command.");
+			message.reply(botSystem.translator.translateUppercase("i don't know that command"));
 			return
 		};
 
 		// Checking dm compatebility
 		if (command.guildOnly && (message.channel.type === 'DM')) {
 			if (botSystem.env == envType.dev) console.log("Message send in a DM, when not available in DMs");
-			return message.reply('I can\'t execute that command inside DMs!');
+			return message.reply(botSystem.translator.translateUppercase("i can't execute that command inside dms"));
 		}
 
 		// Permissions checking
 		if (command.permissions) {
 			let authorized = await command.authorized(message, botSystem);
 			if (!authorized) {
-				return message.reply('You do not have the right permissions to use this command!');
+				return message.reply(botSystem.translator.translateUppercase('you do not have the right permissions to use this command'));
 			}
 		}
 
 		// Argument length validation
 		if (command.args && (!args.length || args.length < command.args_quantity)) {
-			let reply = `You didn't provide enough arguments, ${message.author}!`;
+			let reply = `${botSystem.translator.translateUppercase("You didn't provide enough arguments")}, ${message.author}!`;
 
 			if (command.usage) {
-				reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
+				reply += `\n${botSystem.translator.translateUppercase("the proper usage would be")}: \`${prefix}${command.name} ${command.usage}\``;
 			}
 
 			if (botSystem.env == envType.dev) console.log("Arguments missing");
@@ -150,7 +150,7 @@ async function handleMessageCreateEvent(message: Message) {
 		// Cooldown checking
 		const cooldown = Commands.cooldownCheck(command, message.author.id);
 		if (cooldown !== true) {
-			message.reply(`please wait ${cooldown} more second(s) before reusing the \`${command.name}\` command.`);
+			message.reply(`${botSystem.translator.translateUppercase("the proper usage would be")} ${botSystem.translator.translateUppercase("please wait :time: more", [cooldown])} ${botSystem.translator.translateUppercase("second(s)")} ${botSystem.translator.translateUppercase("before reusing the :command: command", ["`"+command.name+"`"])}.`);
 			return;
 		}
 
@@ -160,7 +160,7 @@ async function handleMessageCreateEvent(message: Message) {
 		} catch (error) {
 			if (botSystem.env == envType.dev) console.log(error);
 			console.error(error);
-			message.reply('there was an error trying to execute that command!');
+			message.reply(botSystem.translator.translateUppercase('there was an error trying to execute that command'));
 		}
 	} catch (error) {
 		console.log(error)
