@@ -1,3 +1,4 @@
+# This is the dev docker-compose file, and should only be used in development, and not production, as it allows for semi-hot-reload (restart of bot thorugh the stop command)
 version: "3.6"
 services:
     bot:
