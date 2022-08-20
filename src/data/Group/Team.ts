@@ -254,8 +254,6 @@ export default class Team {
             let textChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.textChannel);
             let voiceChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.voiceChannel);
 
-            console.log("text", dbGroup.textChannel, textChannel, "voice", dbGroup.voiceChannel, voiceChannel);
-
             if (textChannel) {
                 try {
                     await textChannel.delete("Team deleted").catch(error => console.log(error));
