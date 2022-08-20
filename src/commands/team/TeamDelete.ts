@@ -153,7 +153,7 @@ export default class TeamDelete extends TeamCommand {
 
         const pageEmbed = new MessageEmbed()
             .setColor('#0099ff')
-            .setTitle('Delete team')
+            .setTitle(botSystem.translator.translateUppercase('Delete team'))
             .setDescription(pageText)
             .setFields({ name: botSystem.translator.translateUppercase('how to'), value: botSystem.translator.translateUppercase("select number to delete or navigate between pages") })
             .setFooter({ text: botSystem.translator.translateUppercase("Page") + " " + (pageNumber + 1) + "/" + pages })
