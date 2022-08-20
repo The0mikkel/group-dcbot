@@ -26,6 +26,10 @@ export default class Language extends UtilityCommand {
 	}
 
 	async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
+
+		message.reply("This command has not yet been implemented in this version");
+		return;
+
 		if (
 			!message.member
 		) {
