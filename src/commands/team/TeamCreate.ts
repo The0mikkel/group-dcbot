@@ -26,7 +26,7 @@ export default class TeamCreate extends TeamCommand {
         let returnValue = await this.createTeam(message, botSystem, args, autoDelete);
 
         if (returnValue instanceof DBGroup) {
-            let botMessage = message.channel.send(`${translator.translateUppercase("group :group: was created", [`<@&${returnValue.id}>`])}.\n${translator.translateUppercase("to add members beside yourself, please use the :invite command name: command", [new TeamInvite().name])}!`);
+            let botMessage = message.channel.send(`${translator.translateUppercase("team :group: was created", [`<@&${returnValue.id}>`])}.\n${translator.translateUppercase("to add members beside yourself, please use the :invite command name: command", [new TeamInvite().name])}!`);
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
         }
     }
@@ -68,7 +68,7 @@ export default class TeamCreate extends TeamCommand {
         const groupName = ASCIIFolder.foldReplacing(rawGroupName).trim();
 
         if (groupName == "") {
-            let botMessage = message.reply(`${translator.translateUppercase("you need to specify a group name")}!`);
+            let botMessage = message.reply(`${translator.translateUppercase("you need to specify a team name")}!`);
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
             return false;
         }
@@ -80,7 +80,7 @@ export default class TeamCreate extends TeamCommand {
             let botMessage: Promise<Message>;
             switch (teamCreationReturn) {
                 case TeamCreationErrors.roleCreationFailure:
-                    botMessage = message.reply(translator.translateUppercase("could not create group :name:", [groupName]));
+                    botMessage = message.reply(translator.translateUppercase("could not create team :name:", [groupName]));
                     break;
                 case TeamCreationErrors.alreadyExist:
                     botMessage = message.reply(translator.translateUppercase("the team already exist, please select another name for the team"));

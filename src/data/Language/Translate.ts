@@ -10,7 +10,7 @@ export default class Translate {
 
     constructor(language: Languages | undefined = undefined) {
 
-        let tempLanguage: string = process.env.language ?? "en"
+        let tempLanguage: string = Translate.instance?.language ?? process.env.language ?? "en";
         if (!Object.values(Languages).includes(tempLanguage as Languages)) {
             tempLanguage = "en";
         }
@@ -63,7 +63,7 @@ export default class Translate {
         try {
             translatedText = this.languageFile?.translation[text] ?? undefined;
             if (!translatedText) {
-                translatedText = this.defaultLanguageFile.translation[text] ?? undefined;
+                translatedText = this.defaultLanguageFile?.translation[text] ?? undefined;
             }
         } catch (error) {
             console.log(error);

@@ -24,7 +24,7 @@ export default class help extends UtilityCommand {
 			undefined,
 			[],
 			UserLevel.user,
-			['commands'],
+			['commands', 'help'],
 		)
 
 		this.typemap = Commands.commandTypeMap;
@@ -138,13 +138,13 @@ export default class help extends UtilityCommand {
 		for (let index = 0; index < pageCommands.length; index++) {
 			let command = pageCommands[index];
 			if ((await command.authorized(message, botSystem)) == true) {
-				pageText += `**${command.name}**\n${this.translator.translateUppercase(command.description)}\n`;
+				pageText += `**${command.name}**\n${command.description}\n`;
 			}
 		}
 
 		const pageEmbed = new MessageEmbed()
 			.setColor('#0099ff')
-			.setTitle(this.translator.translate("'Command list'")+':')
+			.setTitle(this.translator.translate("Command list")+':')
 			.setDescription(pageText)
 			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
 			.addFields({ name: this.translator.translate('detailed help')+':', value: this.translator.translate("write the command name, after the help command, to see more details about the command") })
@@ -173,7 +173,7 @@ export default class help extends UtilityCommand {
 
 		const exampleEmbed = new MessageEmbed()
 			.setColor('#0099ff')
-			.setTitle(this.translator.translate("'Command list'")+':')
+			.setTitle(this.translator.translate("Command list")+':')
 			.setDescription(commands.map(command => command.name).join('\n'))
 			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
 			.addFields({ name: this.translator.translate('detailed help')+':', value: this.translator.translate("write the command name, after the help command, to see more details about the command") })
@@ -188,18 +188,15 @@ export default class help extends UtilityCommand {
 		data.push(`**${(this.translator.translate("name"))}:** ${command.name}`);
 
 		let translatedAliases: string[] = [];
-		command.aliases.forEach(alias => {
-            translatedAliases.push(this.translator.translate(alias))
-        })
-		if (command.aliases.length > 0) data.push(`**${this.translator.translate("aliases")}:** ${translatedAliases.join(', ')}`);
-		if (command.description) data.push(`**${this.translator.translate("description")}:** ${this.translator.translate(command.description)}`);
+		if (command.aliases.length > 0) data.push(`**${this.translator.translate("aliases")}:** ${command.aliases.join(', ')}`);
+		if (command.description) data.push(`**${this.translator.translate("description")}:** ${command.description}`);
 		if (command.usage) data.push(`**${this.translator.translate("usage")}:** ${(botSystem.guild)?.config.prefix}${command.name} ${command.usage}`);
 
 		if (command.cooldown > 0) data.push(`**${this.translator.translate("Cooldown")}:** ${command.cooldown || 3} ${botSystem.translator.translateUppercase("second(s)")}`);
 
 		const specificHelp = new MessageEmbed()
 			.setColor('#0099ff')
-			.setTitle(this.translator.translate("'Command list'")+':')
+			.setTitle(this.translator.translate("Command list")+':')
 			.setDescription(data.join('\n'))
 			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
 			.setFooter({ text: this.translator.translate('grouper'), iconURL: this.image });

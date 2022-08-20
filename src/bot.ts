@@ -167,6 +167,7 @@ async function handleMessageCreateEvent(message: Message) {
 	}
 }
 
+// React on message reaction
 client.on('messageReactionAdd', async (reaction, user) => {
 	const botSystem = new BotSystem;
 

@@ -21,7 +21,8 @@ export default class TeamInvite extends TeamCommand {
             '[team] [team member]',
             undefined,
             undefined,
-            UserLevel.team
+            UserLevel.team,
+            ["invite", "invite-to-team"]
         )
 
     }
@@ -49,7 +50,7 @@ export default class TeamInvite extends TeamCommand {
         }
 
         if (args.length < 1) {
-            message.reply(translator.translateUppercase(`you need to specify a group name and group members`));
+            message.reply(translator.translateUppercase(`you need to specify a team name and group members`));
             return;
         }
 

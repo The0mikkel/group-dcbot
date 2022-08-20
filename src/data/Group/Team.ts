@@ -225,12 +225,12 @@ export default class Team {
                     // Add role to user
                     try {
                         await user.roles.add(dbGroup.id);
-                        i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite")+" "+ botSystem.translator.translateUppercase("accepted"), botSystem.translator.translateUppercase(`You have been added`)+" "+botSystem.translator.translateUppercase("to the team to the team :team: in the guild :guild:", [role.name, message.guild?.name]))], components: [] });
+                        i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite")+" "+ botSystem.translator.translateUppercase("accepted"), botSystem.translator.translateUppercase(`You have been added`)+" "+botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [role.name, message.guild?.name]))], components: [] });
                     } catch (error) {
                         console.log(error)
                     }
                 } else {
-                    i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite")+" "+ botSystem.translator.translateUppercase("declined"), botSystem.translator.translateUppercase(`you declined the invite`)+" "+botSystem.translator.translateUppercase("to the team to the team :team: in the guild :guild:", [dbGroup.name, message.guild?.name]))], components: [] });
+                    i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite")+" "+ botSystem.translator.translateUppercase("declined"), botSystem.translator.translateUppercase(`you declined the invite`)+" "+botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [dbGroup.name, message.guild?.name]))], components: [] });
                 }
             }
         });

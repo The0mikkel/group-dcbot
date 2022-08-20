@@ -12,6 +12,7 @@ services:
             bot_token: ${bot_token}
             bot_prefix: ${bot_prefix}
             database_url: mongodb://${db_username}:${db_password}@mongodb:27017/
+            language: da
             env: ${env}
     mongodb:
         image: mongo

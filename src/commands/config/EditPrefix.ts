@@ -27,13 +27,13 @@ export default class EditPrefix extends ConfigCommand {
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            message.channel.send("You need to be an administrator to do that.");
+            message.channel.send(botSystem.translator.translateUppercase("you need to be an administrator to do that"));
             return;
         }
 
         // Check if there is any args
         if (!args.length) {
-            message.reply(`You need to specify a prefix, to be able to use this command!`);
+            message.reply(botSystem.translator.translateUppercase("you need to specify a prefix, to be able to use this command"));
             return;
         }
 
@@ -41,7 +41,7 @@ export default class EditPrefix extends ConfigCommand {
 
         let guild = botSystem.guild;
         if (!guild) {
-            message.reply(`This command cannot be executed outside a guild!`);
+            message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
             return
         }
 
@@ -50,6 +50,6 @@ export default class EditPrefix extends ConfigCommand {
 
         await guild.save();
 
-        message.reply(`The prefix of the bot is now: ${guild.config.prefix}`);
+        message.reply(botSystem.translator.translateUppercase("the prefix of the bot is now: :prefix:", [guild.config.prefix]));
     }
 };

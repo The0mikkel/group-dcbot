@@ -26,7 +26,7 @@ export default class Reset extends ConfigCommand {
             !message.member
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            message.channel.send("You need to be an administrator to do that.");
+            message.channel.send(botSystem.translator.translateUppercase("you need to be an administrator to do that"));
             return;
         }
         
@@ -38,11 +38,11 @@ export default class Reset extends ConfigCommand {
 async function resetGuild(message: Message, args: any, botSystem: BotSystem) {
     let guild = botSystem.guild;
     if (!guild) {
-        return message.reply(`This command cannot be executed outside a guild!`);
+        return message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
     }
 
     guild.config = new Config();
     await guild.save();
 
-    message.channel.send("Bot has been reset!");
+    message.channel.send(botSystem.translator.translateUppercase("bot has been reset"));
 }
