@@ -57,6 +57,7 @@
         ":type: channel creation is now set to :boolean:": "%data% channel creation is now set to %data%",
         "currently, there are the following": "currently, there are the following",
         "roles, that can create teams": "roles, that can create teams",
+        "sending invites, are now limited to :role:": "sending invites, are now limited to %data%",
 
         "create-team": "create-team",
         "create a team": "create a team",
