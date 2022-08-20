@@ -258,7 +258,7 @@ export default class TeamConfig extends TeamCommand {
                 botSystem.guild.save();
                 message.reply({
                     embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(":type: channel creation for team on team creation has been updated", [translator.translate("text")]), (
-                        translator.translateUppercase(`Text channel creation is now set to `, [translator.translateUppercase('text'), translator.translateUppercase(), (botSystem.guild.teamConfig.createTextOnTeamCreation ? `True` : `False`)])
+                        translator.translateUppercase(`:type: channel creation is now set to :boolean:`, [translator.translateUppercase('text'), translator.translateUppercase(), (botSystem.guild.teamConfig.createTextOnTeamCreation ? `True` : `False`)])
                     ))]
                 })
                 break;
@@ -267,7 +267,7 @@ export default class TeamConfig extends TeamCommand {
                 botSystem.guild.save();
                 message.reply({
                     embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(":type: channel creation for team on team creation has been updated", [translator.translate("voice")]), (
-                        translator.translateUppercase(`Text channel creation is now set to `, [translator.translateUppercase('voice'), translator.translateUppercase(), (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? `True` : `False`)])
+                        translator.translateUppercase(`:type: channel creation is now set to :boolean:`, [translator.translateUppercase('voice'), translator.translateUppercase(), (botSystem.guild.teamConfig.createVoiceOnTeamCreation ? `True` : `False`)])
                     ))]
                 })
                 break;

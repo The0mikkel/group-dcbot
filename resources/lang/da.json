@@ -36,7 +36,7 @@
         "everyone can now create a team": "alle kan nu tilføje et hold",
         "team creation has been restricted to the following roles": "hold oprettelse er blevet begrænset til følgende roller:",
         "invite to join team is currently :boolean:": "det er nuværende krævet en invitation for at joine en team: %data%",
-        "invite to join team is now :boolean:": "det er nu krævet en invitation for at joine en team %data%",
+        "invite to join team is now :boolean:": "det er nu krævet en invitation for at joine et hold: %data%",
         "sending invites, are currently limited to :role:": "at sende invitationer er lige nu begrænset til: %data%",
         "sending invites, are now updated to be limited to :role:": "at sende invitationer er blevet opdateret til nu at være begrænset til: %data%",
         "i did not know the restriction type": "Jeg kender ikke restriktions typen",
@@ -57,6 +57,7 @@
         ":type: channel creation is now set to :boolean:": "%data% kanal oprettelse er nu sat til %data%",
         "currently, there are the following": "nuværende er der følgende",
         "roles, that can create teams": "roller der kan oprette hold",
+        "sending invites, are now limited to :role:": "at sende invitation, er nu begrænset til %data%",
 
         "create-team": "opret-hold",
         "create a team": "opret et hold",
