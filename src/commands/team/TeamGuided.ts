@@ -23,7 +23,7 @@ export default class TeamGuided extends TeamCommand {
 
     async execute(message: Message, botSystem: BotSystem, args: any) {
         if (args.length < 2) {
-            message.reply(`You need to specify a message id and an emoji to use as a reaction!`);
+            message.reply(botSystem.translator.translateUppercase(`You need to specify a message id and an emoji to use as a reaction!`));
             return;
         }
 
@@ -36,6 +36,6 @@ export default class TeamGuided extends TeamCommand {
         await botSystem.guild?.save();
 
         BotSystem.autoDeleteMessageByUser(message);
-        BotSystem.sendAutoDeleteMessage(message.channel, "Guided team creator has been setup!");
+        BotSystem.sendAutoDeleteMessage(message.channel, botSystem.translator.translateUppercase("Guided team creator has been setup!"));
     }
 };

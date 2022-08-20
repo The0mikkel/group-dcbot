@@ -19,11 +19,13 @@ export default class Team extends TeamCommand {
     }
 
     async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
+        const translator = botSystem.translator;
+
         botSystem.guild?.teamConfig.filterRemoved(message);
         await botSystem.guild?.save();
 
         if (args.length < 1) {
-            message.reply(`You need to specify a group`);
+            message.reply(translator.translateUppercase(`You need to specify a group`));
             return;
         }
 
@@ -44,26 +46,26 @@ export default class Team extends TeamCommand {
             groupName = ASCIIFolder.foldReplacing(message.mentions.roles.first()?.name);
         }
         if (!DiscordRole) {
-            message.reply("The team does not exist!");
+            message.reply(translator.translateUppercase("the team does not exist"));
             return;
         }
 
         let role = await DBGroup.load(DiscordRole.id ?? "");
         if (role == undefined) {
-            message.reply("The team does not exist!");
+            message.reply(translator.translateUppercase("the team does not exist"));
             return;
         }
 
         const botImage = message.client.user?.avatarURL() ?? "";
         const teamInformation = new MessageEmbed()
             .setColor('#0099ff')
-            .setTitle('Team information:')
+            .setTitle(translator.translateUppercase('Team information')+':')
             .setDescription(`
-                    **Name:** ${DiscordRole.name} 
-                    **Team leader:** ${(await message.guild?.members.fetch(role.teamLeader))?.displayName ?? "*Ingen*"} 
+                    **${translator.translateUppercase("name")}:** ${DiscordRole.name} 
+                    **${translator.translateUppercase("team leader")}:** ${(await message.guild?.members.fetch(role.teamLeader))?.displayName ?? "*-*"} 
                 `)
-            .addField("Members:", DiscordRole.members.map(member => member.displayName).join("\n"))
-            .setFooter({ text: 'Grouper', iconURL: botImage });
+            .addField(translator.translateUppercase("Members")+":", DiscordRole.members.map(member => member.displayName).join("\n"))
+            .setFooter({ text: translator.translateUppercase('Grouper'), iconURL: botImage });
         message.channel.send({ embeds: [teamInformation] });
 
     }

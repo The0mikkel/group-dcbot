@@ -15,7 +15,7 @@ export default class TeamDelete extends TeamCommand {
     constructor() {
         super(
             'delete-team',
-            'Delete a team. one or more teams may be mentioned to delete without navigating the team list.',
+            'Delete a team. one or more teams may be mentioned to delete without navigating the team list',
             true,
             false,
             undefined,
@@ -40,13 +40,15 @@ export default class TeamDelete extends TeamCommand {
     }
 
     async deleteTeamlist(message: Message, botSystem: BotSystem) {
+        const translator = botSystem.translator;
+
         this.teams = await DBGroup.loadFromGuild(botSystem.guild?.id);
         let currentPage = "0";
 
         const pageContent = await this.generatePage(currentPage, message, botSystem);
         if (!pageContent) {
             console.log(pageContent);
-            message.channel.send("No teams has been created through the bot.")
+            message.channel.send(translator.translateUppercase("no teams has been created through the bot"))
             return;
         }
 
@@ -79,7 +81,7 @@ export default class TeamDelete extends TeamCommand {
                     }
                     this.teams = this.teams.filter(item => item !== dbGroupToDelete)
                 }
-                if (teamName !== "") BotSystem.sendAutoDeleteMessage(message.channel, "Team " + teamName + " was deleted");
+                if (teamName !== "") BotSystem.sendAutoDeleteMessage(message.channel, translator.translateUppercase("team :team name: was deleted", [teamName]));
 
                 let pageContent: any = await this.generatePage(currentPage, message, botSystem);
                 if (!pageContent) {
@@ -151,10 +153,10 @@ export default class TeamDelete extends TeamCommand {
 
         const pageEmbed = new MessageEmbed()
             .setColor('#0099ff')
-            .setTitle('Delete team')
+            .setTitle(botSystem.translator.translateUppercase('Delete team'))
             .setDescription(pageText)
-            .setFields({ name: 'How to', value: "Select number to delete or navigate between pages" })
-            .setFooter({ text: "Page " + (pageNumber + 1) + "/" + pages })
+            .setFields({ name: botSystem.translator.translateUppercase('how to'), value: botSystem.translator.translateUppercase("select number to delete or navigate between pages") })
+            .setFooter({ text: botSystem.translator.translateUppercase("Page") + " " + (pageNumber + 1) + "/" + pages })
 
 
         let componentCount = 0;
@@ -165,7 +167,7 @@ export default class TeamDelete extends TeamCommand {
             this.addComponent(buttons, componentCount,
                 new MessageButton()
                     .setCustomId(`team-delete-new-page;${pageNumber - 1}`)
-                    .setLabel(`Previus page`)
+                    .setLabel(botSystem.translator.translateUppercase(`previus page`))
                     .setStyle(buttonType),
             );
             componentCount++;
@@ -189,7 +191,7 @@ export default class TeamDelete extends TeamCommand {
             this.addComponent(buttons, componentCount,
                 new MessageButton()
                     .setCustomId(`team-delete-new-page;${pageNumber + 1}`)
-                    .setLabel(`Next page`)
+                    .setLabel(botSystem.translator.translateUppercase(`next page`))
                     .setStyle(buttonType),
             );
             componentCount++

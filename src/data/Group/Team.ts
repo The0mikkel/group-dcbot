@@ -181,12 +181,12 @@ export default class Team {
 
     private static async sendUserInvite(botSystem: BotSystem, dbGroup: DBGroup, user: GuildMember, message: Message): Promise<void> {
         let confirmEmbed = Team.createSimpleEmbed(
-            "You have been invited!",
-            `You have been invited to the team "${dbGroup.name}" by "${message.author.tag}" in the guild "${message.guild?.name}".\nThe invite is valid for 1 hour!`
+            botSystem.translator.translateUppercase("you have been invited"),
+            `${botSystem.translator.translateUppercase("you have been invited to the team :team: by :team leader: in the guild :guild:", [dbGroup.name, message.author.tag, message.guild?.name])}.\n${botSystem.translator.translateUppercase("the invite is valid for :hours: hour(s)", [24])}!`
         )
         const buttons = new MessageActionRow();
 
-        let actions = ["✅ Accept", "❌ Decline"];
+        let actions = ["✅ " + botSystem.translator.translateUppercase("accept"), "❌ " + botSystem.translator.translateUppercase("decline")];
         for (let index = 0; index < actions.length; index++) {
             try {
                 const buttonType = actions[index] == actions[0] ? 'SUCCESS' : 'DANGER';
@@ -202,7 +202,7 @@ export default class Team {
         }
         const inviteMessage = await user.send({ embeds: [confirmEmbed], components: [buttons] });
 
-        const collector = inviteMessage.createMessageComponentCollector({ time: 3600000 });
+        const collector = inviteMessage.createMessageComponentCollector({ time: 86400000 });
         collector.on('collect', async i => {
             if (!i.customId) {
                 return;
@@ -215,7 +215,7 @@ export default class Team {
                     let role = message.guild?.roles.cache.get(dbGroup.id);
                     if (!role) {
                         try {
-                            i.update({ embeds: [Team.createSimpleEmbed("An error occured!", `The team is no longer available in the guild "${message.guild?.name}"`)], components: [] });
+                            i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the team is no longer available in the guild :guild:", [message.guild?.name]))], components: [] });
                         } catch (error) {
                             console.log(error)
                         }
@@ -225,12 +225,12 @@ export default class Team {
                     // Add role to user
                     try {
                         await user.roles.add(dbGroup.id);
-                        i.update({ embeds: [Team.createSimpleEmbed("Invite accepted!", `You have been added to the team "${role.name}" in the guild "${message.guild?.name}"`)], components: [] });
+                        i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite")+" "+ botSystem.translator.translateUppercase("accepted"), botSystem.translator.translateUppercase(`You have been added`)+" "+botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [role.name, message.guild?.name]))], components: [] });
                     } catch (error) {
                         console.log(error)
                     }
                 } else {
-                    i.update({ embeds: [Team.createSimpleEmbed("Invite declined!", `You declined the invite to the team to the team ${dbGroup.name} in the guild "${message.guild?.name}"`)], components: [] });
+                    i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite")+" "+ botSystem.translator.translateUppercase("declined"), botSystem.translator.translateUppercase(`you declined the invite`)+" "+botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [dbGroup.name, message.guild?.name]))], components: [] });
                 }
             }
         });
@@ -253,8 +253,6 @@ export default class Team {
 
             let textChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.textChannel);
             let voiceChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.voiceChannel);
-
-            console.log("text", dbGroup.textChannel, textChannel, "voice", dbGroup.voiceChannel, voiceChannel);
 
             if (textChannel) {
                 try {

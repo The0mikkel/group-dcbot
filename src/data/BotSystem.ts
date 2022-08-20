@@ -1,16 +1,19 @@
 import { Client, Collection, DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User } from "discord.js";
 import { DBGuild } from "./Guild/DBGuild";
 import { envType } from "./envType";
+import Translate from "./Language/Translate";
 
 export default class BotSystem {
     public static client: Client;
 
     guild: DBGuild | undefined
     env: envType;
+    translator: Translate;
 
     constructor() {
         this.guild = undefined;
         this.env = envType[((process.env.env ?? "prod") as keyof typeof envType)] ?? envType.prod;
+        this.translator = new Translate();
     }
 
     static async sendAutoDeleteMessage(channel: DMChannel | PartialDMChannel | NewsChannel | TextChannel | ThreadChannel, message: any, time: number = 30000) {

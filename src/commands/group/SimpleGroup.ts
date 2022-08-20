@@ -10,7 +10,7 @@ export default class SimpleGroup extends GroupCommand {
     constructor() {
         super(
             'simple-group',
-            'Create a simple group, by naming the goup and mentioning all users in the group. The group will be created in the current category. You need to be an administrator or have the "Manage channels" permission to use this command.',
+            'simple group command description',
             true,
             true,
             2,
@@ -28,18 +28,18 @@ export default class SimpleGroup extends GroupCommand {
             || !message.member.permissions.has("MANAGE_CHANNELS")
             || !message.member.permissions.has("ADMINISTRATOR")
         ) {
-            message.channel.send("You don't have permission to add new groups!\nYou need to be an administrator to do that.");
+            message.channel.send(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
             return;
         }
 
         if (!message.guild) {
-            message.reply('I can\'t execute outsite Guilds!');
+            message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
             return;
         }
 
         // Check if there is any args - Channel id
         if (!args.length) {
-            message.reply(`You need to specify a channel, to be able to use this command!`);
+            message.reply(botSystem.translator.translateUppercase(`you need to specify a channel, to be able to use this command`));
             return;
         }
 
@@ -59,7 +59,7 @@ export default class SimpleGroup extends GroupCommand {
             channel.setParent(message.channel.parent);
         } catch (error) {
             console.log(`There was an error creating channel "${groupName}" and this was caused by: ${error}`);
-            message.reply('there was an error trying to execute that command!');
+            message.reply(botSystem.translator.translateUppercase("there was an error trying to execute that command"));
             return;
         }
 
@@ -78,7 +78,7 @@ export default class SimpleGroup extends GroupCommand {
             }
         } catch (error) {
             console.log(`There was an error updating base channel permissions for channel "${groupName}" and this was caused by: ${error}`);
-            message.reply('there was an error trying to execute that command!');
+            message.reply(botSystem.translator.translateUppercase("there was an error trying to execute that command"));
             return;
         }
 
@@ -106,6 +106,6 @@ export default class SimpleGroup extends GroupCommand {
             }
         });
 
-        message.channel.send(`Group ${channel} was created in the category ${message.channel.parent}`);
+        message.channel.send(botSystem.translator.translateUppercase("group :channel: was created in the category :category:", [channel, channel.parent?.name ?? "-"]));
     }
 };

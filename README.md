@@ -16,6 +16,7 @@ services:
             bot_token: ${bot_token}
             bot_prefix: ${bot_prefix}
             database_url: mongodb://${db_username}:${db_password}@mongodb:27017/
+            language: en
     mongodb:
         image: mongo
         restart: always
@@ -81,3 +82,8 @@ This is especially useful when having a list of participants and wanting to thro
 ## Development
 Compile with watch: `npm run build`  
 Or compile once: `npm run watch`
+
+### Translation
+Do you want to translate the bot into another language, or put your spin on it?  
+Add a language file in the `resources/lang` folder named as the language code (such as en or da), and follow the same patterne as the default `en.json` language file.  
+When the language file is ready, remember to add the language code to the `Languages` enum and update your .env to match the new language!

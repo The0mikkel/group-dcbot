@@ -2,6 +2,7 @@ import { Message, MessageActionRow, MessageButton, MessageEmbed } from "discord.
 import BotSystem from "../../data/BotSystem";
 import ConfigCommand from "../../data/Command/Types/ConfigCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
+import Translate from "../../data/Language/Translate";
 
 require("dotenv").config();
 
@@ -28,8 +29,10 @@ export default class BotRoles extends ConfigCommand {
     async execute(message: Message, botSystem: BotSystem, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void> {
         await botSystem.guild?.save();
 
+        const translator = botSystem.translator;
+
         if (!botSystem.guild) {
-            message.reply("Cannot execute the command here");
+            message.reply(translator.translateUppercase("i can't execute that command outside guilds"));
             return;
         }
 
@@ -46,24 +49,24 @@ export default class BotRoles extends ConfigCommand {
                         if (!name) return;
                         roleNames.push(name);
                     });
-                    this.sendBasicEmbed(message, "Current Admin roles", "The following role(s) are categorized as admin roles:\n" + roleNames.join(",\n"))
+                    this.sendBasicEmbed(message, translator.translateUppercase("current :level: roles", ["Admin"]), translator.translateUppercase("the following role(s) are categorized as :level: roles", ["admin"]) + ":\n" + roleNames.join(",\n"))
                     return;
-                } 
+                }
 
                 message.mentions.roles.forEach(async (role) => {
                     try {
                         if (!botSystem.guild?.addAdminRole(role.id)) {
                             this.sendConfirmEmbed(
                                 message,
-                                "Confirm deletion",
-                                `The role ${role.name} already exist as an admin, would you like to the delete it from the list of admin roles?`,
+                                translator.translateUppercase("Confirm deletion"),
+                                translator.translateUppercase("the role :name: already exist as an :level:, would you like to the delete it from the list of :level: roles?", [role.name, "admin", "admin"]),
                                 async (i: any) => {
                                     botSystem.guild?.removeAdminRole(role.id);
                                     await botSystem.guild?.save();
-                                    await i.update({ embeds: [this.basicEmbedContent("Role removed from bot", "The role is no longer an admin role")], components: [] })
+                                    await i.update({ embeds: [this.basicEmbedContent(translator.translateUppercase("Role removed from bot"), translator.translateUppercase("the role is no longer an :level: role", ["admin"]))], components: [] })
                                 },
                                 async (i: any) => {
-                                    await i.update({ embeds: [this.basicEmbedContent("Action cancelled", "The action has been canceled")], components: [] })
+                                    await i.update({ embeds: [this.basicEmbedContent(translator.translateUppercase("Action cancelled"), translator.translateUppercase("The action has been canceled"))], components: [] })
                                 }
                             )
                         } else {
@@ -76,7 +79,7 @@ export default class BotRoles extends ConfigCommand {
 
                 await botSystem.guild?.save();
                 if (roles.length > 0) {
-                    this.sendBasicEmbed(message, "Admin role added", "The following role(s) has been added:\n" + roles.join(",\n"))
+                    this.sendBasicEmbed(message, translator.translateUppercase(":level: role added", ["Admin"]), translator.translateUppercase("the following role(s) has been added")+":\n" + roles.join(",\n"))
                 }
                 break;
             case "teamadmin":
@@ -89,24 +92,24 @@ export default class BotRoles extends ConfigCommand {
                         if (!name) return;
                         roleNames.push(name);
                     });
-                    this.sendBasicEmbed(message, "Current Team Admin roles", "The following role(s) are categorized as team admin roles:\n" + roleNames.join(",\n"))
+                    this.sendBasicEmbed(message, translator.translateUppercase("current :level: roles", ["Team Admin"]), translator.translateUppercase("the following role(s) are categorized as :level: roles", ["Team Admin"]) + ":\n" + roleNames.join(",\n"))
                     return;
-                } 
+                }
 
                 message.mentions.roles.forEach(async (role) => {
                     try {
                         if (!botSystem.guild?.addTeamAdminRole(role.id)) {
                             this.sendConfirmEmbed(
                                 message,
-                                "Confirm deletion",
-                                `The role ${role.name} already exist as an team admin, would you like to the delete it from the list of team admin roles?`,
+                                translator.translateUppercase("Confirm deletion"),
+                                translator.translateUppercase("the role :name: already exist as an :level:, would you like to the delete it from the list of :level: roles?", [role.name, "team admin", "team admin"]),
                                 async (i: any) => {
                                     botSystem.guild?.removeTeamAdminRole(role.id);
                                     await botSystem.guild?.save();
-                                    await i.update({ embeds: [this.basicEmbedContent("Role removed from bot", "The role is no longer a team admin role")], components: [] })
+                                    await i.update({ embeds: [this.basicEmbedContent(translator.translateUppercase("Role removed from bot"), translator.translateUppercase("the role is no longer an :level: role", ["team admin"]))], components: [] })
                                 },
                                 async (i: any) => {
-                                    await i.update({ embeds: [this.basicEmbedContent("Action cancelled", "The action has been canceled")], components: [] })
+                                    await i.update({ embeds: [this.basicEmbedContent(translator.translateUppercase("Action cancelled"), translator.translateUppercase("The action has been canceled"))], components: [] })
                                 }
                             )
                         } else {
@@ -119,11 +122,11 @@ export default class BotRoles extends ConfigCommand {
 
                 await botSystem.guild?.save();
                 if (teamRoles.length > 0) {
-                    this.sendBasicEmbed(message, "Team Admin role added", "The following role(s) has been added:\n" + teamRoles.join(",\n"))
+                    this.sendBasicEmbed(message, translator.translateUppercase(":level: role added", ["Team Admin"]), translator.translateUppercase("the following role(s) has been added")+":\n" + teamRoles.join(",\n"))
                 }
                 break;
             default:
-                this.sendBasicEmbed(message, "Possible bot roles to update",
+                this.sendBasicEmbed(message, translator.translateUppercase("possible bot roles to update"),
                     `
                         - TeamAdmin (Can administrate teams)
                         - Admin (Can administrate the whole bot)
@@ -157,7 +160,7 @@ export default class BotRoles extends ConfigCommand {
             .setColor('#0099ff')
             .setTitle(title)
             .setDescription(text)
-            .setFooter({ text: 'Grouper', iconURL: this.botImage });
+            .setFooter({ text: Translate.getInstance().translate('Grouper'), iconURL: this.botImage });
         return await message.channel.send({ embeds: [basicEmbed] });
     }
 
@@ -170,7 +173,7 @@ export default class BotRoles extends ConfigCommand {
             .setColor('#0099ff')
             .setTitle(title)
             .setDescription(text)
-            .setFooter({ text: 'Grouper', iconURL: this.botImage });
+            .setFooter({ text: Translate.getInstance().translate('Grouper'), iconURL: this.botImage });
 
         const buttons = new MessageActionRow();
 
@@ -181,7 +184,7 @@ export default class BotRoles extends ConfigCommand {
                 buttons.addComponents(
                     new MessageButton()
                         .setCustomId(`confirm-embed-bot-roles;${actions[index]}`)
-                        .setLabel(actions[index])
+                        .setLabel(Translate.getInstance().translate(actions[index]))
                         .setStyle(buttonType),
                 );
             } catch (error) {

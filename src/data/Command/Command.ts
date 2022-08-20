@@ -1,6 +1,7 @@
 import { BaseGuildTextChannel, Message, PermissionResolvable } from "discord.js";
 import BotSystem from "../BotSystem";
 import { DBGroup } from "../Group/DBGroup";
+import Translate from "../Language/Translate";
 import CommandType from "./Types/CommandType";
 import { UserLevel } from "./UserLevel";
 
@@ -14,7 +15,7 @@ export default abstract class Command implements CommandType {
     cooldown: number;
     permissions: PermissionResolvable[];
     level: UserLevel;
-    aliases: string[];
+    aliases: string[] = [];
     category: string;
     categoryEmoji: string;
 
@@ -32,16 +33,18 @@ export default abstract class Command implements CommandType {
         category: string,
         categoryEmoji: string
     ) {
-        this.name = name;
-        this.description = description;
+        this.name = Translate.getInstance().translate(name);
+        this.description = Translate.getInstance().translateUppercase(description);
         this.guildOnly = guildOnly;
         this.args = args;
         this.args_quantity = args_quantity;
         this.usage = usage;
         this.cooldown = cooldown;
         this.permissions = permissions;
-        this.aliases = aliases;
-        this.category = category;
+        aliases.forEach(alias => {
+            this.aliases.push(Translate.getInstance().translate(alias))
+        })
+        this.category = Translate.getInstance().translate(category);
         this.categoryEmoji = categoryEmoji;
         this.level = level;
     }
@@ -94,7 +97,7 @@ export default abstract class Command implements CommandType {
         }
     }
 
-    private async authorizedAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
         let hasRole = true;
         botSystem.guild?.adminRoles.forEach(role => {
             if (!message?.member?.roles.cache.has(role)) {
@@ -112,7 +115,7 @@ export default abstract class Command implements CommandType {
 
         return hasRole;
     }
-    private async authorizedTeamAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
         let hasRole = true;
         botSystem.guild?.teamAdminRoles.forEach(role => {
             if (!message?.member?.roles.cache.has(role)) {
@@ -130,7 +133,7 @@ export default abstract class Command implements CommandType {
 
         return hasRole;
     }
-    private async authorizedTeamLeader(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamLeader(message: Message, botSystem: BotSystem): Promise<boolean> {
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
@@ -147,7 +150,7 @@ export default abstract class Command implements CommandType {
 
         return inAnyGroupAsLeader; // Should return true if user is a team leader
     }
-    private async authorizedTeam(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeam(message: Message, botSystem: BotSystem): Promise<boolean> {
 
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
@@ -163,7 +166,7 @@ export default abstract class Command implements CommandType {
         return inAnyGroup; // Should return true if user is part of a team
     }
 
-    private async authorizedTeamCreate(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamCreate(message: Message, botSystem: BotSystem): Promise<boolean> {
         let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
             if (message.member?.roles.cache.has(role)) {
