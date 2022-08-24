@@ -8,6 +8,7 @@ import GuidedTeamCreationPlatform from "./GuidedTeamCreationPlatform";
 import { GuidedTeamCreationState } from "./GuidedTeamCreationState";
 import Team from "../Group/Team";
 import Translate from "../Language/Translate";
+import TeamInvite from "../../commands/team/TeamInvite";
 
 export default class GuidedTeamCreation {
     guild: DBGuild;
@@ -87,7 +88,7 @@ export default class GuidedTeamCreation {
                 }
                 guildMember.roles.add(this.team.id);
 
-                this.sendBotMessage(".ention users, that is to join the team, to continue")
+                this.sendBotMessage("mention users, that is to join the team, to continue")
                 this.state = GuidedTeamCreationState.awaitTeamMembers;
                 break;
             case GuidedTeamCreationState.awaitTeamMembers:
@@ -105,7 +106,7 @@ export default class GuidedTeamCreation {
                 this.state = GuidedTeamCreationState.teamCreated;
 
                 this.sendBotMessage("the team has been created");
-                this.sendBotMessage("more members can be added, by running the team-invite command");
+                this.sendBotMessage(botSystem.translator.translateUppercase("to add members beside yourself, please use the :invite command name: command", ["`" + botSystem.guild?.config.prefix + new TeamInvite().name + "`"]));
 
                 setTimeout(() => {
                     GuidedTeamCreationPlatform.getInstance().removeGuidedTeamCreation(this);
