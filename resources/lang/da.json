@@ -3,7 +3,7 @@
         "language": "da"
     },
     "translation": {
-        "grouper": "gruppe botten af The Mikkel",
+        "watching activity": "denne server | %data%",
 
         "user-info": "bruger-information",
         "user info command description": "vis info omkring digselv",

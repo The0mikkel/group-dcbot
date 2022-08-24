@@ -10,6 +10,8 @@ import { GuidedTeamCreationState } from "./data/GuidedTeam/GuidedTeamCreationSta
 import DBConnection from "./data/DBConnection";
 import GuidedTeamCreationPlatform from "./data/GuidedTeam/GuidedTeamCreationPlatform";
 import Commands from "./data/Command/Commands";
+import Translate from "./data/Language/Translate";
+import help from "./commands/utility/Help";
 
 // process.on('unhandledRejection', error => {
 // 	console.error('Unhandled promise rejection:', error);
@@ -45,7 +47,7 @@ client.on("ready", () => {
 	client.user.setPresence({
 		status: 'online',
 		activities: [{
-			name: 'this wonderful community',
+			name: (Translate.getInstance().translate('watching activity', [(process.env.bot_prefix ?? "gr!")+((new help).name)])),
 			type: 'WATCHING'
 		}],
 
