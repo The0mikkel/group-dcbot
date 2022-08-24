@@ -74,7 +74,6 @@
         "write the team name below, to continue": "skriv hold navnet nedenfor for at fortsætte",
         "mention users, that is to join the team, to continue": "nævn brugere der skal joine holdet for at fortsætte",
         "the team has been created": "holdet blev oprettet",
-        "more members can be added, by running the team-invite command": "flere hold medlemmer kan blive tilføjet, ved at bruge hold invitations kommandoen",
         "please finish current team setup, before starting creation of a new team": "venligst færddigør din nuværende hold opsætning, før du påbegynder opsættelsen af et nyt hold",
 
         "delete-team": "slet-hold",

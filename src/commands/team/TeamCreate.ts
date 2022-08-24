@@ -26,7 +26,7 @@ export default class TeamCreate extends TeamCommand {
         let returnValue = await this.createTeam(message, botSystem, args, autoDelete);
 
         if (returnValue instanceof DBGroup) {
-            let botMessage = message.channel.send(`${translator.translateUppercase("team :group: was created", [`<@&${returnValue.id}>`])}.\n${translator.translateUppercase("to add members beside yourself, please use the :invite command name: command", [new TeamInvite().name])}!`);
+            let botMessage = message.channel.send(`${translator.translateUppercase("team :group: was created", [`<@&${returnValue.id}>`])}.\n${translator.translateUppercase("to add members beside yourself, please use the :invite command name: command", ["`" + botSystem.guild?.config.prefix + new TeamInvite().name + "`"])}!`);
             if (autoDelete) BotSystem.autoDeleteMessageByUser(await botMessage);
         }
     }

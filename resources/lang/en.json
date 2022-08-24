@@ -74,7 +74,6 @@
         "write the team name below, to continue": "write the team name below, to continue",
         "mention users, that is to join the team, to continue": "mention users, that is to join the team, to continue",
         "the team has been created": "the team has been created",
-        "more members can be added, by running the team-invite command": "more members can be added, by running the team-invite command",
         "please finish current team setup, before starting creation of a new team": "please finish current team setup, before starting creation of a new team",
 
         "delete-team": "delete-team",
