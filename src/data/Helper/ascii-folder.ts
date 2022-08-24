@@ -56,7 +56,6 @@ export default class ASCIIFolder {
         [0xC2, 'A'],
         [0xC3, 'A'],
         [0xC4, 'A'],
-        [0xC5, 'A'],
         [0x100, 'A'],
         [0x102, 'A'],
         [0x104, 'A'],
@@ -90,7 +89,6 @@ export default class ASCIIFolder {
         [0xE2, 'a'],
         [0xE3, 'a'],
         [0xE4, 'a'],
-        [0xE5, 'a'],
         [0x101, 'a'],
         [0x103, 'a'],
         [0x105, 'a'],
@@ -127,7 +125,6 @@ export default class ASCIIFolder {
         [0x2C6F, 'a'],
         [0xFF41, 'a'],
         [0xA732, 'AA'],
-        [0xC6, 'AE'],
         [0x1E2, 'AE'],
         [0x1FC, 'AE'],
         [0x1D01, 'AE'],
@@ -138,7 +135,6 @@ export default class ASCIIFolder {
         [0xA73C, 'AY'],
         [0x249C, '(a)'],
         [0xA733, 'aa'],
-        [0xE6, 'ae'],
         [0x1E3, 'ae'],
         [0x1FD, 'ae'],
         [0x1D02, 'ae'],
@@ -607,7 +603,6 @@ export default class ASCIIFolder {
         [0xD4, 'O'],
         [0xD5, 'O'],
         [0xD6, 'O'],
-        [0xD8, 'O'],
         [0x14C, 'O'],
         [0x14E, 'O'],
         [0x150, 'O'],
@@ -651,7 +646,6 @@ export default class ASCIIFolder {
         [0xF4, 'o'],
         [0xF5, 'o'],
         [0xF6, 'o'],
-        [0xF8, 'o'],
         [0x14D, 'o'],
         [0x14F, 'o'],
         [0x151, 'o'],
@@ -1292,7 +1286,13 @@ export default class ASCIIFolder {
         [0xFF3E, '^'],
         [0xFF3F, '_'],
         [0x2053, '~'],
-        [0xFF5E, '~']
+        [0xFF5E, '~'],
+        [0xE6, 'æ'],
+        [0xC6, 'Æ'],
+        [0xE5, 'å'],
+        [0xC5, 'Å'],
+        [0xF8, 'ø'],
+        [0xD8, 'Ø']
     ]);
 }
 
