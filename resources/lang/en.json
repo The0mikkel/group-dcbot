@@ -3,7 +3,7 @@
         "language": "en"
     },
     "translation": {
-        "grouper": "grouper",
+        "watching activity": "this wonderful community | %data%",
 
         "user-info": "user-info",
         "user info command description": "display info about yourself",
