@@ -16,7 +16,7 @@ export default class Reset extends ConfigCommand {
             undefined,
             undefined,
             undefined,
-            ["ADMINISTRATOR"],
+            [],
             UserLevel.admin
         )
     }
@@ -24,7 +24,6 @@ export default class Reset extends ConfigCommand {
 	async execute(message: Message, botSystem: BotSystem, args: any) {
         if(
             !message.member
-            || !message.member.permissions.has("ADMINISTRATOR")
         ) {
             message.channel.send(botSystem.translator.translateUppercase("you need to be an administrator to do that"));
             return;

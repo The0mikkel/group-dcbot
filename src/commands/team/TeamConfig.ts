@@ -21,7 +21,7 @@ export default class TeamConfig extends TeamCommand {
             0,
             '[command]',
             0,
-            [`ADMINISTRATOR`],
+            [],
             UserLevel.admin,
         );
     }
@@ -31,7 +31,6 @@ export default class TeamConfig extends TeamCommand {
 
         if (
             !message.member
-            || !message.member.permissions.has(`ADMINISTRATOR`)
         ) {
             message.channel.send(translator.translateUppercase(`you don't have permission to add new teams`));
             return;

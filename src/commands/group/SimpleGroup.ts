@@ -16,7 +16,7 @@ export default class SimpleGroup extends GroupCommand {
             2,
             '[group name] [group members / roles]',
             undefined,
-            ["ADMINISTRATOR", "MANAGE_CHANNELS"],
+            [],
             UserLevel.admin
         )
     }
@@ -25,8 +25,6 @@ export default class SimpleGroup extends GroupCommand {
         // Check permissions
         if (
             !message.member
-            || !message.member.permissions.has("MANAGE_CHANNELS")
-            || !message.member.permissions.has("ADMINISTRATOR")
         ) {
             message.channel.send(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
             return;

@@ -16,7 +16,7 @@ export default class EditPrefix extends ConfigCommand {
             1,
             '[prefix]',
             undefined,
-            ["ADMINISTRATOR"],
+            [],
             UserLevel.admin,
             ["prefix"]
         );
@@ -25,7 +25,6 @@ export default class EditPrefix extends ConfigCommand {
     async execute(message: Message, botSystem: BotSystem, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void> {
         if (
             !message.member
-            || !message.member.permissions.has("ADMINISTRATOR")
         ) {
             message.channel.send(botSystem.translator.translateUppercase("you need to be an administrator to do that"));
             return;
