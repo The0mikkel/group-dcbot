@@ -41,7 +41,7 @@ export default class GroupsCreated extends GroupCommand {
             .setColor('#0099ff')
             .setTitle(botSystem.translator.translateUppercase("Group list")+':')
             .setDescription(groups.map(group => group.name).join('\n'))
-			.setFooter({ text: botSystem.translator.translate('grouper'), iconURL: BotSystem.client?.user?.avatarURL() ?? "" });
+			.setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: BotSystem.client?.user?.avatarURL() ?? "" });
 
         message.channel.send({ embeds: [exampleEmbed] });
         return;

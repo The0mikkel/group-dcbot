@@ -148,7 +148,7 @@ export default class BotRoles extends ConfigCommand {
             .setColor('#0099ff')
             .setTitle(title)
             .setDescription(text)
-            .setFooter({ text: 'Grouper', iconURL: this.botImage });
+            .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.botImage });
     }
 
     async sendBasicEmbed(message: Message, title: string, text: string) {
@@ -160,7 +160,7 @@ export default class BotRoles extends ConfigCommand {
             .setColor('#0099ff')
             .setTitle(title)
             .setDescription(text)
-            .setFooter({ text: Translate.getInstance().translate('Grouper'), iconURL: this.botImage });
+            .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.botImage });
         return await message.channel.send({ embeds: [basicEmbed] });
     }
 
@@ -173,7 +173,7 @@ export default class BotRoles extends ConfigCommand {
             .setColor('#0099ff')
             .setTitle(title)
             .setDescription(text)
-            .setFooter({ text: Translate.getInstance().translate('Grouper'), iconURL: this.botImage });
+            .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.botImage });
 
         const buttons = new MessageActionRow();
 

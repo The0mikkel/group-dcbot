@@ -148,7 +148,7 @@ export default class help extends UtilityCommand {
 			.setDescription(pageText)
 			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
 			.addFields({ name: this.translator.translate('detailed help')+':', value: this.translator.translate("write the command name, after the help command, to see more details about the command") })
-			.setFooter({ text: this.translator.translate('grouper'), iconURL: this.image });
+			.setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.image });
 
 		const buttons = new MessageActionRow();
 		for (let index = 0; index < this.pages.length; index++) {
@@ -177,7 +177,7 @@ export default class help extends UtilityCommand {
 			.setDescription(commands.map(command => command.name).join('\n'))
 			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
 			.addFields({ name: this.translator.translate('detailed help')+':', value: this.translator.translate("write the command name, after the help command, to see more details about the command") })
-			.setFooter({ text: this.translator.translate('grouper'), iconURL: this.image });
+			.setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.image });
 
 		message.channel.send({ embeds: [exampleEmbed] });
 		return;
@@ -199,7 +199,7 @@ export default class help extends UtilityCommand {
 			.setTitle(this.translator.translate("Command list")+':')
 			.setDescription(data.join('\n'))
 			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
-			.setFooter({ text: this.translator.translate('grouper'), iconURL: this.image });
+			.setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.image });
 		message.channel.send({ embeds: [specificHelp] });
 	}
 };

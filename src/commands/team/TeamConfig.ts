@@ -302,7 +302,7 @@ export default class TeamConfig extends TeamCommand {
                             - toggle-voice-channel - Toggle creation of voice channel on team creation
                         `
                     )
-                    .setFooter({ text: translator.translateUppercase('Grouper'), iconURL: botImage });
+                    .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: botImage });
                 message.reply(translator.translateUppercase(`currently, there are the following`))
                 message.channel.send({ embeds: [DBTeamConfigCommandEmbed] });
                 return;
@@ -316,6 +316,6 @@ function writeRolesCreateTeamList(message: Message, botSystem: BotSystem) {
         .setColor('#0099ff')
         .setTitle(botSystem.translator.translateUppercase('Roles, that can create teams:'))
         .setDescription(botSystem.guild?.teamConfig.allowEveryone ? `***${botSystem.translator.translateUppercase("Everyone")}***` : (botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
-        .setFooter({ text: botSystem.translator.translateUppercase('Grouper'), iconURL: botImage });
+        .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: botImage });
     message.channel.send({ embeds: [teamRoles] });
 }

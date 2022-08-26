@@ -65,7 +65,7 @@ export default class Team extends TeamCommand {
                     **${translator.translateUppercase("team leader")}:** ${(await message.guild?.members.fetch(role.teamLeader))?.displayName ?? "*-*"} 
                 `)
             .addField(translator.translateUppercase("Members")+":", DiscordRole.members.map(member => member.displayName).join("\n"))
-            .setFooter({ text: translator.translateUppercase('Grouper'), iconURL: botImage });
+            .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: botImage });
         message.channel.send({ embeds: [teamInformation] });
 
     }
