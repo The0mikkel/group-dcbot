@@ -18,7 +18,7 @@ export default class CleanChannel extends UtilityCommand {
 			undefined,
 			'[true/false]',
 			undefined,
-			["ADMINISTRATOR"],
+			[],
 			UserLevel.admin
 		)
 	}
@@ -26,7 +26,6 @@ export default class CleanChannel extends UtilityCommand {
 	async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
 		if (
 			!message.member
-			|| !message.member.permissions.has("ADMINISTRATOR")
 		) {
 			message.channel.send("You need to be an administrator to do that.");
 			return

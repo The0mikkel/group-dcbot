@@ -17,7 +17,7 @@ export default class Group extends GroupCommand {
             2,
             '[group name] [group members]',
             undefined,
-            ["ADMINISTRATOR"],
+            [],
             UserLevel.admin
         )
     }
@@ -26,7 +26,6 @@ export default class Group extends GroupCommand {
         // Check permissions
         if (
             !message.member
-            || !message.member.permissions.has("ADMINISTRATOR")
         ) {
             message.channel.send(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
             return;
