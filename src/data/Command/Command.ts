@@ -98,16 +98,16 @@ export default abstract class Command implements CommandType {
     }
 
     protected async authorizedAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
-        let hasRole = true;
-        botSystem.guild?.adminRoles.forEach(role => {
-            if (!message?.member?.roles.cache.has(role)) {
-                hasRole = false;
-            }
-        });
-
         if (!botSystem.guild) {
             return false;
         }
+
+        let hasRole = false;
+        botSystem.guild?.adminRoles.forEach(role => {
+            if (message?.member?.roles.cache.has(role)) {
+                hasRole = true;
+            }
+        });
 
         if (botSystem.guild.adminRoles.length <= 0) {
             hasRole = false;
@@ -116,16 +116,16 @@ export default abstract class Command implements CommandType {
         return hasRole;
     }
     protected async authorizedTeamAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
-        let hasRole = true;
-        botSystem.guild?.teamAdminRoles.forEach(role => {
-            if (!message?.member?.roles.cache.has(role)) {
-                hasRole = false;
-            }
-        });
-
         if (!botSystem.guild) {
             return false;
         }
+        
+        let hasRole = false;
+        botSystem.guild?.teamAdminRoles.forEach(role => {
+            if (message?.member?.roles.cache.has(role)) {
+                hasRole = true;
+            }
+        });
 
         if (botSystem.guild.teamAdminRoles.length <= 0) {
             hasRole = false;
