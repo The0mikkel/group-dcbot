@@ -1,24 +1,17 @@
-import { Languages } from "./Languages";
 import fs from 'fs';
 
 export default class Translate {
 
-    private language: Languages;
+    private language: string;
     private languageFile: { information: { language: string }, translation: any } | undefined;
     private defaultLanguageFile: { information: { language: string }, translation: any } = require('../../../resources/lang/en.json');
     private static instance: Translate;
 
-    constructor(language: Languages | undefined = undefined) {
+    constructor(language: string | undefined = undefined) {
 
         let tempLanguage: string = Translate.instance?.language ?? process.env.language ?? "en";
-        if (!Object.values(Languages).includes(tempLanguage as Languages)) {
-            tempLanguage = "en";
-        }
-        if (!language) {
-            language = Languages[tempLanguage as Languages] ?? Languages.en;
-        }
 
-        this.language = language;
+        this.language = language ?? tempLanguage;
         this.loadLanguageFile();
     }
 
@@ -33,7 +26,7 @@ export default class Translate {
         return this.language.toString();
     }
 
-    public setLanguage(language: Languages) {
+    public setLanguage(language: string) {
         this.language = language;
         this.loadLanguageFile();
     }
