@@ -62,7 +62,7 @@
         "create-team": "opret-hold",
         "create a team": "opret et hold",
         "team :group: was created": "hold %data% blev oprettet",
-        "to add members beside yourself, please use the :invite command name: command": "for at tilføje nye medlemmer til holdet udover digselv, venligst brug %data% kommandoen",
+        "to add members beside yourself, please use the :invite command name: command": "Du kan løbende invitere nye medlemmer til jeres hold ved at bruge ved at bruge %data% kommandoen",
         "you need to specify a group name": "du skal specificere et gruppe navn",
         "you need to specify a team name": "du skal specificere et hold navn",
         "could not create team :name:": "kunne ikke oprette hold %data%",
@@ -72,7 +72,7 @@
         "team was created, but an error occured while creating channel(s) for the team": "holdet blev oprettet, men der skete en fejl ved oprettelse af kanaler for holdet",
         "an error occured while processing the creation of the team": "der skete en fejl under oprettelse af holdet",
         "write the team name below, to continue": "skriv hold navnet nedenfor for at fortsætte",
-        "mention users, that is to join the team, to continue": "nævn brugere der skal joine holdet for at fortsætte",
+        "mention users, that is to join the team, to continue": "nævn de andre holdmedlemmer, du ønsker at invitere til holdet. Fx @SpillerA @SpillerB.\n**Bemærk:** De har 24 timer til at acceptere denne invitation, som kommer i en privatbesked",
         "the team has been created": "holdet blev oprettet",
         "please finish current team setup, before starting creation of a new team": "venligst færddigør din nuværende hold opsætning, før du påbegynder opsættelsen af et nyt hold",
 
