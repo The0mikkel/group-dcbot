@@ -75,6 +75,7 @@
         "mention users, that is to join the team, to continue": "mention users, that is to join the team, to continue",
         "the team has been created": "the team has been created",
         "please finish current team setup, before starting creation of a new team": "please finish current team setup, before starting creation of a new team",
+        "a thread with your name has been created, that the team creation will continue in": "a thread with your name has been created, that the team creation will continue in",
 
         "delete-team": "delete-team",
         "delete a team. one or more teams may be mentioned to delete without navigating the team list": "delete a team. one or more teams may be mentioned to delete without navigating the team list",

@@ -12,6 +12,7 @@ import GuidedTeamCreationPlatform from "./data/GuidedTeam/GuidedTeamCreationPlat
 import Commands from "./data/Command/Commands";
 import Translate from "./data/Language/Translate";
 import help from "./commands/utility/Help";
+import { ChannelTypes } from "discord.js/typings/enums";
 
 // process.on('unhandledRejection', error => {
 // 	console.error('Unhandled promise rejection:', error);
@@ -47,7 +48,7 @@ client.on("ready", () => {
 	client.user.setPresence({
 		status: 'online',
 		activities: [{
-			name: (Translate.getInstance().translate('watching activity', [(process.env.bot_prefix ?? "gr!")+((new help).name)])),
+			name: (Translate.getInstance().translate('watching activity', [(process.env.bot_prefix ?? "gr!") + ((new help).name)])),
 			type: 'WATCHING'
 		}],
 
@@ -152,7 +153,7 @@ async function handleMessageCreateEvent(message: Message) {
 		// Cooldown checking
 		const cooldown = Commands.cooldownCheck(command, message.author.id);
 		if (cooldown !== true) {
-			message.reply(`${botSystem.translator.translateUppercase("the proper usage would be")} ${botSystem.translator.translateUppercase("please wait :time: more", [cooldown])} ${botSystem.translator.translateUppercase("second(s)")} ${botSystem.translator.translateUppercase("before reusing the :command: command", ["`"+command.name+"`"])}.`);
+			message.reply(`${botSystem.translator.translateUppercase("the proper usage would be")} ${botSystem.translator.translateUppercase("please wait :time: more", [cooldown])} ${botSystem.translator.translateUppercase("second(s)")} ${botSystem.translator.translateUppercase("before reusing the :command: command", ["`" + command.name + "`"])}.`);
 			return;
 		}
 
@@ -200,7 +201,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 		if (user.id == client.user?.id) { // Execute only when bot reacts
 
 		} else { // Execute only when a user reacts
-			
+
 		}
 	} else {
 		if (botSystem.guild && (user instanceof User) && !user.bot) {
@@ -212,10 +213,20 @@ client.on('messageReactionAdd', async (reaction, user) => {
 					console.log("Failed to remove reaction for user");
 				}
 
-				let guidedCreation = new GuidedTeamCreation(botSystem.guild, reaction.message.channel, user);
-				guidedTeamCreation.addGuidedTeamCreation(guidedCreation);
+				if (reaction.message.channel.type === "GUILD_TEXT") {
+					BotSystem.sendAutoDeleteMessage(reaction.message.channel, "<@"+user + ">, "+ botSystem.translator.translateUppercase("A thread with your name has been created, that the team creation will continue in"));
+					const thread = await reaction.message.channel.threads.create({
+						name: `${user.username} - ${botSystem.translator.translateUppercase("team")}`,
+						autoArchiveDuration: 60,
+						reason: '',
+					});
+					thread.members.add(user);
+					if (client.user) thread.members.add(client.user);
+					let guidedCreation = new GuidedTeamCreation(botSystem.guild, thread, user);
+					guidedTeamCreation.addGuidedTeamCreation(guidedCreation);
 
-				guidedCreation.step(undefined, botSystem);
+					guidedCreation.step(undefined, botSystem);
+				}
 			}
 		}
 		if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
