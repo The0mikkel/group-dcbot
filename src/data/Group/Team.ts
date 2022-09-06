@@ -1,4 +1,4 @@
-import { CategoryChannel, GuildChannel, GuildMember, Message, MessageActionRow, MessageButton, MessageEmbed, OverwriteData, Role, TextChannel, User, VoiceChannel } from "discord.js";
+import { CategoryChannel, GuildChannel, GuildMember, Message, MessageActionRow, MessageButton, MessageEmbed, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import { ChannelTypes } from "discord.js/typings/enums";
 import BotSystem from "../BotSystem";
 import { envType } from "../envType";
@@ -89,6 +89,7 @@ export default class Team {
     private static async channelCreation(botSystem: BotSystem, message: Message, dbGroup: DBGroup, channelType: ChannelTypes.GUILD_TEXT | ChannelTypes.GUILD_VOICE): Promise<TextChannel | VoiceChannel | TeamCreationErrors> {
         try {
             if (!message.guild) {
+                console.log("Message not in guild!");
                 return TeamCreationErrors.generalError;
             }
 
@@ -97,9 +98,11 @@ export default class Team {
             try {
                 channel = await message.guild.channels.create(dbGroup.name, { type: channelType, reason: 'Team text channel created for team ' + dbGroup.name }).catch(console.error);
             } catch (error) {
+                console.log("Error creating channel - ", error);
                 return TeamCreationErrors.channelCreationFailure;
             }
-            if (!channel || !(message.channel instanceof GuildChannel)) {
+            if (!channel || (!(message.channel instanceof GuildChannel) && !(message.channel instanceof ThreadChannel)) ) {
+                console.log("Channel type not correct for creation of channels");
                 return TeamCreationErrors.channelCreationFailure;
             }
 
@@ -148,6 +151,9 @@ export default class Team {
                 console.log(`There was an error updating base channel permissions for channel "${dbGroup.name}" and this was caused by: ${error}`);
                 return TeamCreationErrors.channelCreationFailure;
             }
+
+            console.log("Done channel creation!");
+
 
             return channel;
         } catch (error) {

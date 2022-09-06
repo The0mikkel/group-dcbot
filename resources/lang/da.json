@@ -75,6 +75,7 @@
         "mention users, that is to join the team, to continue": "nævn de andre holdmedlemmer, du ønsker at invitere til holdet. Fx @SpillerA @SpillerB.\n**Bemærk:** De har 24 timer til at acceptere denne invitation, som kommer i en privatbesked",
         "the team has been created": "holdet blev oprettet",
         "please finish current team setup, before starting creation of a new team": "venligst færddigør din nuværende hold opsætning, før du påbegynder opsættelsen af et nyt hold",
+        "a thread with your name has been created, that the team creation will continue in": "en tråd med dit navn er blevet oprettet, som hold oprettelsen vil fortsætte i",
 
         "delete-team": "slet-hold",
         "delete a team. one or more teams may be mentioned to delete without navigating the team list": "slet et hold. Et eller flere hold kan blive nævnt for at slette uden brugen af navigations menuen",

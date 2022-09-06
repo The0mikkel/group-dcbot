@@ -44,7 +44,7 @@ export default class GuidedTeamCreation {
 
     async sendBotMessage(message: string) {
         try {
-            this.addBotMessage(await this.channel.send(Translate.getInstance().translateUppercase(message)));
+            this.addBotMessage(await this.channel.send("<@"+this.user + ">, "+ Translate.getInstance().translateUppercase(message)));
         } catch (error) {
             console.error(error);
         }

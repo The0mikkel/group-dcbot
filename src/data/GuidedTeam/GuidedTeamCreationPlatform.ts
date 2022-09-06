@@ -49,6 +49,8 @@ export default class GuidedTeamCreationPlatform {
         try {
             guidedTeamCreation.removeMessages();
             this.openGuidedTeamCreations.delete(guidedTeamCreation.key ?? -1);
+
+            if (guidedTeamCreation.channel.type === "GUILD_PUBLIC_THREAD" || guidedTeamCreation.channel.type === "GUILD_PRIVATE_THREAD") guidedTeamCreation.channel.delete();
         } catch (error) {
 
         }
