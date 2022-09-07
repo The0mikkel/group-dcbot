@@ -50,7 +50,7 @@ export default class GuidedTeamCreationPlatform {
             guidedTeamCreation.removeMessages();
             this.openGuidedTeamCreations.delete(guidedTeamCreation.key ?? -1);
 
-            if (guidedTeamCreation.channel && (guidedTeamCreation.channel.type === "GUILD_PUBLIC_THREAD" || guidedTeamCreation.channel.type === "GUILD_PRIVATE_THREAD")) guidedTeamCreation.channel.delete();
+            if (guidedTeamCreation.channel && (guidedTeamCreation.channel.type === "GUILD_PUBLIC_THREAD" || guidedTeamCreation.channel.type === "GUILD_PRIVATE_THREAD")) try { guidedTeamCreation.channel.delete().catch(error => console.log(error)) } catch (error) {console.log(error)};
         } catch (error) {
 
         }
@@ -65,7 +65,7 @@ export default class GuidedTeamCreationPlatform {
                 element.removeMessages();
                 this.openGuidedTeamCreations.delete(key);
 
-                if (element.channel && (element.channel.type === "GUILD_PUBLIC_THREAD" || element.channel.type === "GUILD_PRIVATE_THREAD")) element.channel.delete();
+                if (element.channel && (element.channel.type === "GUILD_PUBLIC_THREAD" || element.channel.type === "GUILD_PRIVATE_THREAD")) try { element.channel.delete().catch(error => console.log(error)) } catch (error) {console.log(error)};
             }
         })
     }
