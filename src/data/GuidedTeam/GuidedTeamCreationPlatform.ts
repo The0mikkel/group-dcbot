@@ -50,7 +50,7 @@ export default class GuidedTeamCreationPlatform {
             guidedTeamCreation.removeMessages();
             this.openGuidedTeamCreations.delete(guidedTeamCreation.key ?? -1);
 
-            if (guidedTeamCreation.channel.type === "GUILD_PUBLIC_THREAD" || guidedTeamCreation.channel.type === "GUILD_PRIVATE_THREAD") guidedTeamCreation.channel.delete();
+            if (guidedTeamCreation.channel && (guidedTeamCreation.channel.type === "GUILD_PUBLIC_THREAD" || guidedTeamCreation.channel.type === "GUILD_PRIVATE_THREAD")) guidedTeamCreation.channel.delete();
         } catch (error) {
 
         }
@@ -64,6 +64,8 @@ export default class GuidedTeamCreationPlatform {
             if (element.timestamp.getTime() < filteredTime.getTime()) {
                 element.removeMessages();
                 this.openGuidedTeamCreations.delete(key);
+
+                if (element.channel && (element.channel.type === "GUILD_PUBLIC_THREAD" || element.channel.type === "GUILD_PRIVATE_THREAD")) element.channel.delete();
             }
         })
     }
