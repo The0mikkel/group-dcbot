@@ -213,20 +213,26 @@ client.on('messageReactionAdd', async (reaction, user) => {
 					console.log("Failed to remove reaction for user");
 				}
 
-				if (reaction.message.channel.type === "GUILD_TEXT") {
-					BotSystem.sendAutoDeleteMessage(reaction.message.channel, "<@"+user + ">, "+ botSystem.translator.translateUppercase("A thread with your name has been created, that the team creation will continue in"));
-					const thread = await reaction.message.channel.threads.create({
-						name: `${user.username} - ${botSystem.translator.translateUppercase("team")}`,
-						autoArchiveDuration: 60,
-						reason: '',
-					});
-					thread.members.add(user);
-					if (client.user) thread.members.add(client.user);
-					let guidedCreation = new GuidedTeamCreation(botSystem.guild, thread, user);
-					guidedTeamCreation.addGuidedTeamCreation(guidedCreation);
-
-					guidedCreation.step(undefined, botSystem);
+				try {
+					if (reaction.message.channel.type === "GUILD_TEXT") {
+						const startMessage = await reaction.message.channel.send("<@"+user + ">, "+ botSystem.translator.translateUppercase("A thread with your name has been created, that the team creation will continue in"));
+						const thread = await startMessage.startThread({
+							name: `${user.username} - ${botSystem.translator.translateUppercase("team")}`,
+							autoArchiveDuration: 60,
+							reason: '',
+						});
+						thread.members.add(user);
+						if (client.user) thread.members.add(client.user);
+						let guidedCreation = new GuidedTeamCreation(botSystem.guild, thread, user);
+						guidedTeamCreation.addGuidedTeamCreation(guidedCreation);
+						BotSystem.autoDeleteMessageByUser(startMessage);
+	
+						guidedCreation.step(undefined, botSystem);
+					}
+				} catch (error) {
+					console.log("Failed during guided start", error);
 				}
+				
 			}
 		}
 		if (botSystem.env == envType.dev) console.log(`${user.username} reacted with "${reaction.emoji.name}" on someones else message!`);
