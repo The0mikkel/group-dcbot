@@ -26,14 +26,8 @@ export class DBGroup implements DBElement {
     }
 
     static async load(id: string): Promise<undefined | DBGroup> {
-        const dbConnection = DBConnection.getInstance();
-        const mongoClient = dbConnection.mongoClient;
-
         let result: any;
-        try {
-            await mongoClient.connect();
-            const groups = dbConnection.mongoDatabase.collection("groups");
-
+        await DBConnection.collectionAction("groups", async (groups) => {
             const query = { id: id };
             const options = {
             };
@@ -42,36 +36,24 @@ export class DBGroup implements DBElement {
             if (!result) {
                 return undefined;
             }
-        } catch (error) {
-            console.log(error)
-        } finally {
-            await mongoClient.close();
+        });
+        if (!result) {
+            return undefined;
         }
-
         return DBGroup.generateClassFromDB(result);
     }
 
     static async loadFromGuild(guildId: string): Promise<DBGroup[]> {
-        const dbConnection = DBConnection.getInstance();
-        const mongoClient = dbConnection.mongoClient;
 
         let result: DBGroup[] = [];
-        try {
-            await mongoClient.connect();
-            const groups = dbConnection.mongoDatabase.collection("groups");
-
+        await DBConnection.collectionAction("groups", async (groups) => {
             const query = { guildId: guildId };
             const cursor = groups.find(query);
 
             await cursor.forEach(element => {
                 result.push(DBGroup.generateClassFromDB(element));
             });
-        } catch (error) {
-            console.log(error)
-        } finally {
-            await mongoClient.close();
-        }
-
+        });
         return result;
     }
 
@@ -91,12 +73,7 @@ export class DBGroup implements DBElement {
     }
 
     async save() {
-        const dbConnection = DBConnection.getInstance();
-        const mongoClient = dbConnection.mongoClient;
-
-        try {
-            await mongoClient.connect();
-            const groups = dbConnection.mongoDatabase.collection("groups");
+        await DBConnection.collectionAction("groups", async (groups) => {
             const filter = { id: this.id };
             const options = { upsert: true };
             const updateDoc = {
@@ -114,46 +91,24 @@ export class DBGroup implements DBElement {
             const result = await groups.updateOne(filter, updateDoc, options);
             if (result)
                 this._id = result.upsertedId?.toString() ?? this._id;
-        } finally {
-            await mongoClient.close();
-        }
+        });
     }
 
     async delete() {
-        const dbConnection = DBConnection.getInstance();
-        const mongoClient = dbConnection.mongoClient;
-
-        try {
-            await mongoClient.connect();
-            const groups = dbConnection.mongoDatabase.collection("groups");
-
+        await DBConnection.collectionAction("groups", async (groups) => {
             const query = { _id: this._id };
             const options = {
             };
             await groups.deleteOne(query, options);
-        } catch (error) {
-            console.log(error)
-        } finally {
-            await mongoClient.close();
-        }
+        });
     }
 
     static async deleteAllFromGuild(guildId: string): Promise<void> {
-        const dbConnection = DBConnection.getInstance();
-        const mongoClient = dbConnection.mongoClient;
-
-        try {
-            await mongoClient.connect();
-            const groups = dbConnection.mongoDatabase.collection("groups");
-
+        await DBConnection.collectionAction("groups", async (groups) => {
             const query = { guildId: guildId };
             const options = {
             };
             await groups.deleteMany(query, options);
-        } catch (error) {
-            console.log(error)
-        } finally {
-            await mongoClient.close();
-        }
+        });
     }
 }
