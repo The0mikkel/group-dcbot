@@ -22,7 +22,6 @@ import { ChannelTypes } from "discord.js/typings/enums";
 require("dotenv").config();
 require('./setup.js');
 
-const database = DBConnection.getInstance();
 const guidedTeamCreation = GuidedTeamCreationPlatform.getInstance();
 Commands.loadCommands();
 
@@ -74,9 +73,7 @@ client.on("guildDelete", async (guild: Guild) => {
 client.on('messageCreate', (message: Message) => { handleMessageCreateEvent(message) });
 async function handleMessageCreateEvent(message: Message) {
 	const botSystem = new BotSystem();
-	if (message.author.bot) {
-		return; // Do not run system if it was a bot message
-	}
+	
 	console.log("Message recieved", message.content);
 	try {
 		let guild: DBGuild | undefined | boolean;
@@ -92,6 +89,10 @@ async function handleMessageCreateEvent(message: Message) {
 
 		if (botSystem.guild?.cleanChannels.includes(message.channelId)) {
 			BotSystem.autoDeleteMessageByUser(message, 15000);
+		}
+
+		if (message.author.bot) {
+			return; // Do not run system if it was a bot message
 		}
 
 		if (!message.author.bot) {

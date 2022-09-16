@@ -40,13 +40,8 @@ export class DBGuild implements DBElement {
     }
 
     static async load(id: string): Promise<undefined | DBGuild> {
-        const dbConnection = DBConnection.getInstance();
-        const mongoClient = dbConnection.mongoClient;
-
         let result: any;
-        try {
-            await mongoClient.connect();
-            const guilds = dbConnection.mongoDatabase.collection("guilds");
+        await DBConnection.collectionAction("guilds", async (guilds) => {
 
             const query = { id: id };
             result = await guilds.findOne(query);
@@ -54,12 +49,7 @@ export class DBGuild implements DBElement {
             if (!result) {
                 return undefined;
             }
-        } catch (error) {
-            console.log("Error with loading guild!")
-            console.log(error)
-        } finally {
-            await mongoClient.close();
-        }
+        });
 
         return DBGuild.generateClassFromDB(result);
     }
@@ -81,12 +71,7 @@ export class DBGuild implements DBElement {
     }
 
     async save() {
-        const dbConnection = DBConnection.getInstance();
-        const mongoClient = dbConnection.mongoClient;
-
-        try {
-            await mongoClient.connect();
-            const guilds = dbConnection.mongoDatabase.collection("guilds");
+        await DBConnection.collectionAction("guilds", async (guilds) => {
             const filter = { id: this.id };
             const options = { upsert: true };
             const updateDoc = {
@@ -102,31 +87,16 @@ export class DBGuild implements DBElement {
             };
             const result = await guilds.updateOne(filter, updateDoc, options);
             this._id = result.upsertedId?.toString();
-        } catch (error) {
-            console.log("Error with saving guild!")
-            console.log(error);
-        } finally {
-            await mongoClient.close();
-        }
+        });
     }
 
     static async remove(id: string) {
-        const dbConnection = DBConnection.getInstance();
-        const mongoClient = dbConnection.mongoClient;
-
-        try {
-            await mongoClient.connect();
-            const mongoClientGuilds = dbConnection.mongoDatabase.collection("guilds");
+        await DBConnection.collectionAction("guilds", async (guilds) => {
 
             // Check if guild have been joined before
             const query = { id: id };
-            await mongoClientGuilds.deleteOne(query);
-        } catch (error) {
-            console.log("Error with removing guild!")
-            console.log(error)
-        } finally {
-            await mongoClient.close();
-        }
+            await guilds.deleteOne(query);
+        });
     }
 
     addAdminRole(roleId: string): boolean {
