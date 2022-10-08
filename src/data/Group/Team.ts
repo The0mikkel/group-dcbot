@@ -101,7 +101,7 @@ export default class Team {
                 console.log("Error creating channel - ", error);
                 return TeamCreationErrors.channelCreationFailure;
             }
-            if (!channel || (!(message.channel instanceof GuildChannel) && !(message.channel instanceof ThreadChannel)) ) {
+            if (!channel || (!(message.channel instanceof GuildChannel) && !(message.channel instanceof ThreadChannel))) {
                 console.log("Channel type not correct for creation of channels");
                 return TeamCreationErrors.channelCreationFailure;
             }
@@ -207,7 +207,19 @@ export default class Team {
                 console.error(error);
             }
         }
-        const inviteMessage = await user.send({ embeds: [confirmEmbed], components: [buttons] });
+        let inviteMessage: void | Message<boolean>
+        try {
+            inviteMessage = await user.send({ embeds: [confirmEmbed], components: [buttons] }).catch(error => {
+                console.error(error);
+            });
+        } catch (error) {
+            console.error(error);
+            return;
+        }
+
+        if (!inviteMessage) {
+            return;
+        }
 
         const collector = inviteMessage.createMessageComponentCollector({ time: 86400000 });
         collector.on('collect', async i => {
@@ -241,7 +253,7 @@ export default class Team {
                 }
             }
         });
-        collector.on('end', () => BotSystem.autoDeleteMessageByUser(inviteMessage, 0));
+        collector.on('end', () => {if (inviteMessage)BotSystem.autoDeleteMessageByUser(inviteMessage, 0);});
     }
 
     private static createSimpleEmbed(title: string, text: string): MessageEmbed {
