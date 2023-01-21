@@ -1,4 +1,4 @@
-import { ColorResolvable, Message, MessageActionRow, MessageButton, MessageButtonStyle, MessageComponentInteraction, MessageEmbed } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ColorResolvable, EmbedBuilder, Message, MessageComponentInteraction } from "discord.js";
 
 export default class BotSystemEmbed {
     /**
@@ -9,7 +9,7 @@ export default class BotSystemEmbed {
      * @returns MessageEmbed 
      */
     public static embedCreator(title: string, text: string, color: ColorResolvable = 0x0099ff) {
-        return new MessageEmbed()
+        return new EmbedBuilder()
             .setColor(color)
             .setTitle(title)
             .setDescription(text)
@@ -21,12 +21,12 @@ export default class BotSystemEmbed {
      * @param buttons EmbedButtons 
      * @returns MessageActionRow
      */
-    public static buttonCreator(buttons: EmbedButtons[]): MessageActionRow {
-        const actionRow = new MessageActionRow();
+    public static buttonCreator(buttons: EmbedButtons[]): ActionRowBuilder<ButtonBuilder> {
+        const actionRow = new ActionRowBuilder<ButtonBuilder>();
         for (let index = 0; index < buttons.length; index++) {
             try {
                 actionRow.addComponents(
-                    new MessageButton()
+                    new ButtonBuilder()
                         .setCustomId(`${buttons[index].identifier}`)
                         .setLabel(buttons[index].text)
                         .setStyle(buttons[index].style),
@@ -66,6 +66,6 @@ export default class BotSystemEmbed {
 export interface EmbedButtons {
     identifier: string;
     text: string;
-    style: MessageButtonStyle;
+    style: ButtonStyle;
     action: (i: MessageComponentInteraction) => void;
 }

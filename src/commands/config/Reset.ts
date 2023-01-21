@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { CommandInteraction, Message, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import ConfigCommand from "../../data/Command/Types/ConfigCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -21,27 +21,43 @@ export default class Reset extends ConfigCommand {
         )
     }
 
-	async execute(message: Message, botSystem: BotSystem, args: any) {
+    slashCommand(): SlashCommandBuilder {
+        let command = super.slashCommand();
+
+        command.setNameLocalizations({
+            "en-US": "reset",
+            "da": "reset"
+        });
+
+        command.setDescriptionLocalizations({
+            "en-US": "Reset bot for guild",
+            "da": "Nulstil botten for serveren"
+        });
+
+        return command;
+    }
+
+	async execute(interaction: CommandInteraction, botSystem: BotSystem) {
         if(
-            !message.member
+            !interaction.member
         ) {
-            message.channel.send(botSystem.translator.translateUppercase("you need to be an administrator to do that"));
+            interaction.editReply(botSystem.translator.translateUppercase("you need to be an administrator to do that"));
             return;
         }
         
-        resetGuild(message, args, botSystem);
+        resetGuild(interaction, botSystem);
         return;
 	}
 };
 
-async function resetGuild(message: Message, args: any, botSystem: BotSystem) {
+async function resetGuild(interaction: CommandInteraction,botSystem: BotSystem) {
     let guild = botSystem.guild;
     if (!guild) {
-        return message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
+        return interaction.editReply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
     }
 
     guild.config = new Config();
     await guild.save();
 
-    message.channel.send(botSystem.translator.translateUppercase("bot has been reset"));
+    interaction.editReply(botSystem.translator.translateUppercase("bot has been reset"));
 }

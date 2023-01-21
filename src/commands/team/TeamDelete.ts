@@ -1,4 +1,4 @@
-import { Message, MessageActionRow, MessageButton, MessageEmbed, Role } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, Role } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
@@ -151,7 +151,7 @@ export default class TeamDelete extends TeamCommand {
         }
 
 
-        const pageEmbed = new MessageEmbed()
+        const pageEmbed = new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(botSystem.translator.translateUppercase('Delete team'))
             .setDescription(pageText)
@@ -160,12 +160,12 @@ export default class TeamDelete extends TeamCommand {
 
 
         let componentCount = 0;
-        const buttons: MessageActionRow[] = [];
+        const buttons: ActionRowBuilder<ButtonBuilder>[] = [];
 
         if (pageButtons && pageNumber != 0) {
-            const buttonType = 'SECONDARY';
+            const buttonType = ButtonStyle.Secondary;
             this.addComponent(buttons, componentCount,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(`team-delete-new-page;${pageNumber - 1}`)
                     .setLabel(botSystem.translator.translateUppercase(`previus page`))
                     .setStyle(buttonType),
@@ -174,9 +174,9 @@ export default class TeamDelete extends TeamCommand {
         }
         for (let index = 0; index < currentTeams.length; index++) {
             try {
-                const buttonType = 'SECONDARY';
+                const buttonType = ButtonStyle.Secondary;
                 this.addComponent(buttons, componentCount,
-                    new MessageButton()
+                    new ButtonBuilder()
                         .setCustomId(`team-delete;${currentTeams[index].id}`)
                         .setLabel(`${index + 1}`)
                         .setStyle(buttonType),
@@ -187,9 +187,9 @@ export default class TeamDelete extends TeamCommand {
             componentCount++
         }
         if (pageButtons && pageNumber != (pages - 1)) {
-            const buttonType = 'SECONDARY';
+            const buttonType = ButtonStyle.Secondary;
             this.addComponent(buttons, componentCount,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(`team-delete-new-page;${pageNumber + 1}`)
                     .setLabel(botSystem.translator.translateUppercase(`next page`))
                     .setStyle(buttonType),
@@ -200,11 +200,11 @@ export default class TeamDelete extends TeamCommand {
         return { embeds: [pageEmbed], components: buttons };
     }
 
-    addComponent(buttons: MessageActionRow[] = [], componentCount: number, component: MessageButton) {
+    addComponent(buttons: ActionRowBuilder<ButtonBuilder>[] = [], componentCount: number, component: ButtonBuilder) {
         let index = Math.floor(componentCount / 5);
         let element = buttons[index];
         if (!element) {
-            buttons[index] = new MessageActionRow();
+            buttons[index] = new ActionRowBuilder<ButtonBuilder>();
         }
         buttons[index].addComponents(component)
     }

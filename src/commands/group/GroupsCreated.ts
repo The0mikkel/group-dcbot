@@ -1,4 +1,4 @@
-import { Message, MessageEmbed } from "discord.js";
+import { EmbedBuilder, Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -37,11 +37,10 @@ export default class GroupsCreated extends GroupCommand {
 
         let groups = await DBGroup.loadFromGuild(message.guild.id);
 
-        const exampleEmbed = new MessageEmbed()
+        const exampleEmbed = new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(botSystem.translator.translateUppercase("Group list")+':')
-            .setDescription(groups.map(group => group.name).join('\n'))
-			.setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: BotSystem.client?.user?.avatarURL() ?? "" });
+            .setDescription(groups.map(group => group.name).join('\n'));
 
         message.channel.send({ embeds: [exampleEmbed] });
         return;

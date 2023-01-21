@@ -1,4 +1,4 @@
-import { BaseGuildTextChannel, Message, PermissionResolvable } from "discord.js";
+import { BaseGuildTextChannel, CommandInteraction, GuildMemberRoleManager, Message, PermissionResolvable, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../BotSystem";
 import { DBGroup } from "../Group/DBGroup";
 import Translate from "../Language/Translate";
@@ -18,6 +18,7 @@ export default abstract class Command implements CommandType {
     aliases: string[] = [];
     category: string;
     categoryEmoji: string;
+    ephemeral: boolean = true;
 
     constructor(
         name: string,
@@ -26,7 +27,7 @@ export default abstract class Command implements CommandType {
         args: boolean = false,
         args_quantity: number = 0,
         usage: string = "",
-        cooldown: number = 5,
+        cooldown: number = 1,
         permissions: PermissionResolvable[] = [],
         level: UserLevel = UserLevel.user,
         aliases: string[] = [],
@@ -49,25 +50,30 @@ export default abstract class Command implements CommandType {
         this.level = level;
     }
 
-    abstract execute(message: Message, botSystem: BotSystem, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void>;
+    abstract execute(interaction: CommandInteraction, botSystem: BotSystem, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void>;
 
+    slashCommand(): SlashCommandBuilder {
+        return new SlashCommandBuilder()
+            .setName(this.name)
+            .setDescription("demo"); // this.description
+    }
 
-    async authorized(message: Message, botSystem: BotSystem): Promise<boolean> {
+    async authorized(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
         if (this.permissions.length <= 0 && this.level == UserLevel.user) {
             return true; // Everyone has access
         }
 
         // Always allow owner to use command
-        if (message.guild?.ownerId === message.author.id) {
+        if (interaction.guild?.ownerId === interaction.user.id) {
             return true;
         }
 
         // Check permissions
         if (this.permissions.length <= 0) {
-            if (!(message.channel instanceof BaseGuildTextChannel)) {
+            if (!(interaction.channel instanceof BaseGuildTextChannel)) {
                 return false; // Permissions based authorization can only be used in BaseGuildTextChannels
             }
-            const authorPerms = message.channel.permissionsFor(message.author);
+            const authorPerms = interaction.channel.permissionsFor(interaction.user);
             if (!authorPerms) {
                 return false; // User has no permission
             }
@@ -82,29 +88,34 @@ export default abstract class Command implements CommandType {
         // Authorize by level
         switch (this.level) {
             case UserLevel.admin:
-                return await this.authorizedAdmin(message, botSystem);
+                return await this.authorizedAdmin(interaction, botSystem);
             case UserLevel.teamAdmin:
-                return await this.authorizedTeamAdmin(message, botSystem);
+                return await this.authorizedTeamAdmin(interaction, botSystem);
             case UserLevel.teamLeader:
-                return await this.authorizedTeamLeader(message, botSystem);
+                return await this.authorizedTeamLeader(interaction, botSystem);
             case UserLevel.team:
-                return await this.authorizedTeam(message, botSystem);
+                return await this.authorizedTeam(interaction, botSystem);
             case UserLevel.teamCreate:
-                return await this.authorizedTeamCreate(message, botSystem);
+                return await this.authorizedTeamCreate(interaction, botSystem);
             case UserLevel.user: // nothing
             default:
                 return true;
         }
     }
 
-    protected async authorizedAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedAdmin(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
         if (!botSystem.guild) {
             return false;
         }
 
         let hasRole = false;
         botSystem.guild?.adminRoles.forEach(role => {
-            if (message?.member?.roles.cache.has(role)) {
+            let roles = interaction?.member?.roles;
+            if (Array.isArray(roles) && roles.includes(role)) {
+                hasRole = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
                 hasRole = true;
             }
         });
@@ -115,14 +126,19 @@ export default abstract class Command implements CommandType {
 
         return hasRole;
     }
-    protected async authorizedTeamAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamAdmin(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
         if (!botSystem.guild) {
             return false;
         }
         
         let hasRole = false;
         botSystem.guild?.teamAdminRoles.forEach(role => {
-            if (message?.member?.roles.cache.has(role)) {
+            let roles = interaction?.member?.roles;
+            if (Array.isArray(roles) && roles.includes(role)) {
+                hasRole = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
                 hasRole = true;
             }
         });
@@ -133,16 +149,18 @@ export default abstract class Command implements CommandType {
 
         return hasRole;
     }
-    protected async authorizedTeamLeader(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamLeader(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
         let inAnyGroupAsLeader = false;
         groups.forEach(group => {
-            if (
-                message?.member?.roles.cache.has(group.id)
-                && message?.member?.id == group.teamLeader
-            ) {
+            let roles = interaction?.member?.roles;
+            if (Array.isArray(roles) && roles.includes(group.id) && interaction?.user.id == group.teamLeader) {
+                inAnyGroupAsLeader = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(group.id) && interaction?.user.id == group.teamLeader) {
                 inAnyGroupAsLeader = true;
                 return;
             }
@@ -150,14 +168,19 @@ export default abstract class Command implements CommandType {
 
         return inAnyGroupAsLeader; // Should return true if user is a team leader
     }
-    protected async authorizedTeam(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeam(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
 
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
         let inAnyGroup = false;
         groups.forEach(group => {
-            if (message?.member?.roles.cache.has(group.id)) {
+            let roles = interaction?.member?.roles;
+            if (Array.isArray(roles) && roles.includes(group.id) && interaction?.user.id == group.teamLeader) {
+                inAnyGroup = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(group.id)) {
                 inAnyGroup = true;
                 return;
             }
@@ -166,10 +189,15 @@ export default abstract class Command implements CommandType {
         return inAnyGroup; // Should return true if user is part of a team
     }
 
-    protected async authorizedTeamCreate(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamCreate(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
         let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
-            if (message.member?.roles.cache.has(role)) {
+            let roles = interaction?.member?.roles;
+            if (Array.isArray(roles) && roles.includes(role)) {
+                hasRole = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
                 hasRole = true;
             }
         });

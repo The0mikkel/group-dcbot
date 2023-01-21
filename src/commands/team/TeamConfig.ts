@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, Util } from "discord.js";
+import { EmbedBuilder, Message, resolveColor } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -154,7 +154,7 @@ export default class TeamConfig extends TeamCommand {
                 break;
             case `default-color`:
                 try {
-                    botSystem.guild.teamConfig.defaultColor = Util.resolveColor(args?.shift()?.trim().toUpperCase() ?? `DEFAULT`);
+                    botSystem.guild.teamConfig.defaultColor = resolveColor(args?.shift()?.trim().toUpperCase() ?? `DEFAULT`);
                     botSystem.guild.save();
                     message.reply({
                         embeds: [BotSystemEmbed.embedCreator(translator.translateUppercase(`default color for new team roles has been updated`), (
@@ -272,7 +272,7 @@ export default class TeamConfig extends TeamCommand {
                 break;
             default:
                 // TODO: Make list implement translation
-                const DBTeamConfigCommandEmbed = new MessageEmbed()
+                const DBTeamConfigCommandEmbed = new EmbedBuilder()
                     .setColor('#0099ff')
                     .setTitle(translator.translateUppercase('command list')+":")
                     .setDescription(
@@ -301,8 +301,7 @@ export default class TeamConfig extends TeamCommand {
                             - toggle-text-channel - Toggle creation of text channel on team creation
                             - toggle-voice-channel - Toggle creation of voice channel on team creation
                         `
-                    )
-                    .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: botImage });
+                    );
                 message.reply(translator.translateUppercase(`currently, there are the following`))
                 message.channel.send({ embeds: [DBTeamConfigCommandEmbed] });
                 return;
@@ -312,10 +311,9 @@ export default class TeamConfig extends TeamCommand {
 
 function writeRolesCreateTeamList(message: Message, botSystem: BotSystem) {
     const botImage = message.client.user?.avatarURL() ?? ``;
-    const teamRoles = new MessageEmbed()
+    const teamRoles = new EmbedBuilder()
         .setColor('#0099ff')
         .setTitle(botSystem.translator.translateUppercase('Roles, that can create teams:'))
         .setDescription(botSystem.guild?.teamConfig.allowEveryone ? `***${botSystem.translator.translateUppercase("Everyone")}***` : (botSystem.guild?.teamConfig.creatorRole ?? []).map(role => DBTeamConfig.getRoleName(role, message)).join('\n'))
-        .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: botImage });
     message.channel.send({ embeds: [teamRoles] });
 }

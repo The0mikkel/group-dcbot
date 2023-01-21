@@ -1,5 +1,4 @@
-import { CategoryChannel, GuildChannel, GuildMember, Message, MessageActionRow, MessageButton, MessageEmbed, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
-import { ChannelTypes } from "discord.js/typings/enums";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CategoryChannel, ChannelType, EmbedBuilder, GuildChannel, GuildMember, Message, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import BotSystem from "../BotSystem";
 import { envType } from "../envType";
 import { DBGuild } from "../Guild/DBGuild";
@@ -39,7 +38,7 @@ export default class Team {
 
             let role = await message.guild?.roles.create({
                 name: groupName,
-                color: botSystem.guild?.teamConfig.defaultColor ?? "DEFAULT",
+                color: botSystem.guild?.teamConfig.defaultColor ?? "Default",
                 mentionable: botSystem.guild?.teamConfig.defaultMentionable ?? false,
                 hoist: botSystem.guild?.teamConfig.defaultHoist ?? false,
                 reason: 'Group was created by grouper, as per request by ' + message.author.tag,
@@ -73,12 +72,12 @@ export default class Team {
 
     private static async channelCreationHandler(botSystem: BotSystem, message: Message, dbGroup: DBGroup): Promise<false | TeamCreationErrors> {
         if (botSystem.guild?.teamConfig.createTextOnTeamCreation) {
-            const textChannel = await Team.channelCreation(botSystem, message, dbGroup, ChannelTypes.GUILD_TEXT);
+            const textChannel = await Team.channelCreation(botSystem, message, dbGroup, ChannelType.GuildText);
             if (!(textChannel instanceof GuildChannel)) return textChannel;
             dbGroup.textChannel = textChannel.id ?? undefined;
         }
         if (botSystem.guild?.teamConfig.createVoiceOnTeamCreation) {
-            const voiceChannel = await Team.channelCreation(botSystem, message, dbGroup, ChannelTypes.GUILD_VOICE);
+            const voiceChannel = await Team.channelCreation(botSystem, message, dbGroup, ChannelType.GuildVoice);
             if (!(voiceChannel instanceof GuildChannel)) return voiceChannel;
             dbGroup.voiceChannel = voiceChannel.id ?? undefined;
         }
@@ -86,7 +85,7 @@ export default class Team {
         return false;
     }
 
-    private static async channelCreation(botSystem: BotSystem, message: Message, dbGroup: DBGroup, channelType: ChannelTypes.GUILD_TEXT | ChannelTypes.GUILD_VOICE): Promise<TextChannel | VoiceChannel | TeamCreationErrors> {
+    private static async channelCreation(botSystem: BotSystem, message: Message, dbGroup: DBGroup, channelType: ChannelType.GuildText | ChannelType.GuildVoice): Promise<TextChannel | VoiceChannel | TeamCreationErrors> {
         try {
             if (!message.guild) {
                 console.log("Message not in guild!");
@@ -96,7 +95,10 @@ export default class Team {
             // Channel creation
             let channel: void | TextChannel | VoiceChannel;
             try {
-                channel = await message.guild.channels.create(dbGroup.name, { type: channelType, reason: 'Team text channel created for team ' + dbGroup.name }).catch(console.error);
+                channel = await message.guild.channels.create({
+                    name: dbGroup.name,
+                    type: channelType, reason: 'Team text channel created for team ' + dbGroup.name
+                }).catch(console.error);
             } catch (error) {
                 console.log("Error creating channel - ", error);
                 return TeamCreationErrors.channelCreationFailure;
@@ -109,7 +111,7 @@ export default class Team {
             // Parent / category
             let cateogies: string[] | undefined;
 
-            if (channelType == ChannelTypes.GUILD_TEXT) {
+            if (channelType == ChannelType.GuildText) {
                 cateogies = botSystem.guild?.teamConfig.defaultCategoryText;
             } else {
                 cateogies = botSystem.guild?.teamConfig.defaultCategoryVoice;
@@ -122,7 +124,7 @@ export default class Team {
                             continue;
                         }
 
-                        if (category.children.size >= 50) {
+                        if (category.children.cache.size >= 50) {
                             continue;
                         }
 
@@ -135,15 +137,15 @@ export default class Team {
             // Permissions
             const everyoneRole = message.guild.roles.everyone;
             let newPermissions: OverwriteData[] = [
-                { id: everyoneRole.id, deny: ['VIEW_CHANNEL', 'CONNECT'] }
+                { id: everyoneRole.id, deny: ['ViewChannel', 'Connect'] }
             ];
             botSystem.guild?.adminRoles.forEach(role => {
-                newPermissions.push({ id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+                newPermissions.push({ id: role, allow: ['ViewChannel', 'Connect'] })
             });
             botSystem.guild?.teamAdminRoles.forEach(role => {
-                newPermissions.push({ id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+                newPermissions.push({ id: role, allow: ['ViewChannel', 'Connect'] })
             });
-            newPermissions.push({ id: dbGroup.id, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+            newPermissions.push({ id: dbGroup.id, allow: ['ViewChannel', 'Connect'] })
 
             try {
                 await channel.permissionOverwrites.set(newPermissions);
@@ -191,14 +193,14 @@ export default class Team {
             botSystem.translator.translateUppercase("you have been invited"),
             `${botSystem.translator.translateUppercase("you have been invited to the team :team: by :team leader: in the guild :guild:", [dbGroup.name, message.author.tag, message.guild?.name])}.\n${botSystem.translator.translateUppercase("the invite is valid for :hours: hour(s)", [24])}!`
         )
-        const buttons = new MessageActionRow();
+        const buttons = new ActionRowBuilder<ButtonBuilder>();
 
         let actions = ["✅ " + botSystem.translator.translateUppercase("accept"), "❌ " + botSystem.translator.translateUppercase("decline")];
         for (let index = 0; index < actions.length; index++) {
             try {
-                const buttonType = actions[index] == actions[0] ? 'SUCCESS' : 'DANGER';
+                const buttonType = actions[index] == actions[0] ? ButtonStyle.Success : ButtonStyle.Danger;
                 buttons.addComponents(
-                    new MessageButton()
+                    new ButtonBuilder()
                         .setCustomId(`confirm-team-invite;${actions[index]}`)
                         .setLabel(actions[index])
                         .setStyle(buttonType),
@@ -253,11 +255,11 @@ export default class Team {
                 }
             }
         });
-        collector.on('end', () => {if (inviteMessage)BotSystem.autoDeleteMessageByUser(inviteMessage, 0);});
+        collector.on('end', () => { if (inviteMessage) BotSystem.autoDeleteMessageByUser(inviteMessage, 0); });
     }
 
-    private static createSimpleEmbed(title: string, text: string): MessageEmbed {
-        return new MessageEmbed()
+    private static createSimpleEmbed(title: string, text: string): EmbedBuilder {
+        return new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(title)
             .setDescription(text)

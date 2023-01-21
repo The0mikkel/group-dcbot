@@ -1,7 +1,8 @@
-import { Client, Collection, DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User } from "discord.js";
+import { Client, Collection, DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import { DBGuild } from "./Guild/DBGuild";
 import { envType } from "./envType";
 import Translate from "./Language/Translate";
+import { TextChannels } from "./Types/Channels";
 
 export default class BotSystem {
     public static client: Client;
@@ -16,7 +17,7 @@ export default class BotSystem {
         this.translator = new Translate();
     }
 
-    static async sendAutoDeleteMessage(channel: DMChannel | PartialDMChannel | NewsChannel | TextChannel | ThreadChannel, message: any, time: number = 30000) {
+    static async sendAutoDeleteMessage(channel: TextChannels, message: any, time: number = 30000) {
         try {
             let autoDeleteMessage = await channel.send(message);
             setTimeout(async () => {

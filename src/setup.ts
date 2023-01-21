@@ -28,7 +28,7 @@ async function setupCollection(collection: string) {
         if (err) {
             // console.log("Collection already exist!")
         } else {
-            console.log("Collection created!");
+            console.log(`Collection ${collection} created!`);
         }
     });
 }

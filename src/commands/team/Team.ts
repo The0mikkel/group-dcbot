@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, Role } from "discord.js";
+import { EmbedBuilder, Message, Role } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
@@ -57,15 +57,17 @@ export default class Team extends TeamCommand {
         }
 
         const botImage = message.client.user?.avatarURL() ?? "";
-        const teamInformation = new MessageEmbed()
+        const teamInformation = new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(translator.translateUppercase('Team information')+':')
             .setDescription(`
                     **${translator.translateUppercase("name")}:** ${DiscordRole.name} 
                     **${translator.translateUppercase("team leader")}:** ${(await message.guild?.members.fetch(role.teamLeader))?.displayName ?? "*-*"} 
                 `)
-            .addField(translator.translateUppercase("Members")+":", DiscordRole.members.map(member => member.displayName).join("\n"))
-            .setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: botImage });
+            .addFields({
+                name: translator.translateUppercase("Members")+":",
+                value: DiscordRole.members.map(member => member.displayName).join("\n")
+            })
         message.channel.send({ embeds: [teamInformation] });
 
     }

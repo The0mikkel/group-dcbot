@@ -80,13 +80,13 @@ export default class TeamInvite extends TeamCommand {
         }
 
         if (!(await this.authorizedAdmin(message, botSystem) && await this.authorizedTeamAdmin)) {
-            if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("ADMINISTRATOR")) {
+            if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !message.member.permissions.has("Administrator")) {
                 let currentUser = await message.guild?.members.fetch(message.author.id);
                 if (!(currentUser?.roles.cache.has(role.id) && role?.teamLeader == message.author.id)) {
                     message.reply(translator.translateUppercase("this action can only be performed by :role:", ["the team leader"]));
                     return;
                 }
-            } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("ADMINISTRATOR")) {
+            } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !message.member.permissions.has("Administrator")) {
                 let currentUser = await message.guild?.members.fetch(message.author.id);
                 if (!currentUser?.roles.cache.has(role.id)) {
                     message.reply(translator.translateUppercase("this action can only be performed by :role:", ["a member of the team"]));

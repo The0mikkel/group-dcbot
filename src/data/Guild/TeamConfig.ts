@@ -1,4 +1,4 @@
-import { ColorResolvable, Guild, Message, Util } from "discord.js";
+import { ColorResolvable, Guild, Message, resolveColor } from "discord.js";
 import { UserLevel } from "../Command/UserLevel";
 import { InviteType } from "./InviteType";
 
@@ -26,7 +26,7 @@ export class TeamConfig {
     /**
      * Default color of a team
      */
-    defaultColor: ColorResolvable = "DEFAULT";
+    defaultColor: ColorResolvable = "Default";
     /**
      * If this is true, the color can be changed for the group, outside of the standard role editor
      */
@@ -63,7 +63,7 @@ export class TeamConfig {
         requireInvite = false,
         teamInviteType = InviteType.admin,
         defaultHoist: boolean = false,
-        defaultColor: ColorResolvable = "DEFAULT",
+        defaultColor: ColorResolvable = "Default",
         enableColorChange: boolean = false,
         colorChangeBy: UserLevel = 0,
         defaultMentionable: boolean = false,
@@ -78,9 +78,9 @@ export class TeamConfig {
         this.teamInviteType = teamInviteType;
         this.defaultHoist = defaultHoist;
         try {
-            this.defaultColor = Util.resolveColor(defaultColor ?? "DEFAULT")
+            this.defaultColor = resolveColor(defaultColor ?? "Default")
         } catch (error) {
-            defaultColor = "DEFAULT"
+            defaultColor = "Default"
         }
         this.defaultColor = defaultColor;
         this.enableColorChange = enableColorChange;

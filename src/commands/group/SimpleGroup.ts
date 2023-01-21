@@ -1,4 +1,4 @@
-import { CategoryChannel, DMChannel, GuildChannel, Message } from "discord.js";
+import { CategoryChannel, DMChannel, GuildChannel, Message, ChannelType, OverwriteType } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -46,15 +46,20 @@ export default class SimpleGroup extends GroupCommand {
         let tempChannel: void | CategoryChannel;
         let channel: CategoryChannel;
         try {
-            tempChannel = await message.guild.channels.create(groupName, { type: 'GUILD_CATEGORY', reason: 'Needed a new group called ' + groupName }).catch(console.error);
-            if (!tempChannel) {
-                throw new Error("Channel not created");
-            }
-            channel = tempChannel;
             if (!(message.channel instanceof GuildChannel)) {
                 throw new Error("Channel not supported");
             }
-            channel.setParent(message.channel.parent);
+            tempChannel = await message.guild.channels.create({
+                name: groupName,
+                type: ChannelType.GuildCategory,
+                parent: message.channel.parent?.id ?? undefined,
+            }).catch(console.error);
+            
+            if (!tempChannel) {
+                throw new Error("Channel not created");
+            }
+
+            channel = tempChannel;
         } catch (error) {
             console.log(`There was an error creating channel "${groupName}" and this was caused by: ${error}`);
             message.reply(botSystem.translator.translateUppercase("there was an error trying to execute that command"));
@@ -65,13 +70,13 @@ export default class SimpleGroup extends GroupCommand {
 
         try {
             await channel.permissionOverwrites.set([
-                { type: 'member', id: message.author.id, allow: ['VIEW_CHANNEL'] },
-                { type: 'role', id: everyoneRole.id, deny: ['VIEW_CHANNEL'] },
+                { type: OverwriteType.Member, id: message.author.id, allow: ['ViewChannel'] },
+                { type: OverwriteType.Role, id: everyoneRole.id, deny: ['ViewChannel'] },
             ]);
 
             if (message.client.user) {
                 await channel.permissionOverwrites.set([
-                    { type: 'member', id: message.client.user.id, allow: ['VIEW_CHANNEL'] }
+                    { type: OverwriteType.Member, id: message.client.user.id, allow: ['ViewChannel'] }
                 ])
             }
         } catch (error) {
@@ -85,7 +90,7 @@ export default class SimpleGroup extends GroupCommand {
         message.mentions.users.forEach(async (element) => {
             try {
                 await channel.permissionOverwrites.edit(element, {
-                    VIEW_CHANNEL: true
+                    ViewChannel: true
                 })
                 users.push(element);
             } catch (error) {
@@ -96,7 +101,7 @@ export default class SimpleGroup extends GroupCommand {
         message.mentions.roles.forEach(async (element) => {
             try {
                 await channel.permissionOverwrites.edit(element, {
-                    VIEW_CHANNEL: true
+                    ViewChannel: true
                 })
                 users.push(element);
             } catch (error) {

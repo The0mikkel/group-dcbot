@@ -9,19 +9,20 @@ import { GuidedTeamCreationState } from "./GuidedTeamCreationState";
 import Team from "../Group/Team";
 import Translate from "../Language/Translate";
 import TeamInvite from "../../commands/team/TeamInvite";
+import { TextChannels } from "../Types/Channels";
 
 export default class GuidedTeamCreation {
     guild: DBGuild;
     userMessages: Message[];
     botMessages: Message[];
-    channel: DMChannel | PartialDMChannel | NewsChannel | TextChannel | ThreadChannel;
+    channel: TextChannels;
     user: User;
     team: DBGroup | null;
     timestamp: Date;
     key: number | undefined;
     state: GuidedTeamCreationState;
 
-    constructor(guild: DBGuild, channel: DMChannel | PartialDMChannel | NewsChannel | TextChannel | ThreadChannel, user: User) {
+    constructor(guild: DBGuild, channel: TextChannels, user: User) {
         this.guild = guild;
         this.channel = channel;
         this.user = user;

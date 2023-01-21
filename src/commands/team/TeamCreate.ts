@@ -51,7 +51,7 @@ export default class TeamCreate extends TeamCommand {
         if (
             !message.member
             || (
-                !message.member.permissions.has("ADMINISTRATOR")
+                !message.member.permissions.has("Administrator")
                 && !hasRole
             )
         ) {

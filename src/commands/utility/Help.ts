@@ -1,13 +1,10 @@
-import { Message, MessageActionRow, MessageButton } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import Command from "../../data/Command/Command";
 import Commands from "../../data/Command/Commands";
 import CommandType from "../../data/Command/Types/CommandType";
 import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
-
-require("dotenv").config();
-import { MessageEmbed } from 'discord.js';
 import Translate from "../../data/Language/Translate";
 
 export default class help extends UtilityCommand {
@@ -142,20 +139,19 @@ export default class help extends UtilityCommand {
 			}
 		}
 
-		const pageEmbed = new MessageEmbed()
+		const pageEmbed = new EmbedBuilder()
 			.setColor('#0099ff')
 			.setTitle(this.translator.translate("Command list")+':')
 			.setDescription(pageText)
 			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
-			.addFields({ name: this.translator.translate('detailed help')+':', value: this.translator.translate("write the command name, after the help command, to see more details about the command") })
-			.setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.image });
+			.addFields({ name: this.translator.translate('detailed help')+':', value: this.translator.translate("write the command name, after the help command, to see more details about the command") });
 
-		const buttons = new MessageActionRow();
+		const buttons = new ActionRowBuilder<ButtonBuilder>();
 		for (let index = 0; index < this.pages.length; index++) {
 			try {
-				const buttonType = page == this.pages[index].category ? 'SUCCESS' : 'SECONDARY';
+				const buttonType = page == this.pages[index].category ? ButtonStyle.Success : ButtonStyle.Secondary;
 				buttons.addComponents(
-					new MessageButton()
+					new ButtonBuilder()
 						.setCustomId(`help-message;${this.pages[index].category}`)
 						.setLabel(`${this.pages[index].categoryEmoji} ${this.pages[index].category}`)
 						.setStyle(buttonType),
@@ -171,13 +167,12 @@ export default class help extends UtilityCommand {
 	private commonHelp(message: Message, botSystem: BotSystem) {
 		let commands = Commands.commands;
 
-		const exampleEmbed = new MessageEmbed()
+		const exampleEmbed = new EmbedBuilder()
 			.setColor('#0099ff')
 			.setTitle(this.translator.translate("Command list")+':')
 			.setDescription(commands.map(command => command.name).join('\n'))
 			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
-			.addFields({ name: this.translator.translate('detailed help')+':', value: this.translator.translate("write the command name, after the help command, to see more details about the command") })
-			.setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.image });
+			.addFields({ name: this.translator.translate('detailed help')+':', value: this.translator.translate("write the command name, after the help command, to see more details about the command") });
 
 		message.channel.send({ embeds: [exampleEmbed] });
 		return;
@@ -194,12 +189,12 @@ export default class help extends UtilityCommand {
 
 		if (command.cooldown > 0) data.push(`**${this.translator.translate("Cooldown")}:** ${command.cooldown || 3} ${botSystem.translator.translateUppercase("second(s)")}`);
 
-		const specificHelp = new MessageEmbed()
+		const specificHelp = new EmbedBuilder()
 			.setColor('#0099ff')
 			.setTitle(this.translator.translate("Command list")+':')
 			.setDescription(data.join('\n'))
-			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" })
-			.setFooter({ text: BotSystem.client.user?.username ?? "Bot", iconURL: this.image });
+			.addFields({ name: this.translator.translate('prefix')+':', value: (botSystem.guild)?.config.prefix ?? "gr!" });
+			
 		message.channel.send({ embeds: [specificHelp] });
 	}
 };

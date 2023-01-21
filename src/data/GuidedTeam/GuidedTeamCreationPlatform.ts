@@ -1,6 +1,7 @@
-import { DMChannel, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User } from "discord.js";
+import { DMChannel, NewsChannel, PartialDMChannel, PublicThreadChannel, TextChannel, ThreadChannel, VoiceChannel, User, ChannelType } from "discord.js";
 import BotSystem from "../BotSystem";
 import Translate from "../Language/Translate";
+import { TextChannels } from "../Types/Channels";
 import GuidedTeamCreation from "./GuidedTeamCreation";
 
 export default class GuidedTeamCreationPlatform {
@@ -34,7 +35,7 @@ export default class GuidedTeamCreationPlatform {
         }
     }
 
-    getGuidedTeamCreation(channel: DMChannel | PartialDMChannel | NewsChannel | TextChannel | ThreadChannel, user: User): GuidedTeamCreation | false {
+    getGuidedTeamCreation(channel: TextChannels, user: User): GuidedTeamCreation | false {
         let returnValue: GuidedTeamCreation | false;
         returnValue = false;
         this.openGuidedTeamCreations.forEach((element) => {
@@ -50,7 +51,7 @@ export default class GuidedTeamCreationPlatform {
             guidedTeamCreation.removeMessages();
             this.openGuidedTeamCreations.delete(guidedTeamCreation.key ?? -1);
 
-            if (guidedTeamCreation.channel && (guidedTeamCreation.channel.type === "GUILD_PUBLIC_THREAD" || guidedTeamCreation.channel.type === "GUILD_PRIVATE_THREAD")) try { guidedTeamCreation.channel.delete().catch(error => console.log(error)) } catch (error) {console.log(error)};
+            if (guidedTeamCreation.channel && (guidedTeamCreation.channel.type === ChannelType.PublicThread || guidedTeamCreation.channel.type === ChannelType.PrivateThread)) try { guidedTeamCreation.channel.delete().catch(error => console.log(error)) } catch (error) {console.log(error)};
         } catch (error) {
 
         }
@@ -65,7 +66,7 @@ export default class GuidedTeamCreationPlatform {
                 element.removeMessages();
                 this.openGuidedTeamCreations.delete(key);
 
-                if (element.channel && (element.channel.type === "GUILD_PUBLIC_THREAD" || element.channel.type === "GUILD_PRIVATE_THREAD")) try { element.channel.delete().catch(error => console.log(error)) } catch (error) {console.log(error)};
+                if (element.channel && (element.channel.type === ChannelType.PublicThread || element.channel.type === ChannelType.PrivateThread)) try { element.channel.delete().catch(error => console.log(error)) } catch (error) {console.log(error)};
             }
         })
     }

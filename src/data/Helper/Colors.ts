@@ -1,4 +1,4 @@
-import { ColorResolvable, Util } from "discord.js";
+import { ColorResolvable, resolveColor } from "discord.js";
 
 export default class Colors {
     static colors = new Map([
@@ -37,7 +37,7 @@ export default class Colors {
     static getColor(color: ColorResolvable): string|any {
         let resolvedColor: number;
         try {
-            resolvedColor = Util.resolveColor(color);
+            resolvedColor = resolveColor(color);
             return Colors.colors.get(resolvedColor) ?? "#"+resolvedColor.toString(16);
         } catch (error) {
             return color;

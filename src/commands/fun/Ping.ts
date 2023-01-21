@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { CommandInteraction, Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import OtherCommand from "../../data/Command/Types/OtherCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -15,11 +15,18 @@ export default class Ping extends OtherCommand {
 			undefined,
 			undefined,
 			UserLevel.user,
-    		['pinging'],
+			['pinging'],
 		)
 	}
 
-	async execute(message: Message, botSystem: BotSystem) {
-		message.channel.send('Pong');
+	async execute(interaction: CommandInteraction, botSystem: BotSystem) {
+		if (!interaction.isChatInputCommand()) return;
+
+		try {
+			await interaction.editReply({ content: 'Pong!' });
+		} catch (error) {
+			console.log("interaction error! | ", error);
+		}
+		console.log("Ping done!");
 	}
 };

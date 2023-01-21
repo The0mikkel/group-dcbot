@@ -1,4 +1,4 @@
-import { Message, MessageEmbed } from "discord.js";
+import { Message } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
