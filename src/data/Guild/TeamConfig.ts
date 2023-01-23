@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, ColorResolvable, Guild, Message, resolveColor } from "discord.js";
+import { ChatInputCommandInteraction, ColorResolvable, Guild, Message, resolveColor, User } from "discord.js";
 import { UserLevel } from "../Command/UserLevel";
 import { InviteType } from "./InviteType";
 
@@ -34,7 +34,7 @@ export class TeamConfig {
     /**
      * Who can change the color
      */
-    colorChangeBy: UserLevel = 0;
+    colorChangeBy: UserLevel = UserLevel.team;
     /**
      * Default setting of role being mentionable
      */
@@ -65,7 +65,7 @@ export class TeamConfig {
         defaultHoist: boolean = false,
         defaultColor: ColorResolvable = "Default",
         enableColorChange: boolean = false,
-        colorChangeBy: UserLevel = 0,
+        colorChangeBy: UserLevel = UserLevel.team,
         defaultMentionable: boolean = false,
         defaultCategoryText: string[] = [],
         defaultCategoryVoice: string[] = [],
