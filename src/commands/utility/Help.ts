@@ -63,7 +63,7 @@ export default class help extends UtilityCommand {
 	}
 
 	async executeAutocomplete(interaction: AutocompleteInteraction<CacheType>, botSystem: BotSystem): Promise<void> {
-		const allCommands = Commands.commands;
+		const allCommands = Commands.commands.filter(command => command.active);
 
 		let commandNames: string[] = allCommands.map(command => command.name);
 		let commandAliases: string[] = [] // allCommands.map(command => command.aliases).flat();
@@ -79,7 +79,7 @@ export default class help extends UtilityCommand {
 			this.image = BotSystem.client?.user?.avatarURL() ?? "";
 		}
 
-		let commands = Commands.commands;
+		let commands = Commands.commands.filter(command => command.active);
 
 		const commandSearched = interaction.options.getString('command');
 
