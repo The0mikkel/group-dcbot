@@ -17,6 +17,11 @@ export default class Commands {
                 await import(`../../commands/${folder}/${file}`).then(command => {
                     try {
                         let obj = new command.default;
+
+                        if (obj.active == false) {
+                            return;
+                        }
+
                         Commands.commands.set(obj.name, obj);
                         
                         if (!Commands.commandTypeMap.has(obj.category)) {

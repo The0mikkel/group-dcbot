@@ -4,6 +4,10 @@ import { UserLevel } from "../UserLevel";
 
 export default interface CommandType {
     /**
+     * Whether the command is active
+     */
+    active: boolean;
+    /**
      * Command name
      */
     name: string;

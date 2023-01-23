@@ -1,4 +1,4 @@
-import { Client, Collection, DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
+import { AutocompleteInteraction, BaseGuildTextChannel, CacheType, ChatInputCommandInteraction, Client, Collection, DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import { DBGuild } from "./Guild/DBGuild";
 import { envType } from "./envType";
 import Translate from "./Language/Translate";
@@ -45,6 +45,36 @@ export default class BotSystem {
         } catch (error) {
             console.log(error)
         }
+    }
+
+    /**
+     * Check if a user has a role
+     * 
+     * @param interaction The interaction
+     * @param user The user
+     * @param role The role id
+     * 
+     * @returns True if the user has the role
+     */
+    static async checkUserHasRole(interaction: ChatInputCommandInteraction | AutocompleteInteraction<CacheType>, user: User, role: string): Promise<boolean> {
+        let exist = interaction.guild?.members.fetch(user.id).then(async (member) => {
+            if (member.roles.cache.has(role)) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+        return exist ?? false;
+    }
+
+    static async checkIfAdministrator(interaction: ChatInputCommandInteraction, user: User): Promise<boolean> {
+        if (
+            (interaction.channel instanceof BaseGuildTextChannel)
+            && interaction.channel.permissionsFor(interaction.user)?.has("Administrator")
+        ) {
+            return true; // User has admin permission
+        }
+        return false;
     }
 
 }

@@ -6,6 +6,7 @@ import CommandType from "./Interfaces/CommandType";
 import { UserLevel } from "./UserLevel";
 
 export default abstract class Command implements CommandType {
+    active: boolean = true;
     name: string; // Command
     description: string;
     shortDescription: string = "";
@@ -85,7 +86,8 @@ export default abstract class Command implements CommandType {
     slashCommand(): SlashCommandBuilder {
         return new SlashCommandBuilder()
             .setName(this.name)
-            .setDescription(this.shortDescription);
+            .setDescription(this.shortDescription)
+            .setDMPermission(this.guildOnly ? false : true);
     }
 
     async authorized(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
