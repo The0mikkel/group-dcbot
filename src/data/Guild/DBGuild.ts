@@ -72,6 +72,7 @@ export class DBGuild implements DBElement {
 
     async save() {
         await DBConnection.collectionAction("guilds", async (guilds) => {
+
             const filter = { id: this.id };
             const options = { upsert: true };
             const updateDoc = {

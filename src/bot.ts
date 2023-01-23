@@ -65,12 +65,17 @@ client.on("ready", () => {
 
 // Slash command
 client.on(Events.InteractionCreate, async interaction => {
+	let commandName = "";
+
 	console.log("INTERACTION INCOMING!");
-	if (!interaction.isChatInputCommand()) {
+	if (interaction.isModalSubmit()) {
+		commandName = interaction.customId.toLowerCase();
+	} else if (interaction.isChatInputCommand() || interaction.isAutocomplete()) {
+		commandName = interaction.commandName.toLowerCase();
+	} else {
 		console.log("Interaction is not a chat input!");
 		return
 	}
-
 	const botSystem = new BotSystem();
 
 	console.log("Interaction recieved");
@@ -114,28 +119,19 @@ client.on(Events.InteractionCreate, async interaction => {
 		// };
 		//----
 
-		// Getting argumnts, command and all commands
-		const commandName = (interaction.commandName).toLowerCase();
-
 		const command = Commands.commands.get(commandName)
 			|| Commands.commands.find((cmd: any) => cmd.aliases && cmd.aliases.includes(commandName));
 
 		if (!command) {
 			if (botSystem.env == envType.dev) console.log("Message not a command");
-			interaction.reply(botSystem.translator.translateUppercase("i don't know that command"));
+			if (interaction.isRepliable()) interaction.reply({ content: botSystem.translator.translateUppercase("i don't know that command"), ephemeral: true });
 			return
 		};
-
-		let ephemeral = false;
-		if (command.ephemeral) {
-			ephemeral = true;
-		}
-		await interaction.deferReply({ ephemeral: ephemeral });
 
 		// Checking dm compatebility
 		if (command.guildOnly && (interaction.channel?.type === ChannelType.DM)) {
 			if (botSystem.env == envType.dev) console.log("Message send in a DM, when not available in DMs");
-			interaction.editReply(botSystem.translator.translateUppercase("i can't execute that command inside dms"));
+			if (interaction.isRepliable()) interaction.reply({ content: botSystem.translator.translateUppercase("i can't execute that command inside dms"), ephemeral: true });
 			return
 		}
 
@@ -143,30 +139,59 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (command.permissions) {
 			let authorized = await command.authorized(interaction, botSystem);
 			if (!authorized) {
-				interaction.editReply(botSystem.translator.translateUppercase('you do not have the right permissions to use this command'));
+				if (interaction.isRepliable()) interaction.reply({ content: botSystem.translator.translateUppercase('you do not have the right permissions to use this command'), ephemeral: true });
 				return
 			}
 		}
 
 		// Cooldown checking
-		const cooldown = Commands.cooldownCheck(command, interaction.user.id);
-		if (cooldown !== true) {
-			interaction.editReply(`${botSystem.translator.translateUppercase("please wait :time: more", [cooldown])} ${botSystem.translator.translateUppercase("second(s)")} ${botSystem.translator.translateUppercase("before reusing the :command: command", ["`" + command.name + "`"])}.`);
-			return;
+		if (interaction.isChatInputCommand()) {
+			const cooldown = Commands.cooldownCheck(command, interaction.user.id);
+			if (cooldown !== true) {
+				if (interaction.isRepliable()) interaction.reply({ content: `${botSystem.translator.translateUppercase("please wait :time: more", [cooldown])} ${botSystem.translator.translateUppercase("second(s)")} ${botSystem.translator.translateUppercase("before reusing the :command: command", ["`" + command.name + "`"])}.`, ephemeral: true });
+				return;
+			}
+		}
+
+		// Set if ephemeral
+		let ephemeral = false;
+		if (command.ephemeral) {
+			ephemeral = true;
+		}
+
+		// Defer if not of modal type
+		if (command.deferReply) {
+			if (interaction.isRepliable()) await interaction.deferReply({ ephemeral: ephemeral });
 		}
 
 		// Execure command
 		try {
-			await command.execute(interaction, botSystem, [], false, 0);
+			if (interaction.isModalSubmit()) {
+				command.executeModal(interaction, botSystem);
+				return;
+			} else if (interaction.isAutocomplete()) {
+				command.executeAutocomplete(interaction, botSystem);
+				return;
+			}
+
+			await command.execute(interaction, botSystem, false, 0);
 		} catch (error) {
 			if (botSystem.env == envType.dev) console.log(error);
 			console.error("serverside error! | ", error);
-			interaction.editReply(botSystem.translator.translateUppercase('there was an error trying to execute that command'));
+
+			let text = botSystem.translator.translateUppercase('there was an error trying to execute that command');
+
+			if (interaction.isRepliable()) {
+				if (interaction.deferred || interaction.replied) await interaction.editReply({ content: text });
+				else interaction.reply({ content: text, ephemeral: true });
+			}
 		}
 	} catch (error) {
 		console.error("serverside error! | ", error);
-		if (interaction.deferred || interaction.replied) await interaction.editReply({ content: 'There was an error while executing this command!' });
-		else await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		if (interaction.isRepliable()) {
+			if (interaction.deferred || interaction.replied) await interaction.editReply({ content: 'There was an error while executing this command!' });
+			else await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		}
 		return;
 	}
 });

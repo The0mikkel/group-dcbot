@@ -1,4 +1,4 @@
-import { CommandInteraction, Message } from "discord.js";
+import { CommandInteraction, Message, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import OtherCommand from "../../data/Command/Types/OtherCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -19,14 +19,23 @@ export default class Ping extends OtherCommand {
 		)
 	}
 
-	async execute(interaction: CommandInteraction, botSystem: BotSystem) {
-		if (!interaction.isChatInputCommand()) return;
+	slashCommand(): SlashCommandBuilder {
+		let command = super.slashCommand();
 
-		try {
-			await interaction.editReply({ content: 'Pong!' });
-		} catch (error) {
-			console.log("interaction error! | ", error);
-		}
-		console.log("Ping done!");
+		command.setNameLocalizations({
+			"en-US": "ping",
+			"da": "ping"
+		});
+
+		command.setDescriptionLocalizations({
+			"en-US": "Ping!",
+			"da": "Ping!"
+		});
+
+		return command;
+	}
+
+	async execute(interaction: CommandInteraction, botSystem: BotSystem) {
+		await interaction.editReply({ content: 'Pong!' });
 	}
 };

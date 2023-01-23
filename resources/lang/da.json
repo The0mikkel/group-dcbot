@@ -104,8 +104,11 @@
         "you declined the invite": "du afslog invitationen",
         "to the team :team: in the guild :guild:": "til holdet %data% i serveren %data%",
 
-        "group command description": "opret en gruppe, ved at navngive holdet (et ord) og nævne alle i gruppen. En rolle af samme navn vil blive oprettet. Du skal være administrator og have \"Manage channels\" rettighederne for at bruge denne kommando.",
+        "group command description": "opret en gruppe, ved at navngive holdet (et ord) og nævne alle i gruppen. En rolle af samme navn vil blive oprettet. Du skal være administrator og have \"Manage roles\" rettighederne for at bruge denne kommando.",
         "group :group name: was created": "gruppe %data% blev oprettet",
+        "group name": "gruppe navn",
+        "johns group": "johns gruppe",
+        "group name must be at least 1 character long": "gruppe navnet skal være mindst 1 karakter langt",
 
         "groups-created": "grupper-opretet",
         "list all groups created by bot": "se alle grupper oprettet af botten",
@@ -182,6 +185,7 @@
         "text category": "tale kategori",
         "voice category": "tale kategori",
         "everyone": "everyone",
+        "none": "ingen",
         "how to": "brug",
         "page": "side",
         "previus page": "forrige side",

@@ -1,3 +1,3 @@
 export enum InviteType {
-    admin, leader, team
+    admin = "admin", leader = "leader", team = "team"
 }

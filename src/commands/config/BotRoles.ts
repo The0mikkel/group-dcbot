@@ -8,6 +8,8 @@ require("dotenv").config();
 
 export default class BotRoles extends ConfigCommand {
 
+    shortDescription: string = "Configure roles for the bot";
+
     constructor() {
         super(
             'config-bot-roles',
@@ -74,7 +76,7 @@ export default class BotRoles extends ConfigCommand {
         return slashCommand;
     }
 
-    async execute(interaction: CommandInteraction, botSystem: BotSystem, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void> {
+    async execute(interaction: CommandInteraction, botSystem: BotSystem): Promise<void> {
         await botSystem.guild?.save();
 
         const translator = botSystem.translator;

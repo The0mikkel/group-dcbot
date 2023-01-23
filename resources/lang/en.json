@@ -104,8 +104,11 @@
         "you declined the invite": "you declined the invite",
         "to the team :team: in the guild :guild:": "to the team %data% in the guild %data%",
 
-        "group command description": "Create a group, by naming the goup and mentioning all users in the group. A role of the same name as the group will be created. You need to be an administrator or have the \"Manage channels\" permission to use this command.",
+        "group command description": "Create a group, by naming the goup and mentioning all users in the group. A role of the same name as the group will be created. You need to be an administrator or have the \"Manage roles\" permission to use this command.",
         "group :group name: was created": "group %data% was created",
+        "group name": "group name",
+        "johns group": "johns group",
+        "group name must be at least 1 character long": "group name must be at least 1 character long",
 
         "groups-created": "groups-created",
         "list all groups created by bot": "list all groups created by bot",
@@ -182,6 +185,7 @@
         "text category": "text category",
         "voice category": "voice category",
         "everyone": "everyone",
+        "none": "none",
         "how to": "how to",
         "page": "page",
         "previus page": "previus page",

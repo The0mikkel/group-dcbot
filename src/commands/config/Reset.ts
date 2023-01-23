@@ -7,6 +7,9 @@ import { Config } from "../../data/Guild/Config";
 require("dotenv").config();
 
 export default class Reset extends ConfigCommand {
+
+    shortDescription: string = "Reset bot for guild";
+
     constructor() {
         super(
             'reset',

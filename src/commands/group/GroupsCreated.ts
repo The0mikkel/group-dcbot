@@ -1,4 +1,4 @@
-import { EmbedBuilder, Message } from "discord.js";
+import { CommandInteraction, EmbedBuilder, Message, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -7,6 +7,8 @@ import { DBGroup } from "../../data/Group/DBGroup";
 require("dotenv").config();
 
 export default class GroupsCreated extends GroupCommand {
+    shortDescription: string = "List all groups created by bot";
+
     constructor() {
         super(
             'groups-created',
@@ -21,28 +23,44 @@ export default class GroupsCreated extends GroupCommand {
         );
     }
 
-    async execute(message: Message, botSystem: BotSystem, args: any) {
+    slashCommand(): SlashCommandBuilder {
+        let command = super.slashCommand();
+
+        command.setNameLocalizations({
+            "en-US": "groups-created",
+            "da": "grupper-oprettet"
+        });
+
+        command.setDescriptionLocalizations({
+            "en-US": "List all groups created by bot",
+            "da": "List alle grupper oprettet af bot"
+        });
+
+        return command;
+    }
+
+    async execute(interaction: CommandInteraction, botSystem: BotSystem, args: any) {
         // Check permissions
         if (
-            !message.member
+            !interaction.member
         ) {
-            message.channel.send(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
+            interaction.editReply(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
             return;
         }
 
-        if (!message.guild) {
-            message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
+        if (!interaction.guild) {
+            interaction.editReply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
             return;
         }
 
-        let groups = await DBGroup.loadFromGuild(message.guild.id);
+        let groups = await DBGroup.loadFromGuild(interaction.guild.id);
 
         const exampleEmbed = new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(botSystem.translator.translateUppercase("Group list")+':')
             .setDescription(groups.map(group => group.name).join('\n'));
 
-        message.channel.send({ embeds: [exampleEmbed] });
+        interaction.editReply({ content: "", embeds: [exampleEmbed] });
         return;
     }
 };

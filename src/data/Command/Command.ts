@@ -1,13 +1,14 @@
-import { BaseGuildTextChannel, CommandInteraction, GuildMemberRoleManager, Message, PermissionResolvable, SlashCommandBuilder } from "discord.js";
+import { AutocompleteFocusedOption, AutocompleteInteraction, BaseGuildTextChannel, CacheType, CommandInteraction, GuildMemberRoleManager, Interaction, Message, ModalSubmitInteraction, PermissionResolvable, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../BotSystem";
 import { DBGroup } from "../Group/DBGroup";
 import Translate from "../Language/Translate";
-import CommandType from "./Types/CommandType";
+import CommandType from "./Interfaces/CommandType";
 import { UserLevel } from "./UserLevel";
 
 export default abstract class Command implements CommandType {
     name: string; // Command
     description: string;
+    shortDescription: string = "";
     guildOnly: boolean;
     args: boolean;
     args_quantity: number;
@@ -18,7 +19,9 @@ export default abstract class Command implements CommandType {
     aliases: string[] = [];
     category: string;
     categoryEmoji: string;
+    deferReply: boolean = true;
     ephemeral: boolean = true;
+    isModal: boolean = false;
 
     constructor(
         name: string,
@@ -48,17 +51,44 @@ export default abstract class Command implements CommandType {
         this.category = Translate.getInstance().translate(category);
         this.categoryEmoji = categoryEmoji;
         this.level = level;
+
+        if (this.shortDescription == "") {
+            this.shortDescription = this.description;
+        }
+        if (this.shortDescription.length > 100) {
+            this.shortDescription = this.shortDescription.substring(0, 97) + "...";
+        }
     }
 
-    abstract execute(interaction: CommandInteraction, botSystem: BotSystem, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void>;
+    abstract execute(interaction: CommandInteraction, botSystem: BotSystem, autoDelete: boolean, autoDeleteTime: number): Promise<void>;
+
+    async executeModal(interaction: ModalSubmitInteraction, botSystem: BotSystem): Promise<void> {
+        return;
+    }
+
+    async executeAutocomplete(interaction: AutocompleteInteraction, botSystem: BotSystem): Promise<void> {
+        await this.autocompleteHelper(interaction);
+        return;
+    }
+
+    protected async autocompleteHelper(interaction: AutocompleteInteraction, choices: string[] = [], focusedOption: AutocompleteFocusedOption | null = null): Promise<void> {
+        if (focusedOption == null) {
+            focusedOption = interaction.options.getFocused(true);
+        }
+
+        const filtered = choices.filter(choice => choice.startsWith(focusedOption?.value ?? ""));
+        await interaction.respond(
+            filtered.map(choice => ({ name: choice, value: choice })),
+        );
+    }
 
     slashCommand(): SlashCommandBuilder {
         return new SlashCommandBuilder()
             .setName(this.name)
-            .setDescription("demo"); // this.description
+            .setDescription(this.shortDescription);
     }
 
-    async authorized(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
+    async authorized(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if (this.permissions.length <= 0 && this.level == UserLevel.user) {
             return true; // Everyone has access
         }
@@ -66,6 +96,13 @@ export default abstract class Command implements CommandType {
         // Always allow owner to use command
         if (interaction.guild?.ownerId === interaction.user.id) {
             return true;
+        }
+
+        if (
+            (interaction.channel instanceof BaseGuildTextChannel)
+            && interaction.channel.permissionsFor(interaction.user)?.has("Administrator")
+        ) {
+            return true; // User has admin permission
         }
 
         // Check permissions
@@ -103,7 +140,7 @@ export default abstract class Command implements CommandType {
         }
     }
 
-    protected async authorizedAdmin(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedAdmin(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if (!botSystem.guild) {
             return false;
         }
@@ -126,11 +163,11 @@ export default abstract class Command implements CommandType {
 
         return hasRole;
     }
-    protected async authorizedTeamAdmin(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamAdmin(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if (!botSystem.guild) {
             return false;
         }
-        
+
         let hasRole = false;
         botSystem.guild?.teamAdminRoles.forEach(role => {
             let roles = interaction?.member?.roles;
@@ -149,7 +186,7 @@ export default abstract class Command implements CommandType {
 
         return hasRole;
     }
-    protected async authorizedTeamLeader(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamLeader(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
@@ -168,7 +205,7 @@ export default abstract class Command implements CommandType {
 
         return inAnyGroupAsLeader; // Should return true if user is a team leader
     }
-    protected async authorizedTeam(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeam(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
 
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
@@ -189,7 +226,7 @@ export default abstract class Command implements CommandType {
         return inAnyGroup; // Should return true if user is part of a team
     }
 
-    protected async authorizedTeamCreate(interaction: CommandInteraction, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamCreate(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
             let roles = interaction?.member?.roles;
