@@ -1,3 +1,7 @@
 export enum GuidedTeamCreationState {
-    created, awaitTeamName, awaitTeamMembers, teamCreated, error
+    created = "created",
+    awaitTeamName = "awaitTeamName",
+    awaitTeamMembers = "awaitTeamMembers",
+    teamCreated = "teamCreated",
+    error = "error",
 }

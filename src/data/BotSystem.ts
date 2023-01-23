@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, BaseGuildTextChannel, CacheType, ChatInputCommandInteraction, Client, Collection, DMChannel, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
+import { AutocompleteInteraction, BaseGuildTextChannel, CacheType, ChatInputCommandInteraction, Client, Collection, DMChannel, Interaction, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import { DBGuild } from "./Guild/DBGuild";
 import { envType } from "./envType";
 import Translate from "./Language/Translate";
@@ -67,7 +67,7 @@ export default class BotSystem {
         return exist ?? false;
     }
 
-    static async checkIfAdministrator(interaction: ChatInputCommandInteraction, user: User): Promise<boolean> {
+    static async checkIfAdministrator(interaction: Interaction, user: User): Promise<boolean> {
         if (
             (interaction.channel instanceof BaseGuildTextChannel)
             && interaction.channel.permissionsFor(interaction.user)?.has("Administrator")

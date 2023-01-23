@@ -7,6 +7,7 @@ import { DBGroup } from "../../data/Group/DBGroup";
 import { UserLevel } from "../../data/Command/UserLevel";
 import Team from "../../data/Group/Team";
 import Command from "../../data/Command/Command";
+import { envType } from "../../data/envType";
 
 require("dotenv").config();
 
@@ -114,9 +115,9 @@ export default class TeamInvite extends TeamCommand {
 
         if (
             botSystem.guild?.teamConfig.teamInviteType == InviteType.admin
-            && (this.level = UserLevel.admin)
-            && !this.authorized(interaction, botSystem)
+            && !(await this.authorizedAdmin(interaction, botSystem))
         ) {
+            if (botSystem.env == envType.dev) console.log("team invite: not authorized admin", botSystem.guild?.teamConfig.teamInviteType, (await this.authorizedAdmin(interaction, botSystem)));
             interaction.editReply(translator.translateUppercase("you don't have permission to add new team members") + " - " + translator.translateUppercase("only admins can do that"));
             return;
         }
@@ -140,19 +141,31 @@ export default class TeamInvite extends TeamCommand {
             role = loadReturn
         }
 
-        if (!(await this.authorizedAdmin(interaction, botSystem) && await this.authorizedTeamAdmin)) {
-            if (botSystem.guild?.teamConfig.teamInviteType == InviteType.leader && !(await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
-                let currentUser = await interaction.guild?.members.fetch(interaction.user.id);
-                if (!(currentUser?.roles.cache.has(role.id) && role?.teamLeader == interaction.user.id)) {
-                    interaction.editReply(translator.translateUppercase("this action can only be performed by :role:", [translator.translate("the team leader")]));
+        let administrator = await BotSystem.checkIfAdministrator(interaction, interaction.user);
+        let admin = await this.authorizedAdmin(interaction, botSystem);
+        let teamAdmin = await this.authorizedTeamAdmin(interaction, botSystem);
+
+        if (!administrator && !admin && !teamAdmin) {
+            let currentUser;
+            switch (botSystem.guild?.teamConfig.teamInviteType) {
+                case InviteType.leader:
+                    currentUser = await interaction.guild?.members.fetch(interaction.user.id);
+                    if (!(currentUser?.roles.cache.has(role.id) && role?.teamLeader == interaction.user.id)) {
+                        interaction.editReply(translator.translateUppercase("this action can only be performed by :role:", [translator.translate("the team leader")]));
+                        return;
+                    }
+                    break;
+                case InviteType.team:
+                    currentUser = await interaction.guild?.members.fetch(interaction.user.id);
+                    if (!currentUser?.roles.cache.has(role.id)) {
+                        interaction.editReply(translator.translateUppercase("this action can only be performed by :role:", [translator.translate("a member of the team")]));
+                        return;
+                    }
+                    break;
+                case InviteType.admin:
+                default:
+                    interaction.editReply(translator.translateUppercase("this action can only be performed by :role:", [translator.translate("an administrator")]));
                     return;
-                }
-            } else if (botSystem.guild?.teamConfig.teamInviteType == InviteType.team && !(await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
-                let currentUser = await interaction.guild?.members.fetch(interaction.user.id);
-                if (!currentUser?.roles.cache.has(role.id)) {
-                    interaction.editReply(translator.translateUppercase("this action can only be performed by :role:", [translator.translate("a member of the team")]));
-                    return;
-                }
             }
         }
 

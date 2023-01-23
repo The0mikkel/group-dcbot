@@ -347,19 +347,19 @@ export default class Team {
 }
 
 export enum TeamCreationErrors {
-    generalError,
-    roleCreationFailure,
-    channelCreationFailure,
-    nameLength,
-    alreadyExist,
-    max,
-    permission
+    generalError = "generalError",
+    roleCreationFailure = "roleCreationFailure",
+    channelCreationFailure = "channelCreationFailure",
+    nameLength = "nameLength",
+    alreadyExist = "alreadyExist",
+    max = "max",
+    permission = "permission"
 }
 
 export enum TeamInviteErrors {
-    generalError
+    generalError = "generalError",
 }
 
 export enum TeamDeleteErrors {
-    generalError
+    generalError = "generalError",
 }

@@ -11,6 +11,7 @@ import GuidedTeamCreationPlatform from "./data/GuidedTeam/GuidedTeamCreationPlat
 import Commands from "./data/Command/Commands";
 import Translate from "./data/Language/Translate";
 import help from "./commands/utility/Help";
+import { UserLevel } from "./data/Command/UserLevel";
 
 process.on('unhandledRejection', error => {
 	console.error('Unhandled promise rejection:', error);
@@ -139,6 +140,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (command.permissions) {
 			let authorized = await command.authorized(interaction, botSystem);
 			if (!authorized) {
+				if (botSystem.env == envType.dev) console.log("Message not authorized", command.name, command.permissions, UserLevel[command.level]);
 				if (interaction.isRepliable()) interaction.reply({ content: botSystem.translator.translateUppercase('you do not have the right permissions to use this command'), ephemeral: true });
 				return
 			}

@@ -1,5 +1,6 @@
 import { AutocompleteFocusedOption, AutocompleteInteraction, BaseGuildTextChannel, CacheType, CommandInteraction, GuildMemberRoleManager, Interaction, Message, ModalSubmitInteraction, PermissionResolvable, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../BotSystem";
+import { envType } from "../envType";
 import { DBGroup } from "../Group/DBGroup";
 import Translate from "../Language/Translate";
 import CommandType from "./Interfaces/CommandType";
@@ -100,10 +101,7 @@ export default abstract class Command implements CommandType {
             return true;
         }
 
-        if (
-            (interaction.channel instanceof BaseGuildTextChannel)
-            && interaction.channel.permissionsFor(interaction.user)?.has("Administrator")
-        ) {
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
             return true; // User has admin permission
         }
 
@@ -147,6 +145,10 @@ export default abstract class Command implements CommandType {
             return false;
         }
 
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
+
         let hasRole = false;
         botSystem.guild?.adminRoles.forEach(role => {
             let roles = interaction?.member?.roles;
@@ -170,6 +172,10 @@ export default abstract class Command implements CommandType {
             return false;
         }
 
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
+
         let hasRole = false;
         botSystem.guild?.teamAdminRoles.forEach(role => {
             let roles = interaction?.member?.roles;
@@ -189,6 +195,10 @@ export default abstract class Command implements CommandType {
         return hasRole;
     }
     protected async authorizedTeamLeader(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
+
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
@@ -208,6 +218,9 @@ export default abstract class Command implements CommandType {
         return inAnyGroupAsLeader; // Should return true if user is a team leader
     }
     protected async authorizedTeam(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
 
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
@@ -229,6 +242,10 @@ export default abstract class Command implements CommandType {
     }
 
     protected async authorizedTeamCreate(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
+
         let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
             let roles = interaction?.member?.roles;
