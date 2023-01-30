@@ -37,7 +37,6 @@ const rest = new REST({ version: '10' }).setToken(process.env.bot_token ?? "");
 			Routes.applicationCommands(process.env.app_id ?? ""),
 			{ body: Commands.slashCommands },
 		);
-		// console.log("Successfully registered application commands.", Commands.slashCommands);
 	} catch (error) {
 		console.error(error);
 	}
@@ -64,7 +63,6 @@ client.on("ready", () => {
 client.on(Events.InteractionCreate, async interaction => {
 	let commandName = "";
 
-	console.log("INTERACTION INCOMING!");
 	if (interaction.isModalSubmit()) {
 		commandName = interaction.customId.toLowerCase();
 	} else if (interaction.isChatInputCommand() || interaction.isAutocomplete()) {
@@ -73,12 +71,10 @@ client.on(Events.InteractionCreate, async interaction => {
 		(new ButtonHandler(client, interaction)).handleButtonAction();
 		return;
 	} else {
-		console.log("Interaction is not a chat input!");
 		return
 	}
 	const botSystem = new BotSystem();
 
-	console.log("Interaction recieved");
 	try {
 		let guild: DBGuild | undefined | boolean;
 		guild = undefined;
@@ -150,7 +146,7 @@ client.on(Events.InteractionCreate, async interaction => {
 			await command.execute(interaction, botSystem, false, 0);
 		} catch (error) {
 			if (botSystem.env == envType.dev) console.log(error);
-			console.error("serverside error! | ", error);
+			console.error("serverside error while executing command! | ", error);
 
 			let text = botSystem.translator.translateUppercase('there was an error trying to execute that command');
 
