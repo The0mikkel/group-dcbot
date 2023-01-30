@@ -99,7 +99,13 @@ export default class TeamCreate extends TeamCommand {
             return false;
         }
 
-        let teamLeader = interaction.options.getUser('team-leader', false) ?? interaction.user;
+        let teamLeader = interaction.user;
+        if (
+            interaction.options.getUser('team-leader')
+            && (await this.authorizedAdmin(interaction, botSystem))
+        ) {
+            teamLeader = interaction.options.getUser('team-leader', false) ?? teamLeader;
+        }
 
         let dbGroup: DBGroup;
         let teamCreationReturn = await Team.create(botSystem, interaction, groupName, teamLeader.id);

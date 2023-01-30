@@ -146,12 +146,13 @@ export default abstract class Command implements CommandType {
         }
 
         if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            console.log("Admin");
             return true; // User has admin permission
         }
 
         let hasRole = false;
+        let roles = interaction?.member?.roles;
         botSystem.guild?.adminRoles.forEach(role => {
-            let roles = interaction?.member?.roles;
             if (Array.isArray(roles) && roles.includes(role)) {
                 hasRole = true;
             }
@@ -177,8 +178,8 @@ export default abstract class Command implements CommandType {
         }
 
         let hasRole = false;
+        let roles = interaction?.member?.roles;
         botSystem.guild?.teamAdminRoles.forEach(role => {
-            let roles = interaction?.member?.roles;
             if (Array.isArray(roles) && roles.includes(role)) {
                 hasRole = true;
             }
@@ -203,8 +204,8 @@ export default abstract class Command implements CommandType {
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
         let inAnyGroupAsLeader = false;
+        let roles = interaction?.member?.roles;
         groups.forEach(group => {
-            let roles = interaction?.member?.roles;
             if (Array.isArray(roles) && roles.includes(group.id) && interaction?.user.id == group.teamLeader) {
                 inAnyGroupAsLeader = true;
             }
