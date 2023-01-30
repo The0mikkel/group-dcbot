@@ -1,6 +1,3 @@
-import fs from 'fs';
-import { isStringObject } from 'util/types';
-
 export default class Translate {
 
     private language: string;

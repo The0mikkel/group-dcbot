@@ -1,4 +1,4 @@
-import { Client, Guild, Message, User, GatewayIntentBits, Partials, ChannelType, REST, Routes, Events } from "discord.js";
+import { Guild, User, GatewayIntentBits, ChannelType, REST, Routes, Events } from "discord.js";
 import { DBGuild } from "./data/Guild/DBGuild";
 import Discord from "discord.js";
 import BotSystem from "./data/BotSystem";
@@ -6,12 +6,12 @@ import { Config } from "./data/Guild/Config";
 import { envType } from "./data/envType";
 import { TeamConfig } from "./data/Guild/TeamConfig";
 import GuidedTeamCreation from "./data/GuidedTeam/GuidedTeamCreation";
-import { GuidedTeamCreationState } from "./data/GuidedTeam/GuidedTeamCreationState";
 import GuidedTeamCreationPlatform from "./data/GuidedTeam/GuidedTeamCreationPlatform";
 import Commands from "./data/Command/Commands";
 import Translate from "./data/Language/Translate";
 import help from "./commands/utility/Help";
 import { UserLevel } from "./data/Command/UserLevel";
+import ButtonHandler from "./data/ButtonHandler";
 
 process.on('unhandledRejection', error => {
 	console.error('Unhandled promise rejection:', error);
@@ -73,6 +73,9 @@ client.on(Events.InteractionCreate, async interaction => {
 		commandName = interaction.customId.toLowerCase();
 	} else if (interaction.isChatInputCommand() || interaction.isAutocomplete()) {
 		commandName = interaction.commandName.toLowerCase();
+	} else if (interaction.isButton()) {
+		(new ButtonHandler(client, interaction)).handleButtonAction();
+		return;
 	} else {
 		console.log("Interaction is not a chat input!");
 		return

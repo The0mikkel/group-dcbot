@@ -106,6 +106,7 @@
         "the team leader": "holdlederen",
         "a member of the team": "et medlem af holdet",
         "an administrator": "en administrator",
+        "the invite is no longer available": "invitationen er ikke længere tilgængelig",
 
         "group command description": "opret en gruppe, ved at navngive holdet (et ord) og nævne alle i gruppen. En rolle af samme navn vil blive oprettet. Du skal være administrator og have \"Manage roles\" rettighederne for at bruge denne kommando.",
         "group :group name: was created": "gruppe %data% blev oprettet",

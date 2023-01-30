@@ -4,6 +4,7 @@ import { envType } from "../envType";
 import { DBGuild } from "../Guild/DBGuild";
 import ASCIIFolder from "../Helper/ascii-folder";
 import { DBGroup } from "./DBGroup";
+import { DBTeamInvite } from "./DBTeamInvite";
 
 export default class Team {
 
@@ -190,11 +191,23 @@ export default class Team {
     }
 
     private static async sendUserInvite(botSystem: BotSystem, dbGroup: DBGroup, user: GuildMember, interaction: ChatInputCommandInteraction): Promise<void> {
+        const inviteTime = 24;
+
         let confirmEmbed = Team.createSimpleEmbed(
             botSystem.translator.translateUppercase("you have been invited"),
-            `${botSystem.translator.translateUppercase("you have been invited to the team :team: by :team leader: in the guild :guild:", [dbGroup.name, interaction.user.tag, interaction.guild?.name])}.\n${botSystem.translator.translateUppercase("the invite is valid for :hours: hour(s)", [24])}!`
+            `${botSystem.translator.translateUppercase("you have been invited to the team :team: by :team leader: in the guild :guild:", [dbGroup.name, interaction.user.tag, interaction.guild?.name])}.\n${botSystem.translator.translateUppercase("the invite is valid for :hours: hour(s)", [inviteTime])}!`
         )
         const buttons = new ActionRowBuilder<ButtonBuilder>();
+
+        let invite = new DBTeamInvite(
+            user.id,
+            dbGroup.id,
+            interaction.guild?.id ?? "",
+            inviteTime,
+            new Date(),
+            (await interaction.user.fetch()).id
+        );
+        await invite.save();
 
         let actions = ["✅ " + botSystem.translator.translateUppercase("accept"), "❌ " + botSystem.translator.translateUppercase("decline")];
         for (let index = 0; index < actions.length; index++) {
@@ -202,7 +215,7 @@ export default class Team {
                 const buttonType = actions[index] == actions[0] ? ButtonStyle.Success : ButtonStyle.Danger;
                 buttons.addComponents(
                     new ButtonBuilder()
-                        .setCustomId(`confirm-team-invite;${actions[index]}`)
+                        .setCustomId(`confirm-team-invite;${index};${invite._id}`)
                         .setLabel(actions[index])
                         .setStyle(buttonType),
                 );
@@ -224,38 +237,7 @@ export default class Team {
             return;
         }
 
-        const collector = inviteMessage.createMessageComponentCollector({ time: 86400000 });
-        collector.on('collect', async i => {
-            if (!i.customId) {
-                return;
-            }
-
-            if (i.customId.startsWith("confirm-team-invite;")) {
-                const action = i.customId.split(";")[1] ?? "";
-                if (action == actions[0]) {
-                    // Check team still exist
-                    let role = interaction.guild?.roles.cache.get(dbGroup.id);
-                    if (!role) {
-                        try {
-                            i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the team is no longer available in the guild :guild:", [interaction.guild?.name]))], components: [] });
-                        } catch (error) {
-                            console.error(error)
-                        }
-                        return;
-                    }
-
-                    // Add role to user
-                    try {
-                        await user.roles.add(dbGroup.id);
-                        i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite") + " " + botSystem.translator.translateUppercase("accepted"), botSystem.translator.translateUppercase(`You have been added`) + " " + botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [role.name, interaction.guild?.name]))], components: [] });
-                    } catch (error) {
-                        console.error(error)
-                    }
-                } else {
-                    i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite") + " " + botSystem.translator.translateUppercase("declined"), botSystem.translator.translateUppercase(`you declined the invite`) + " " + botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [dbGroup.name, interaction.guild?.name]))], components: [] });
-                }
-            }
-        });
+        const collector = inviteMessage.createMessageComponentCollector({ time: inviteTime * 60 * 60 * 1000 });
         collector.on('end', () => { if (inviteMessage) BotSystem.autoDeleteMessageByUser(inviteMessage, 0); });
     }
 
