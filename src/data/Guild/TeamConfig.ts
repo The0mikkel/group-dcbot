@@ -1,4 +1,4 @@
-import { ColorResolvable, Guild, Message, Util } from "discord.js";
+import { ChatInputCommandInteraction, ColorResolvable, Guild, Message, resolveColor, User } from "discord.js";
 import { UserLevel } from "../Command/UserLevel";
 import { InviteType } from "./InviteType";
 
@@ -26,7 +26,7 @@ export class TeamConfig {
     /**
      * Default color of a team
      */
-    defaultColor: ColorResolvable = "DEFAULT";
+    defaultColor: ColorResolvable = "Default";
     /**
      * If this is true, the color can be changed for the group, outside of the standard role editor
      */
@@ -34,7 +34,7 @@ export class TeamConfig {
     /**
      * Who can change the color
      */
-    colorChangeBy: UserLevel = 0;
+    colorChangeBy: UserLevel = UserLevel.team;
     /**
      * Default setting of role being mentionable
      */
@@ -63,9 +63,9 @@ export class TeamConfig {
         requireInvite = false,
         teamInviteType = InviteType.admin,
         defaultHoist: boolean = false,
-        defaultColor: ColorResolvable = "DEFAULT",
+        defaultColor: ColorResolvable = "Default",
         enableColorChange: boolean = false,
-        colorChangeBy: UserLevel = 0,
+        colorChangeBy: UserLevel = UserLevel.team,
         defaultMentionable: boolean = false,
         defaultCategoryText: string[] = [],
         defaultCategoryVoice: string[] = [],
@@ -78,9 +78,9 @@ export class TeamConfig {
         this.teamInviteType = teamInviteType;
         this.defaultHoist = defaultHoist;
         try {
-            this.defaultColor = Util.resolveColor(defaultColor ?? "DEFAULT")
+            this.defaultColor = resolveColor(defaultColor ?? "Default")
         } catch (error) {
-            defaultColor = "DEFAULT"
+            defaultColor = "Default"
         }
         this.defaultColor = defaultColor;
         this.enableColorChange = enableColorChange;
@@ -101,7 +101,7 @@ export class TeamConfig {
         this.creatorRole = this.arrayRemove(this.creatorRole, roleId);
     }
 
-    filterRemoved(message: Message): void {
+    filterRemoved(message: ChatInputCommandInteraction): void {
         this.creatorRole = this.creatorRole.filter(function (role) {
             return TeamConfig.getRoleName(role, message);
         });
@@ -130,7 +130,7 @@ export class TeamConfig {
         }
     }
 
-    static getRoleName(roleId: string, message: Message) {
+    static getRoleName(roleId: string, message:  ChatInputCommandInteraction) {
         return message.guild?.roles.cache.get(roleId)?.name
     }
 

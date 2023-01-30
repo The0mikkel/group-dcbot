@@ -1,4 +1,4 @@
-import { CategoryChannel, DMChannel, GuildChannel, Message } from "discord.js";
+import { CategoryChannel, DMChannel, GuildChannel, Message, ChannelType, OverwriteType, CommandInteraction, SlashCommandBuilder, ChatInputCommandInteraction, TextChannel } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -7,6 +7,11 @@ import ASCIIFolder from "../../data/Helper/ascii-folder";
 require("dotenv").config();
 
 export default class SimpleGroup extends GroupCommand {
+    shortDescription: string = "Create a group (channel only)";
+
+    private userOptions: {name: string, required: boolean}[] = [];
+    private userCount: number = 15;
+
     constructor() {
         super(
             'simple-group',
@@ -19,91 +24,135 @@ export default class SimpleGroup extends GroupCommand {
             [],
             UserLevel.admin
         )
+
+        for (let index = 1; index <= this.userCount; index++) {
+            let required = index == 1 ? true : false;
+            let object = {
+                name: 'user' + index,
+                required: required,
+            };
+            this.userOptions.push(object)
+        }
     }
 
-    async execute(message: Message, botSystem: BotSystem, args: any) {
+    slashCommand(): SlashCommandBuilder {
+        let command = super.slashCommand();
+
+        command.setNameLocalizations({
+            "en-US": "simple-group",
+            "da": "enkel-gruppe"
+        });
+
+        command.setDescriptionLocalizations({
+            "en-US": "Create a group (channel only)",
+            "da": "Opret en gruppe (kun kanal)"
+        });
+
+        command.addStringOption(option =>
+            option.setName('name')
+                .setDescription("name of the group")
+                .setDescriptionLocalizations({
+                    "en-US": "The name of the group",
+                    "da": "Navnet på gruppen"
+                })
+                .setNameLocalizations({
+                    "en-US": "name",
+                    "da": "navn"
+                })
+                .setMaxLength(100)
+                .setMinLength(1)
+                .setRequired(true)
+        );
+
+        let i = 0;
+        this.userOptions.forEach(userOption => {
+            command.addUserOption(option =>
+                option.setName(userOption.name)
+                    .setDescription("user to add")
+                    .setDescriptionLocalizations({
+                        "en-US": "The user to add",
+                        "da": "Brugeren der skal tilføjes"
+                    })
+                    .setNameLocalizations({
+                        "en-US": `user-${i++}`,
+                        "da": `bruger-${i}`
+                    })
+                    .setRequired(userOption.required)
+            );
+        });
+
+        return command;
+    }
+
+    async execute(interaction: ChatInputCommandInteraction, botSystem: BotSystem, args: any) {
         // Check permissions
         if (
-            !message.member
+            !interaction.member
         ) {
-            message.channel.send(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
+            interaction.editReply(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
+            return;
+        }
+        if (!interaction.guild) {
+            interaction.editReply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
             return;
         }
 
-        if (!message.guild) {
-            message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
+        const groupName = ASCIIFolder.foldReplacing(interaction.options.getString('name', true) ?? "");
+
+        if (groupName.length < 1) {
+            interaction.editReply(botSystem.translator.translateUppercase("group name must be at least 1 character long"));
             return;
         }
 
-        // Check if there is any args - Channel id
-        if (!args.length) {
-            message.reply(botSystem.translator.translateUppercase(`you need to specify a channel, to be able to use this command`));
-            return;
-        }
-
-        const groupName = ASCIIFolder.foldReplacing(args.shift());
-
-        let tempChannel: void | CategoryChannel;
-        let channel: CategoryChannel;
+        let tempChannel: void | TextChannel;
+        let channel: TextChannel;
         try {
-            tempChannel = await message.guild.channels.create(groupName, { type: 'GUILD_CATEGORY', reason: 'Needed a new group called ' + groupName }).catch(console.error);
+            if (!(interaction.channel instanceof GuildChannel)) {
+                throw new Error("Channel not supported");
+            }
+            tempChannel = await interaction.guild.channels.create({
+                name: groupName,
+                type: ChannelType.GuildText,
+                parent: interaction.channel.parent?.id ?? undefined,
+            }).catch(console.error);
+            
             if (!tempChannel) {
                 throw new Error("Channel not created");
             }
+
             channel = tempChannel;
-            if (!(message.channel instanceof GuildChannel)) {
-                throw new Error("Channel not supported");
-            }
-            channel.setParent(message.channel.parent);
         } catch (error) {
             console.log(`There was an error creating channel "${groupName}" and this was caused by: ${error}`);
-            message.reply(botSystem.translator.translateUppercase("there was an error trying to execute that command"));
+            interaction.editReply(botSystem.translator.translateUppercase("there was an error trying to execute that command"));
             return;
         }
 
-        const everyoneRole = message.guild.roles.everyone;
+        const everyoneRole = interaction.guild.roles.everyone;
 
         try {
             await channel.permissionOverwrites.set([
-                { type: 'member', id: message.author.id, allow: ['VIEW_CHANNEL'] },
-                { type: 'role', id: everyoneRole.id, deny: ['VIEW_CHANNEL'] },
+                { type: OverwriteType.Member, id: interaction.member.user.id, allow: ['ViewChannel'] },
+                { type: OverwriteType.Role, id: everyoneRole.id, deny: ['ViewChannel'] },
             ]);
-
-            if (message.client.user) {
-                await channel.permissionOverwrites.set([
-                    { type: 'member', id: message.client.user.id, allow: ['VIEW_CHANNEL'] }
-                ])
-            }
         } catch (error) {
             console.log(`There was an error updating base channel permissions for channel "${groupName}" and this was caused by: ${error}`);
-            message.reply(botSystem.translator.translateUppercase("there was an error trying to execute that command"));
+            interaction.editReply(botSystem.translator.translateUppercase("there was an error trying to execute that command"));
             return;
         }
-
-        let users = [];
-
-        message.mentions.users.forEach(async (element) => {
-            try {
-                await channel.permissionOverwrites.edit(element, {
-                    VIEW_CHANNEL: true
-                })
-                users.push(element);
-            } catch (error) {
-                console.log(`There was an error adding user: ${element} to the channel "${groupName}" and this was caused by: ${error}`)
+        
+        this.userOptions.forEach(async userOption => {
+            let user = interaction.options.getUser(userOption.name, userOption.required);
+            if (user) {
+                try {
+                    await channel.permissionOverwrites.edit(user, {
+                        ViewChannel: true
+                    })
+                } catch (error) {
+                    console.log(`There was an error adding user: ${user.username} to the channel "${groupName}" and this was caused by: ${error}`)
+                }
             }
         });
-
-        message.mentions.roles.forEach(async (element) => {
-            try {
-                await channel.permissionOverwrites.edit(element, {
-                    VIEW_CHANNEL: true
-                })
-                users.push(element);
-            } catch (error) {
-                console.log(`There was an error adding role: ${element} to the channel "${groupName}" and this was caused by: ${error}`)
-            }
-        });
-
-        message.channel.send(botSystem.translator.translateUppercase("group :channel: was created in the category :category:", [channel, channel.parent?.name ?? "-"]));
+        
+        interaction.editReply(botSystem.translator.translateUppercase("group :channel: was created in the category :category:", [channel, channel.parent?.name ?? "-"]));
     }
 };

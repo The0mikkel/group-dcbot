@@ -1,3 +1,8 @@
 export enum UserLevel {
-    user, teamCreate, team, teamLeader, teamAdmin, admin
+    user = "user", 
+    teamCreate = "teamCreate",
+    team = "team",
+    teamLeader = "teamLeader",
+    teamAdmin = "teamAdmin",
+    admin = "admin",
 }

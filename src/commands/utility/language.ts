@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { AutocompleteInteraction, CacheType, ChatInputCommandInteraction, Message, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import UtilityCommand from "../../data/Command/Types/UtilityCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -11,6 +11,9 @@ import Translate from "../../data/Language/Translate";
 require("dotenv").config();
 
 export default class Language extends UtilityCommand {
+	active: boolean = false;
+	shortDescription: string = "Set language of bot for this guild";
+
 	constructor() {
 		super(
 			'language',
@@ -20,20 +23,60 @@ export default class Language extends UtilityCommand {
 			1,
 			'[language - en,da]',
 			undefined,
-			undefined,
+			[
+				"Administrator"
+			],
 			UserLevel.admin
 		)
 	}
 
-	async execute(message: Message, botSystem: BotSystem, args: any): Promise<void> {
+	slashCommand(): SlashCommandBuilder {
+		let command = super.slashCommand();
 
-		message.reply("This command has not yet been implemented in this version");
+		command.setNameLocalizations({
+			"en-US": "language",
+			"da": "sprog"
+		});
+
+		command.setDescriptionLocalizations({
+			"en-US": "Set language of bot for this guild",
+			"da": "Sæt sprog for bot i denne guild"
+		});
+
+		command.addStringOption(option =>
+			option.setName('language')
+				.setNameLocalizations({
+					"en-US": "language",
+					"da": "sprog"
+				})
+				.setDescription("The language you want to set the bot to")
+				.setDescriptionLocalizations({
+					"en-US": "The language you want to set the bot to",
+					"da": "Sproget du vil sætte boten til"
+				})
+				.setRequired(true)
+				.setMinLength(1)
+				.setAutocomplete(true)
+		);
+
+		return command;
+	}
+
+	async executeAutocomplete(interaction: AutocompleteInteraction<CacheType>, botSystem: BotSystem): Promise<void> {
+		const languages = Object.values(Languages);
+
+		this.autocompleteHelper(interaction, languages);
+	}
+
+	async execute(interaction: ChatInputCommandInteraction, botSystem: BotSystem, args: any): Promise<void> {
+
+		interaction.editReply("This command has not yet been implemented in this version");
 		return;
 
 		if (
-			!message.member
+			!interaction.member
 		) {
-			message.channel.send(Translate.getInstance().translate("You need to be an administrator to do that"));
+			interaction.editReply(Translate.getInstance().translate("You need to be an administrator to do that"));
 			return
 		}
 
@@ -45,6 +88,6 @@ export default class Language extends UtilityCommand {
             tempLanguage = "en";
         }
 		Translate.getInstance().setLanguage(Languages[tempLanguage as Languages] ?? Languages.en)
-		message.reply("Language now set to "+Translate.getInstance().getLanguage());
+		interaction.editReply("Language now set to "+Translate.getInstance().getLanguage());
 	}
 };
