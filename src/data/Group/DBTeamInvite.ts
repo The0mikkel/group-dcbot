@@ -118,7 +118,7 @@ export class DBTeamInvite implements DBElement {
 
         if (state === "0") {
             await this.acceptInvite(client, interaction, botSystem);
-        } else if (state === "1") {
+        } else {
             await this.declineInvite(client, interaction, botSystem);
         }
     }
