@@ -14,6 +14,9 @@ require("dotenv").config();
 export default class TeamInvite extends TeamCommand {
     shortDescription: string = "Invite a new member to the team";
 
+    private userOptions: { name: string, required: boolean }[] = [];
+    private userCount: number = 15;
+
     constructor() {
         super(
             "team-invite",
@@ -27,6 +30,15 @@ export default class TeamInvite extends TeamCommand {
             UserLevel.team,
             ["invite", "invite-to-team"]
         )
+
+        for (let index = 2; index <= this.userCount; index++) {
+            let required = false;
+            let object = {
+                name: 'user' + index,
+                required: required,
+            };
+            this.userOptions.push(object)
+        }
     }
 
     slashCommand(): SlashCommandBuilder {
@@ -72,6 +84,23 @@ export default class TeamInvite extends TeamCommand {
                 .setRequired(true)
         );
 
+        let i = 1;
+        this.userOptions.forEach(userOption => {
+            command.addUserOption(option =>
+                option.setName(userOption.name)
+                    .setDescription("user to add")
+                    .setDescriptionLocalizations({
+                        "en-US": "The member you want to invite to the team",
+                        "da": "Medlemmet du vil invitere til holdet"
+                    })
+                    .setNameLocalizations({
+                        "en-US": `team-member-${i++}`,
+                        "da": `hold-medlem-${i}`
+                    })
+                    .setRequired(userOption.required)
+            );
+        });
+
         return command;
     }
 
@@ -81,11 +110,17 @@ export default class TeamInvite extends TeamCommand {
             return;
         }
 
+        let admin = await this.authorizedAdmin(interaction, botSystem);
+
         let filteretTeams: DBGroup[] = [];
-        for (let team of teams) {
-            if (await BotSystem.checkUserHasRole(interaction, interaction.user, team.id)) {
-                filteretTeams.push(team);
+        if (!admin) {
+            for (let team of teams) {
+                if (await BotSystem.checkUserHasRole(interaction, interaction.user, team.id)) {
+                    filteretTeams.push(team);
+                }
             }
+        } else {
+            filteretTeams = teams;
         }
         let teamNames = filteretTeams.map(team => team.name).sort();
 
@@ -169,8 +204,17 @@ export default class TeamInvite extends TeamCommand {
             }
         }
 
-        let member = await interaction.guild.members.fetch(interaction.options.getUser("team-member", true).id);
+        let member = await interaction.guild.members.fetch(interaction.options.getUser("team-member", true)?.id ?? "");
         if (member) Team.invite(botSystem, role, member, interaction);
+
+        this.userOptions.forEach(async (userOption) => {
+            if (!interaction.guild) return;
+            let mentionedUser = interaction.options.getUser(userOption.name, false);
+            if (!mentionedUser) return;
+
+            let member = await interaction.guild.members.fetch(mentionedUser.id ?? "");
+            if (member) Team.invite(botSystem, role, member, interaction);
+        });
 
         interaction.editReply(translator.translateUppercase(`Invites to team has been send to all mentioned users`));
     }

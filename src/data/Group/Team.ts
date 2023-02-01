@@ -179,6 +179,10 @@ export default class Team {
             }
         } else { // Invite required
             try {
+                // Check if user already has role
+                let userRole = user.roles.cache.find(role => role.id == dbGroup.id)
+                if (userRole) return true;
+
                 Team.sendUserInvite(botSystem, dbGroup, user, interaction);
             } catch (error) {
                 console.error(`There was an error sending invite to user: ${user} for the role "${dbGroup.name}" and this was caused by: ${error}`)
