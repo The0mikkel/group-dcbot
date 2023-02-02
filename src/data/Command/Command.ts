@@ -149,18 +149,19 @@ export default abstract class Command implements CommandType {
             return true; // User has admin permission
         }
 
+        let hasRole = false;
         let roles = interaction?.member?.roles;
         botSystem.guild?.adminRoles.forEach(role => {
             if (Array.isArray(roles) && roles.includes(role)) {
-                return true
+                hasRole = true;
             }
 
             if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
-                return true
+                hasRole = true;
             }
         });
 
-        return false;
+        return hasRole;
     }
     protected async authorizedTeamAdmin(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if (!botSystem.guild) {
@@ -171,18 +172,19 @@ export default abstract class Command implements CommandType {
             return true; // User has admin permission
         }
 
+        let hasRole = false;
         let roles = interaction?.member?.roles;
         botSystem.guild?.teamAdminRoles.forEach(role => {
             if (Array.isArray(roles) && roles.includes(role)) {
-                return true
+                hasRole = true;
             }
 
             if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
-                return true
+                hasRole = true;
             }
         });
 
-        return false;
+        return hasRole;
     }
     protected async authorizedTeamLeader(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
@@ -192,18 +194,19 @@ export default abstract class Command implements CommandType {
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
+        let hasRole = false;
         let roles = interaction?.member?.roles;
         groups.forEach(group => {
             if (Array.isArray(roles) && roles.includes(group.id) && interaction?.user.id == group.teamLeader) {
-                return true
+                hasRole = true;
             }
 
             if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(group.id) && interaction?.user.id == group.teamLeader) {
-                return true
+                hasRole = true;
             }
         });
 
-        return false;
+        return hasRole;
     }
     protected async authorizedTeam(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
@@ -213,18 +216,20 @@ export default abstract class Command implements CommandType {
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
+        let hasRole = false;
         groups.forEach(group => {
             let roles = interaction?.member?.roles;
-            if (Array.isArray(roles) && roles.includes(group.id) && interaction?.user.id == group.teamLeader) {
-                return true;
+
+            if (Array.isArray(roles) && roles.includes(group.id)) {
+                hasRole = true;
             }
 
             if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(group.id)) {
-                return true;
+                hasRole = true;
             }
         });
 
-        return false;
+        return hasRole;
     }
 
     protected async authorizedTeamCreate(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
@@ -232,20 +237,21 @@ export default abstract class Command implements CommandType {
             return true; // User has admin permission
         }
 
+        let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
             let roles = interaction?.member?.roles;
             if (Array.isArray(roles) && roles.includes(role)) {
-                return true;
+                hasRole = true;
             }
 
             if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
-                return true;
+                hasRole = true;
             }
         });
         if (botSystem.guild?.teamConfig.allowEveryone) {
             return true;
         }
 
-        return false;
+        return hasRole;
     }
 }
