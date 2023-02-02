@@ -110,7 +110,7 @@ export class DBTeamInvite implements DBElement {
 
     async handleInviteInteraction(client: Client, interaction: ButtonInteraction, state: string, botSystem: BotSystem = new BotSystem()) {
         if (this.expiresAt.valueOf() < new Date().valueOf()) {
-            interaction.update({ embeds: [BotSystem.createSimpleEmbed("An error occured", botSystem.translator.translateUppercase("the invite is no longer valid"))], components: [] });
+            interaction.update({ embeds: [BotSystem.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the invite is no longer valid"))], components: [] });
             if (botSystem.env == envType.dev) console.log("invite expired", this.expiresAt, new Date());
             this.delete();
             return;
@@ -128,7 +128,7 @@ export class DBTeamInvite implements DBElement {
         let member = await guild?.members.fetch(this.userId);
 
         if (!guild || !member) {
-            interaction.update({ embeds: [BotSystem.createSimpleEmbed("An error occured", botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
+            interaction.update({ embeds: [BotSystem.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
             if (botSystem.env == envType.dev) console.log("guild or member not found", this.guildId, this.userId, guild, member);
             this.delete();
             return;
@@ -166,7 +166,7 @@ export class DBTeamInvite implements DBElement {
             interaction.update({ embeds: [BotSystem.createSimpleEmbed(botSystem.translator.translateUppercase("Invite") + " " + botSystem.translator.translateUppercase("declined"), botSystem.translator.translateUppercase(`you declined the invite`) + " " + botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [role?.name ?? "-", guild.name]))], components: [] });
         } catch (error) {
             console.log(error);
-            interaction.update({ embeds: [BotSystem.createSimpleEmbed("An error occured", botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
+            interaction.update({ embeds: [BotSystem.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
             this.delete();
             return;
         }

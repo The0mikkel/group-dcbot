@@ -24,21 +24,21 @@ export default class ButtonHandler {
                 let inviteId = interactionData[2] ?? "";
 
                 if (inviteId === "") {
-                    this.interaction.update({ embeds: [BotSystem.createSimpleEmbed("An error occured", botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
+                    this.interaction.update({ embeds: [BotSystem.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
                     if (botSystem.env == envType.dev) console.log("Invite ID is empty", this.interaction.customId, interactionData, inviteAction, inviteId);
                     return;
                 }
 
                 let invite = await DBTeamInvite.load(inviteId);
                 if (invite === undefined) {
-                    this.interaction.update({ embeds: [BotSystem.createSimpleEmbed("An error occured", botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
+                    this.interaction.update({ embeds: [BotSystem.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
                     if (botSystem.env == envType.dev) console.log("Invite not found", this.interaction.customId, interactionData, inviteAction, inviteId);
                     return;
                 }
 
                 invite.handleInviteInteraction(this.client, this.interaction, inviteAction, botSystem);
             } catch (error) {
-                this.interaction.update({ embeds: [BotSystem.createSimpleEmbed("An error occured", botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
+                this.interaction.update({ embeds: [BotSystem.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
                 console.error("Error while handling invite button interaction", error);
             }
         }
