@@ -75,6 +75,16 @@ export default class TeamDelete extends TeamCommand {
         this.teams = await DBGroup.loadFromGuild(botSystem.guild?.id);
         let currentPage = "0";
 
+        // Run through each to ensure that the team still exists. If not, remove it from the list and database
+        for (let i = 0; i < this.teams.length; i++) {
+            const team = this.teams[i];
+            const role = interaction.guild?.roles.cache.get(team.id); 
+            if (!role) {
+                await Team.delete(botSystem, interaction, team);
+                this.teams = this.teams.filter(item => item !== team)
+            }
+        }
+
         const pageContent = await this.generatePage(currentPage, interaction, botSystem);
         if (!pageContent) {
             interaction.editReply(translator.translateUppercase("no teams has been created through the bot"))
@@ -160,7 +170,7 @@ export default class TeamDelete extends TeamCommand {
             "keycap_ten"
         ];
 
-        let currentTeams = []
+        let currentTeams: DBGroup[] = []
         for (let index = 0; index < 10; index++) {
             let currentIndex = (index + ((pageNumber) * 10));
 
@@ -174,6 +184,11 @@ export default class TeamDelete extends TeamCommand {
 
             pageText += ":" + keys[index] + ": " + currentTeam.name + "\n";
             currentTeams.push(currentTeam);
+        }
+
+        if (pageText === "") {
+            interaction.editReply(botSystem.translator.translateUppercase("no teams has been created through the bot"));
+            return false;
         }
 
 
