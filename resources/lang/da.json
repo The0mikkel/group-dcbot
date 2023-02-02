@@ -62,7 +62,7 @@
         "create-team": "opret-hold",
         "create a team": "opret et hold",
         "team :group: was created": "hold %data% blev oprettet",
-        "to add members beside yourself, please use the :invite command name: command": "Du kan løbende invitere nye medlemmer til jeres hold ved at bruge ved at bruge %data% kommandoen",
+        "to add members beside yourself, please use the :invite command name: command": "Du kan løbende invitere nye medlemmer til jeres hold ved at bruge %data% kommandoen",
         "you need to specify a group name": "du skal specificere et gruppe navn",
         "you need to specify a team name": "du skal specificere et hold navn",
         "could not create team :name:": "kunne ikke oprette hold %data%",
