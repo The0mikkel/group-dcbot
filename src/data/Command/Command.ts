@@ -78,7 +78,7 @@ export default abstract class Command implements CommandType {
             focusedOption = interaction.options.getFocused(true);
         }
 
-        const filtered = choices.filter(choice => choice.startsWith(focusedOption?.value ?? "")).slice(0, 25);
+        const filtered = choices.filter(choice => (choice.toLowerCase()).startsWith(focusedOption?.value.toLowerCase() ?? "")).slice(0, 25);
         await interaction.respond(
             filtered.map(choice => ({ name: choice, value: choice })),
         );

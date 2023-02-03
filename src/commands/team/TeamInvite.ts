@@ -105,28 +105,9 @@ export default class TeamInvite extends TeamCommand {
     }
 
     async executeAutocomplete(interaction: AutocompleteInteraction<CacheType>, botSystem: BotSystem): Promise<void> {
-        const teams = await DBGroup.loadFromGuild(botSystem.guild?.id);
-        if (teams == undefined) {
-            return;
-        }
-
-        let admin = await this.authorizedAdmin(interaction, botSystem);
-
-        let filteretTeams: DBGroup[] = [];
-        if (!admin) {
-            for (let team of teams) {
-                if (await BotSystem.checkUserHasRole(interaction, interaction.user, team.id)) {
-                    filteretTeams.push(team);
-                }
-            }
-        } else {
-            filteretTeams = teams;
-        }
-        let teamNames = filteretTeams.map(team => team.name).sort();
-
         this.autocompleteHelper(
             interaction,
-            teamNames
+            await Team.getAllTeamNames(interaction, botSystem, await this.authorizedAdmin(interaction, botSystem))
         );
     }
 

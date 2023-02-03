@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, CategoryChannel, ChannelType, ChatInputCommandInteraction, EmbedBuilder, GuildChannel, GuildMember, Message, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
+import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonStyle, CacheType, CategoryChannel, ChannelType, ChatInputCommandInteraction, EmbedBuilder, GuildChannel, GuildMember, Message, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import BotSystem from "../BotSystem";
 import { envType } from "../envType";
 import { DBGuild } from "../Guild/DBGuild";
@@ -329,6 +329,25 @@ export default class Team {
         }
 
         return true;
+    }
+
+    static async getAllTeamNames(interaction: AutocompleteInteraction<CacheType>, botSystem: BotSystem, admin: boolean): Promise<string[]> {
+        const teams = await DBGroup.loadFromGuild(botSystem.guild?.id);
+        if (teams == undefined) {
+            return [];
+        }
+
+        let filteretTeams: DBGroup[] = [];
+        if (!admin) {
+            for (let team of teams) {
+                if (await BotSystem.checkUserHasRole(interaction, interaction.user, team.id)) {
+                    filteretTeams.push(team);
+                }
+            }
+        } else {
+            filteretTeams = teams;
+        }
+        return filteretTeams.map(team => team.name).sort();
     }
 }
 

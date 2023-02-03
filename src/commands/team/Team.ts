@@ -3,6 +3,8 @@ import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
 import { DBGroup } from "../../data/Group/DBGroup";
+import * as TeamCommands from "../../data/Group/Team";
+import Command from "../../data/Command/Command";
 
 require("dotenv").config();
 
@@ -49,14 +51,10 @@ export default class Team extends TeamCommand {
     }
 
     async executeAutocomplete(interaction: AutocompleteInteraction<CacheType>, botSystem: BotSystem): Promise<void> {
-        const teams = await DBGroup.loadFromGuild(botSystem.guild?.id);
-        if (teams == undefined) {
-            return;
-        }
-
-        const teamNames = teams.map(team => team.name);
-
-        this.autocompleteHelper(interaction, teamNames);
+        this.autocompleteHelper(
+            interaction,
+            await TeamCommands.default.getAllTeamNames(interaction, botSystem, await this.authorizedAdmin(interaction, botSystem))
+        );
     }
 
     async execute(interaction: ChatInputCommandInteraction, botSystem: BotSystem, args: any): Promise<void> {
