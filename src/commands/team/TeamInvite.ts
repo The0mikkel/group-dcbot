@@ -50,8 +50,8 @@ export default class TeamInvite extends TeamCommand {
         });
 
         command.setDescriptionLocalizations({
-            "en-US": "Invite a new member to the team",
-            "da": "Inviter en ny medlem til holdet"
+            "en-US": "invite new members to the team",
+            "da": "inviter nye medlemmer til holdet"
         });
 
         command.addStringOption(option =>
@@ -62,8 +62,8 @@ export default class TeamInvite extends TeamCommand {
                 })
                 .setDescription("The team you want to invite a new member to")
                 .setDescriptionLocalizations({
-                    "en-US": "The team you want to invite a new member to",
-                    "da": "Holdet du vil invitere en ny medlem til"
+                    "en-US": "The team you want to invite the new members to",
+                    "da": "Holdet du vil invitere nye medlemmer til"
                 })
                 .setRequired(true)
                 .setMinLength(1)
