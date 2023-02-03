@@ -1,4 +1,4 @@
-import { AutocompleteInteraction, BaseGuildTextChannel, CacheType, ChatInputCommandInteraction, Client, Collection, DMChannel, EmbedBuilder, Interaction, Message, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
+import { AutocompleteInteraction, BaseGuildTextChannel, CacheType, ChatInputCommandInteraction, Client, Collection, DMChannel, EmbedBuilder, Interaction, Message, ModalSubmitInteraction, NewsChannel, PartialDMChannel, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import { DBGuild } from "./Guild/DBGuild";
 import { envType } from "./envType";
 import Translate from "./Language/Translate";
@@ -56,7 +56,7 @@ export default class BotSystem {
      * 
      * @returns True if the user has the role
      */
-    static async checkUserHasRole(interaction: ChatInputCommandInteraction | AutocompleteInteraction<CacheType>, user: User, role: string): Promise<boolean> {
+    static async checkUserHasRole(interaction: ChatInputCommandInteraction | AutocompleteInteraction<CacheType> | ModalSubmitInteraction, user: User, role: string): Promise<boolean> {
         let exist = interaction.guild?.members.fetch(user.id).then(async (member) => {
             if (member.roles.cache.has(role)) {
                 return true;

@@ -1,5 +1,6 @@
 import Discord from "discord.js";
 import { ButtonInteraction } from "discord.js";
+import TeamGuidedSetup from "../commands/team/TeamGuidedSetup";
 import BotSystem from "./BotSystem";
 import DBConnection from "./DBConnection";
 import { envType } from "./envType";
@@ -41,6 +42,8 @@ export default class ButtonHandler {
                 this.interaction.update({ embeds: [BotSystem.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the invite is no longer available"))], components: [] });
                 console.error("Error while handling invite button interaction", error);
             }
+        } else if (this.interaction.customId.startsWith("guided-setup;")) {
+            new TeamGuidedSetup().executeModal(this.interaction, botSystem);
         }
     }
 }

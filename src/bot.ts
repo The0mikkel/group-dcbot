@@ -61,19 +61,24 @@ client.on("ready", () => {
 
 // Slash command
 client.on(Events.InteractionCreate, async interaction => {
+	const botSystem = new BotSystem();
+	
 	let commandName = "";
 
 	if (interaction.isModalSubmit()) {
 		commandName = interaction.customId.toLowerCase();
+		if (commandName.includes(";")) {
+			commandName = commandName.split(";")[0] ?? "";
+		}
 	} else if (interaction.isChatInputCommand() || interaction.isAutocomplete()) {
 		commandName = interaction.commandName.toLowerCase();
 	} else if (interaction.isButton()) {
 		(new ButtonHandler(client, interaction)).handleButtonAction();
 		return;
 	} else {
+		if (botSystem.env == envType.dev) console.log("Interaction not supported", interaction);
 		return
 	}
-	const botSystem = new BotSystem();
 
 	try {
 		let guild: DBGuild | undefined | boolean;

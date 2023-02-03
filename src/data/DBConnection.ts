@@ -20,7 +20,7 @@ export default class DBConnection {
         return DBConnection.instance;
     }
 
-    static async collectionAction(collection: "guilds" | "groups" | "team-invites", action: (guild: Collection<Document>) => Promise<any>) {
+    static async collectionAction(collection: "guilds" | "groups" | "team-invites" | "guided-setup", action: (guild: Collection<Document>) => Promise<any>) {
         const dbConnection = new DBConnection();
         const mongoClient = dbConnection.mongoClient;
 

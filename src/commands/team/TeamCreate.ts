@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Message, Role, SlashCommandBuilder } from "discord.js";
+import { CacheType, ChatInputCommandInteraction, Message, ModalSubmitInteraction, Role, SlashCommandBuilder, User } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
@@ -10,6 +10,8 @@ require("dotenv").config();
 
 export default class TeamCreate extends TeamCommand {
     shortDescription: string = "Create a team";
+    isModal: boolean = true;
+    deferReply: boolean = false;
 
     constructor() {
         super(
@@ -69,16 +71,32 @@ export default class TeamCreate extends TeamCommand {
     }
 
     async execute(interaction: ChatInputCommandInteraction, botSystem: BotSystem): Promise<void> {
+        await interaction.deferReply({ ephemeral: this.ephemeral });
+
+        let returnValue = await this.createTeam(interaction, botSystem, interaction.options.getString('team-name', true), interaction.options.getUser('team-leader') ?? null);
+
+        this.success(interaction, botSystem, returnValue);
+    }
+
+    async executeModal(interaction: ModalSubmitInteraction<CacheType>, botSystem: BotSystem): Promise<void> {
+        await interaction.deferReply({ ephemeral: this.ephemeral });
+
+        let name = interaction.fields.getTextInputValue('name') ?? "";
+
+        let returnValue = await this.createTeam(interaction, botSystem, name, interaction.user);
+
+        this.success(interaction, botSystem, returnValue);
+    }
+
+    private async success(interaction: ChatInputCommandInteraction | ModalSubmitInteraction, botSystem: BotSystem, createSucces: false | DBGroup = false): Promise<void> {
         const translator = botSystem.translator;
 
-        let returnValue = await this.createTeam(interaction, botSystem);
-
-        if (returnValue instanceof DBGroup) {
-            interaction.editReply(`${translator.translateUppercase("team :group: was created", [`<@&${returnValue.id}>`])}.\n${translator.translateUppercase("to add members beside yourself, please use the :invite command name: command", ["`/" + translator.translate(new TeamInvite().name) + "`"])}!`);
+        if (createSucces instanceof DBGroup) {
+            interaction.editReply(`${translator.translateUppercase("team :group: was created", [`<@&${createSucces.id}>`])}.\n${translator.translateUppercase("to add members beside yourself, please use the :invite command name: command", ["`/" + translator.translate(new TeamInvite().name) + "`"])}!`);
         }
     }
 
-    async createTeam(interaction: ChatInputCommandInteraction, botSystem: BotSystem): Promise<false | DBGroup> {
+    async createTeam(interaction: ChatInputCommandInteraction | ModalSubmitInteraction, botSystem: BotSystem, teamName: string, teamLeader: User | null): Promise<false | DBGroup> {
         const translator = botSystem.translator;
 
         botSystem.guild?.teamConfig.filterRemoved(interaction);
@@ -90,7 +108,7 @@ export default class TeamCreate extends TeamCommand {
             return false;
         }
 
-        var rawGroupName = interaction.options.getString('team-name', true);
+        var rawGroupName = teamName;
 
         const groupName = ASCIIFolder.foldReplacing(rawGroupName).trim();
 
@@ -99,12 +117,13 @@ export default class TeamCreate extends TeamCommand {
             return false;
         }
 
-        let teamLeader = interaction.user;
         if (
-            interaction.options.getUser('team-leader')
+            teamLeader
             && (await this.authorizedAdmin(interaction, botSystem))
         ) {
-            teamLeader = interaction.options.getUser('team-leader', false) ?? teamLeader;
+            teamLeader;
+        } else {
+            teamLeader = interaction.user;
         }
 
         let dbGroup: DBGroup;

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonStyle, CacheType, CategoryChannel, ChannelType, ChatInputCommandInteraction, EmbedBuilder, GuildChannel, GuildMember, Message, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
+import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonStyle, CacheType, CategoryChannel, ChannelType, ChatInputCommandInteraction, EmbedBuilder, GuildChannel, GuildMember, Message, ModalSubmitInteraction, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import BotSystem from "../BotSystem";
 import { envType } from "../envType";
 import { DBGuild } from "../Guild/DBGuild";
@@ -17,7 +17,7 @@ export default class Team {
      * @param teamLeader The team leader of the team - If not specified, the message author will be used
      * @returns 
      */
-    static async create(botSystem: BotSystem, interaction: ChatInputCommandInteraction, groupName: string, teamLeader: string = ""): Promise<DBGroup | TeamCreationErrors> {
+    static async create(botSystem: BotSystem, interaction: ChatInputCommandInteraction | ModalSubmitInteraction, groupName: string, teamLeader: string = ""): Promise<DBGroup | TeamCreationErrors> {
         try {
             if (!interaction.guild) {
                 if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
@@ -76,7 +76,7 @@ export default class Team {
         }
     }
 
-    private static async channelCreationHandler(botSystem: BotSystem, interaction: ChatInputCommandInteraction, dbGroup: DBGroup): Promise<false | TeamCreationErrors> {
+    private static async channelCreationHandler(botSystem: BotSystem, interaction: ChatInputCommandInteraction | ModalSubmitInteraction, dbGroup: DBGroup): Promise<false | TeamCreationErrors> {
         if (botSystem.guild?.teamConfig.createTextOnTeamCreation) {
             const textChannel = await Team.channelCreation(botSystem, interaction, dbGroup, ChannelType.GuildText);
             if (!(textChannel instanceof GuildChannel)) return textChannel;
@@ -91,7 +91,7 @@ export default class Team {
         return false;
     }
 
-    private static async channelCreation(botSystem: BotSystem, interaction: ChatInputCommandInteraction, dbGroup: DBGroup, channelType: ChannelType.GuildText | ChannelType.GuildVoice): Promise<TextChannel | VoiceChannel | TeamCreationErrors> {
+    private static async channelCreation(botSystem: BotSystem, interaction: ChatInputCommandInteraction | ModalSubmitInteraction, dbGroup: DBGroup, channelType: ChannelType.GuildText | ChannelType.GuildVoice): Promise<TextChannel | VoiceChannel | TeamCreationErrors> {
         try {
             if (!interaction.guild) {
                 return TeamCreationErrors.generalError;
@@ -290,7 +290,7 @@ export default class Team {
 
     }
 
-    static async checkIfAllowedToCreate(interaction: ChatInputCommandInteraction, botSystem: BotSystem): Promise<true | TeamCreationErrors> {
+    static async checkIfAllowedToCreate(interaction: ChatInputCommandInteraction | ModalSubmitInteraction, botSystem: BotSystem): Promise<true | TeamCreationErrors> {
         let translator = botSystem.translator;
 
         if (!interaction.guild) {

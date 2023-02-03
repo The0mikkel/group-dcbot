@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, ColorResolvable, Guild, Message, resolveColor, User } from "discord.js";
+import { ChatInputCommandInteraction, ColorResolvable, Guild, Message, ModalSubmitInteraction, resolveColor, User } from "discord.js";
 import { UserLevel } from "../Command/UserLevel";
 import { InviteType } from "./InviteType";
 
@@ -101,7 +101,7 @@ export class TeamConfig {
         this.creatorRole = this.arrayRemove(this.creatorRole, roleId);
     }
 
-    filterRemoved(message: ChatInputCommandInteraction): void {
+    filterRemoved(message: ChatInputCommandInteraction | ModalSubmitInteraction): void {
         this.creatorRole = this.creatorRole.filter(function (role) {
             return TeamConfig.getRoleName(role, message);
         });
@@ -130,7 +130,7 @@ export class TeamConfig {
         }
     }
 
-    static getRoleName(roleId: string, message:  ChatInputCommandInteraction) {
+    static getRoleName(roleId: string, message:  ChatInputCommandInteraction | ModalSubmitInteraction) {
         return message.guild?.roles.cache.get(roleId)?.name
     }
 
