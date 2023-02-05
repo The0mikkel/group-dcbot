@@ -1,10 +1,10 @@
-import { CategoryChannel, GuildChannel, GuildMember, Message, MessageActionRow, MessageButton, MessageEmbed, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
-import { ChannelTypes } from "discord.js/typings/enums";
+import { ActionRowBuilder, AutocompleteInteraction, ButtonBuilder, ButtonStyle, CacheType, CategoryChannel, ChannelType, ChatInputCommandInteraction, EmbedBuilder, GuildChannel, GuildMember, Message, ModalSubmitInteraction, OverwriteData, Role, TextChannel, ThreadChannel, User, VoiceChannel } from "discord.js";
 import BotSystem from "../BotSystem";
 import { envType } from "../envType";
 import { DBGuild } from "../Guild/DBGuild";
 import ASCIIFolder from "../Helper/ascii-folder";
 import { DBGroup } from "./DBGroup";
+import { DBTeamInvite } from "./DBTeamInvite";
 
 export default class Team {
 
@@ -14,16 +14,17 @@ export default class Team {
      * @param botSystem 
      * @param message 
      * @param groupName Name of the new group - Will be validated to ensure it is unique but not sanitized
+     * @param teamLeader The team leader of the team - If not specified, the message author will be used
      * @returns 
      */
-    static async create(botSystem: BotSystem, message: Message, groupName: string): Promise<DBGroup | TeamCreationErrors> {
+    static async create(botSystem: BotSystem, interaction: ChatInputCommandInteraction | ModalSubmitInteraction, groupName: string, teamLeader: string = ""): Promise<DBGroup | TeamCreationErrors> {
         try {
-            if (!message.guild) {
+            if (!interaction.guild) {
                 if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
                 return TeamCreationErrors.generalError;
             }
 
-            let roleLookup = message.guild.roles.cache.find(role => role.name === groupName);
+            let roleLookup = interaction.guild.roles.cache.find(role => role.name === groupName);
             if (roleLookup) {
                 if (botSystem.env == envType.dev) console.log("Role name already exists - Stopping team creation")
                 return TeamCreationErrors.alreadyExist;
@@ -33,16 +34,16 @@ export default class Team {
                 return TeamCreationErrors.nameLength;
             }
 
-            if ((message.guild?.roles.cache.size ?? 0) >= 250) {
+            if ((interaction.guild?.roles.cache.size ?? 0) >= 250) {
                 return TeamCreationErrors.max;
             }
 
-            let role = await message.guild?.roles.create({
+            let role = await interaction.guild?.roles.create({
                 name: groupName,
-                color: botSystem.guild?.teamConfig.defaultColor ?? "DEFAULT",
+                color: botSystem.guild?.teamConfig.defaultColor ?? "Default",
                 mentionable: botSystem.guild?.teamConfig.defaultMentionable ?? false,
                 hoist: botSystem.guild?.teamConfig.defaultHoist ?? false,
-                reason: 'Group was created by grouper, as per request by ' + message.author.tag,
+                reason: 'Group was created by grouper, as per request by ' + interaction.user.tag,
             })
 
             if (role == undefined) {
@@ -55,30 +56,34 @@ export default class Team {
                 return TeamCreationErrors.generalError;
             }
 
+            if (teamLeader == "" || teamLeader == undefined || teamLeader == null) {
+                teamLeader = interaction.user.id;
+            }
+
             let dbGroup: DBGroup;
-            dbGroup = new DBGroup(role.id, botSystem.guild.id, ASCIIFolder.foldReplacing(role.name), message.author.id, message.author.id, Date.now());
+            dbGroup = new DBGroup(role.id, botSystem.guild.id, ASCIIFolder.foldReplacing(role.name), interaction.user.id, teamLeader, Date.now());
             await dbGroup.save();
 
-            let teamCreation = await Team.channelCreationHandler(botSystem, message, dbGroup);
+            let teamCreation = await Team.channelCreationHandler(botSystem, interaction, dbGroup);
             if (teamCreation != false) {
                 return teamCreation;
             }
 
             return dbGroup;
         } catch (error) {
-            console.log("Team creation error: " + error)
+            console.error("Team creation error: " + error)
             return TeamCreationErrors.generalError;
         }
     }
 
-    private static async channelCreationHandler(botSystem: BotSystem, message: Message, dbGroup: DBGroup): Promise<false | TeamCreationErrors> {
+    private static async channelCreationHandler(botSystem: BotSystem, interaction: ChatInputCommandInteraction | ModalSubmitInteraction, dbGroup: DBGroup): Promise<false | TeamCreationErrors> {
         if (botSystem.guild?.teamConfig.createTextOnTeamCreation) {
-            const textChannel = await Team.channelCreation(botSystem, message, dbGroup, ChannelTypes.GUILD_TEXT);
+            const textChannel = await Team.channelCreation(botSystem, interaction, dbGroup, ChannelType.GuildText);
             if (!(textChannel instanceof GuildChannel)) return textChannel;
             dbGroup.textChannel = textChannel.id ?? undefined;
         }
         if (botSystem.guild?.teamConfig.createVoiceOnTeamCreation) {
-            const voiceChannel = await Team.channelCreation(botSystem, message, dbGroup, ChannelTypes.GUILD_VOICE);
+            const voiceChannel = await Team.channelCreation(botSystem, interaction, dbGroup, ChannelType.GuildVoice);
             if (!(voiceChannel instanceof GuildChannel)) return voiceChannel;
             dbGroup.voiceChannel = voiceChannel.id ?? undefined;
         }
@@ -86,30 +91,32 @@ export default class Team {
         return false;
     }
 
-    private static async channelCreation(botSystem: BotSystem, message: Message, dbGroup: DBGroup, channelType: ChannelTypes.GUILD_TEXT | ChannelTypes.GUILD_VOICE): Promise<TextChannel | VoiceChannel | TeamCreationErrors> {
+    private static async channelCreation(botSystem: BotSystem, interaction: ChatInputCommandInteraction | ModalSubmitInteraction, dbGroup: DBGroup, channelType: ChannelType.GuildText | ChannelType.GuildVoice): Promise<TextChannel | VoiceChannel | TeamCreationErrors> {
         try {
-            if (!message.guild) {
-                console.log("Message not in guild!");
+            if (!interaction.guild) {
                 return TeamCreationErrors.generalError;
             }
 
             // Channel creation
             let channel: void | TextChannel | VoiceChannel;
             try {
-                channel = await message.guild.channels.create(dbGroup.name, { type: channelType, reason: 'Team text channel created for team ' + dbGroup.name }).catch(console.error);
+                channel = await interaction.guild.channels.create({
+                    name: dbGroup.name,
+                    type: channelType, reason: 'Team text channel created for team ' + dbGroup.name
+                }).catch(console.error);
             } catch (error) {
-                console.log("Error creating channel - ", error);
+                if (botSystem.env == envType.dev) console.log("Error creating channel - ", error);
                 return TeamCreationErrors.channelCreationFailure;
             }
-            if (!channel || (!(message.channel instanceof GuildChannel) && !(message.channel instanceof ThreadChannel))) {
-                console.log("Channel type not correct for creation of channels");
+            if (!channel || (!(interaction.channel instanceof GuildChannel) && !(interaction.channel instanceof ThreadChannel))) {
+                if (botSystem.env == envType.dev) console.log("Channel type not correct for creation of channels");
                 return TeamCreationErrors.channelCreationFailure;
             }
 
             // Parent / category
             let cateogies: string[] | undefined;
 
-            if (channelType == ChannelTypes.GUILD_TEXT) {
+            if (channelType == ChannelType.GuildText) {
                 cateogies = botSystem.guild?.teamConfig.defaultCategoryText;
             } else {
                 cateogies = botSystem.guild?.teamConfig.defaultCategoryVoice;
@@ -117,12 +124,12 @@ export default class Team {
             if (cateogies) {
                 if (cateogies.length != 0) {
                     for (let index = 0; index < cateogies.length; index++) {
-                        let category = DBGuild.getCategoryFromId(cateogies[index], message.guild);
+                        let category = DBGuild.getCategoryFromId(cateogies[index], interaction.guild);
                         if (!(category instanceof CategoryChannel)) {
                             continue;
                         }
 
-                        if (category.children.size >= 50) {
+                        if (category.children.cache.size >= 50) {
                             continue;
                         }
 
@@ -133,36 +140,33 @@ export default class Team {
             }
 
             // Permissions
-            const everyoneRole = message.guild.roles.everyone;
+            const everyoneRole = interaction.guild.roles.everyone;
             let newPermissions: OverwriteData[] = [
-                { id: everyoneRole.id, deny: ['VIEW_CHANNEL', 'CONNECT'] }
+                { id: everyoneRole.id, deny: ['ViewChannel', 'Connect'] }
             ];
             botSystem.guild?.adminRoles.forEach(role => {
-                newPermissions.push({ id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+                newPermissions.push({ id: role, allow: ['ViewChannel', 'Connect'] })
             });
             botSystem.guild?.teamAdminRoles.forEach(role => {
-                newPermissions.push({ id: role, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+                newPermissions.push({ id: role, allow: ['ViewChannel', 'Connect'] })
             });
-            newPermissions.push({ id: dbGroup.id, allow: ['VIEW_CHANNEL', 'CONNECT'] })
+            newPermissions.push({ id: dbGroup.id, allow: ['ViewChannel', 'Connect'] })
 
             try {
                 await channel.permissionOverwrites.set(newPermissions);
             } catch (error) {
-                console.log(`There was an error updating base channel permissions for channel "${dbGroup.name}" and this was caused by: ${error}`);
+                console.error(`There was an error updating base channel permissions for channel "${dbGroup.name}" and this was caused by: ${error}`);
                 return TeamCreationErrors.channelCreationFailure;
             }
 
-            console.log("Done channel creation!");
-
-
             return channel;
         } catch (error) {
-            console.log("Channel creation error: " + error)
+            console.error("Channel creation error: " + error)
             return TeamCreationErrors.generalError;
         }
     }
 
-    static async invite(botSystem: BotSystem, dbGroup: DBGroup, user: GuildMember, message: Message): Promise<boolean | TeamInviteErrors> {
+    static async invite(botSystem: BotSystem, dbGroup: DBGroup, user: GuildMember, interaction: ChatInputCommandInteraction): Promise<boolean | TeamInviteErrors> {
         if (botSystem.guild === undefined) {
             return TeamInviteErrors.generalError;
         }
@@ -171,13 +175,17 @@ export default class Team {
             try {
                 user.roles.add(dbGroup.id);
             } catch (error) {
-                console.log(`There was an error adding user: ${user} for the role "${dbGroup.name}" and this was caused by: ${error}`)
+                console.error(`There was an error adding user: ${user} for the role "${dbGroup.name}" and this was caused by: ${error}`)
             }
         } else { // Invite required
             try {
-                Team.sendUserInvite(botSystem, dbGroup, user, message);
+                // Check if user already has role
+                let userRole = user.roles.cache.find(role => role.id == dbGroup.id)
+                if (userRole) return true;
+
+                Team.sendUserInvite(botSystem, dbGroup, user, interaction);
             } catch (error) {
-                console.log(`There was an error sending invite to user: ${user} for the role "${dbGroup.name}" and this was caused by: ${error}`)
+                console.error(`There was an error sending invite to user: ${user} for the role "${dbGroup.name}" and this was caused by: ${error}`)
             }
         }
 
@@ -186,20 +194,32 @@ export default class Team {
         return true;
     }
 
-    private static async sendUserInvite(botSystem: BotSystem, dbGroup: DBGroup, user: GuildMember, message: Message): Promise<void> {
+    private static async sendUserInvite(botSystem: BotSystem, dbGroup: DBGroup, user: GuildMember, interaction: ChatInputCommandInteraction): Promise<void> {
+        const inviteTime = 24;
+
         let confirmEmbed = Team.createSimpleEmbed(
             botSystem.translator.translateUppercase("you have been invited"),
-            `${botSystem.translator.translateUppercase("you have been invited to the team :team: by :team leader: in the guild :guild:", [dbGroup.name, message.author.tag, message.guild?.name])}.\n${botSystem.translator.translateUppercase("the invite is valid for :hours: hour(s)", [24])}!`
+            `${botSystem.translator.translateUppercase("you have been invited to the team :team: by :team leader: in the guild :guild:", [dbGroup.name, interaction.user.tag, interaction.guild?.name])}.\n${botSystem.translator.translateUppercase("the invite is valid for :hours: hour(s)", [inviteTime])}!`
         )
-        const buttons = new MessageActionRow();
+        const buttons = new ActionRowBuilder<ButtonBuilder>();
+
+        let invite = new DBTeamInvite(
+            user.id,
+            dbGroup.id,
+            interaction.guild?.id ?? "",
+            inviteTime,
+            new Date(),
+            (await interaction.user.fetch()).id
+        );
+        await invite.save();
 
         let actions = ["✅ " + botSystem.translator.translateUppercase("accept"), "❌ " + botSystem.translator.translateUppercase("decline")];
         for (let index = 0; index < actions.length; index++) {
             try {
-                const buttonType = actions[index] == actions[0] ? 'SUCCESS' : 'DANGER';
+                const buttonType = actions[index] == actions[0] ? ButtonStyle.Success : ButtonStyle.Danger;
                 buttons.addComponents(
-                    new MessageButton()
-                        .setCustomId(`confirm-team-invite;${actions[index]}`)
+                    new ButtonBuilder()
+                        .setCustomId(`confirm-team-invite;${index};${invite._id}`)
                         .setLabel(actions[index])
                         .setStyle(buttonType),
                 );
@@ -221,100 +241,130 @@ export default class Team {
             return;
         }
 
-        const collector = inviteMessage.createMessageComponentCollector({ time: 86400000 });
-        collector.on('collect', async i => {
-            if (!i.customId) {
-                return;
-            }
-
-            if (i.customId.startsWith("confirm-team-invite;")) {
-                const action = i.customId.split(";")[1] ?? "";
-                if (action == actions[0]) {
-                    // Check team still exist
-                    let role = message.guild?.roles.cache.get(dbGroup.id);
-                    if (!role) {
-                        try {
-                            i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("An error occured"), botSystem.translator.translateUppercase("the team is no longer available in the guild :guild:", [message.guild?.name]))], components: [] });
-                        } catch (error) {
-                            console.log(error)
-                        }
-                        return;
-                    }
-
-                    // Add role to user
-                    try {
-                        await user.roles.add(dbGroup.id);
-                        i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite") + " " + botSystem.translator.translateUppercase("accepted"), botSystem.translator.translateUppercase(`You have been added`) + " " + botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [role.name, message.guild?.name]))], components: [] });
-                    } catch (error) {
-                        console.log(error)
-                    }
-                } else {
-                    i.update({ embeds: [Team.createSimpleEmbed(botSystem.translator.translateUppercase("Invite") + " " + botSystem.translator.translateUppercase("declined"), botSystem.translator.translateUppercase(`you declined the invite`) + " " + botSystem.translator.translateUppercase("to the team :team: in the guild :guild:", [dbGroup.name, message.guild?.name]))], components: [] });
-                }
-            }
-        });
-        collector.on('end', () => {if (inviteMessage)BotSystem.autoDeleteMessageByUser(inviteMessage, 0);});
+        const collector = inviteMessage.createMessageComponentCollector({ time: inviteTime * 60 * 60 * 1000 });
+        collector.on('end', () => { if (inviteMessage) BotSystem.autoDeleteMessageByUser(inviteMessage, 0); });
     }
 
-    private static createSimpleEmbed(title: string, text: string): MessageEmbed {
-        return new MessageEmbed()
+    private static createSimpleEmbed(title: string, text: string): EmbedBuilder {
+        return new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(title)
             .setDescription(text)
     }
 
-    static async delete(botSystem: BotSystem, message: Message, dbGroup: DBGroup): Promise<true | TeamDeleteErrors> {
+    static async delete(botSystem: BotSystem, interaction: ChatInputCommandInteraction, dbGroup: DBGroup): Promise<true | TeamDeleteErrors> {
         try {
-            if (!message.guild || !dbGroup.id) {
+            if (!interaction.guild || !dbGroup.id) {
                 if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
                 return TeamDeleteErrors.generalError;
             }
 
-            let textChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.textChannel);
-            let voiceChannel = message.guild.channels.cache.find(channel => channel.id == dbGroup.voiceChannel);
+            let textChannel = interaction.guild.channels.cache.find(channel => channel.id == dbGroup.textChannel);
+            let voiceChannel = interaction.guild.channels.cache.find(channel => channel.id == dbGroup.voiceChannel);
 
             if (textChannel) {
                 try {
-                    await textChannel.delete("Team deleted").catch(error => console.log(error));
-                } catch (error) { console.log(error) }
+                    await textChannel.delete("Team deleted").catch(error => console.error(error));
+                } catch (error) { console.error(error) }
             }
             if (voiceChannel) {
                 try {
-                    await voiceChannel.delete("Team deleted").catch(error => console.log(error));
-                } catch (error) { console.log(error) }
+                    await voiceChannel.delete("Team deleted").catch(error => console.error(error));
+                } catch (error) { console.error(error) }
             }
 
-            let role = await message.guild.roles.fetch(dbGroup.id);
+            let role = await interaction.guild.roles.fetch(dbGroup.id);
             if (role) {
                 try {
-                    await role.delete("Team deleted").catch(error => console.log(error));
-                } catch (error) { console.log(error) }
+                    await role.delete("Team deleted").catch(error => console.error(error));
+                } catch (error) { console.error(error) }
             }
 
             dbGroup.delete();
 
             return true;
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return TeamDeleteErrors.generalError;
         }
 
     }
+
+    static async checkIfAllowedToCreate(interaction: ChatInputCommandInteraction | ModalSubmitInteraction, botSystem: BotSystem): Promise<true | TeamCreationErrors> {
+        let translator = botSystem.translator;
+
+        if (!interaction.guild) {
+            if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
+            return TeamCreationErrors.generalError;
+        }
+
+        if (!interaction.member) {
+            if (botSystem.env == envType.dev) console.log("No member provided - Stopping team creation")
+            return TeamCreationErrors.generalError;
+        }
+
+
+        let hasRole = false;
+        let roles = botSystem.guild?.teamConfig.creatorRole ?? [];
+
+        for (let index = 0; index < roles.length; index++) {
+            if (await BotSystem.checkUserHasRole(interaction, interaction.user, roles[index])) {
+                hasRole = true;
+                break;
+            }
+        }
+
+        if (botSystem.guild?.teamConfig.allowEveryone) {
+            hasRole = true;
+        }
+
+        if (
+            !interaction.member
+            || (
+                !BotSystem.checkIfAdministrator(interaction, interaction.user)
+                && !hasRole
+            )
+        ) {
+            return TeamCreationErrors.permission;
+        }
+
+        return true;
+    }
+
+    static async getAllTeamNames(interaction: AutocompleteInteraction<CacheType>, botSystem: BotSystem, admin: boolean): Promise<string[]> {
+        const teams = await DBGroup.loadFromGuild(botSystem.guild?.id);
+        if (teams == undefined) {
+            return [];
+        }
+
+        let filteretTeams: DBGroup[] = [];
+        if (!admin) {
+            for (let team of teams) {
+                if (await BotSystem.checkUserHasRole(interaction, interaction.user, team.id)) {
+                    filteretTeams.push(team);
+                }
+            }
+        } else {
+            filteretTeams = teams;
+        }
+        return filteretTeams.map(team => team.name).sort();
+    }
 }
 
 export enum TeamCreationErrors {
-    generalError,
-    roleCreationFailure,
-    channelCreationFailure,
-    nameLength,
-    alreadyExist,
-    max
+    generalError = "generalError",
+    roleCreationFailure = "roleCreationFailure",
+    channelCreationFailure = "channelCreationFailure",
+    nameLength = "nameLength",
+    alreadyExist = "alreadyExist",
+    max = "max",
+    permission = "permission"
 }
 
 export enum TeamInviteErrors {
-    generalError
+    generalError = "generalError",
 }
 
 export enum TeamDeleteErrors {
-    generalError
+    generalError = "generalError",
 }

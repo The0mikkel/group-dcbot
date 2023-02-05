@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { ActionRowBuilder, CommandInteraction, Interaction, Message, ModalActionRowComponentBuilder, ModalBuilder, ModalSubmitInteraction, PermissionFlagsBits, SlashCommandBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import GroupCommand from "../../data/Command/Types/GroupCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -8,6 +8,12 @@ import { DBGroup } from "../../data/Group/DBGroup";
 require("dotenv").config();
 
 export default class Group extends GroupCommand {
+    shortDescription: string = "Create a group (role only)";
+    deferReply: boolean = false;
+
+    private userOptions: {name: string, required: boolean}[] = [];
+    private userCount: number = 5;
+
     constructor() {
         super(
             'group',
@@ -17,60 +23,133 @@ export default class Group extends GroupCommand {
             2,
             '[group name] [group members]',
             undefined,
-            [],
+            [
+                "ManageRoles"
+            ],
             UserLevel.admin
         )
+
+        for (let index = 1; index <= this.userCount; index++) {
+            let required = index == 1 ? true : false;
+            let object = {
+                name: 'user' + index,
+                required: required,
+            };
+            this.userOptions.push(object)
+        }
     }
 
-    async execute(message: Message, botSystem: BotSystem, args: any) {
+    slashCommand(): SlashCommandBuilder {
+        let command = super.slashCommand();
+
+        command.setNameLocalizations({
+            "en-US": "group",
+            "da": "gruppe"
+        });
+
+        command.setDescriptionLocalizations({
+            "en-US": "Create a group (role only)",
+            "da": "Opret en gruppe (kun rolle)"
+        });
+
+        command.setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles);
+
+        command.addStringOption(option =>
+            option.setName('name')
+                .setDescription("name of the group")
+                .setDescriptionLocalizations({
+                    "en-US": "The name of the group",
+                    "da": "Navnet på gruppen"
+                })
+                .setNameLocalizations({
+                    "en-US": "name",
+                    "da": "navn"
+                })
+                .setMaxLength(100)
+                .setMinLength(1)
+                .setRequired(true)
+        );
+
+        let i = 0;
+        this.userOptions.forEach(userOption => {
+            command.addUserOption(option =>
+                option.setName(userOption.name)
+                    .setDescription("user to add")
+                    .setDescriptionLocalizations({
+                        "en-US": "The user to add",
+                        "da": "Brugeren der skal tilføjes"
+                    })
+                    .setNameLocalizations({
+                        "en-US": `user-${i++}`,
+                        "da": `bruger-${i}`
+                    })
+                    .setRequired(userOption.required)
+            );
+        });
+
+
+        return command;
+    }
+
+    async execute(interaction: CommandInteraction, botSystem: BotSystem) {
         // Check permissions
-        if (
-            !message.member
-        ) {
-            message.channel.send(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
+        if (!this.authorize(interaction, botSystem) || !interaction.isChatInputCommand() || !interaction.guild) {
             return;
         }
 
-        if (!message.guild) {
-            message.reply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
+        const groupName = ASCIIFolder.foldReplacing(interaction.options.getString('name', true) ?? "");
+
+        if (groupName.length < 1) {
+            interaction.reply({ content: botSystem.translator.translateUppercase("group name must be at least 1 character long"), ephemeral: this.ephemeral });
             return;
         }
 
-        if (!args.length) {
-            message.reply(botSystem.translator.translateUppercase("you need to specify a group name and group members"));
-            return;
-        }
-
-        const groupName = ASCIIFolder.foldReplacing(args.shift());
-
-        let role = await message.guild.roles.create({
+        let role = await interaction.guild.roles.create({
             name: groupName,
             color: undefined,
             mentionable: true,
-            reason: 'Group was created by grouper, as per request by ' + message.author.tag,
+            reason: 'Group was created by grouper, as per request by ' + interaction.member?.user.username,
         })
 
         try {
-            await (new DBGroup(role.id, message.guild.id, role.name, message.author.id, "", Date.now())).save()
+            await (new DBGroup(role.id, interaction.guild.id, role.name, interaction.member?.user.id ?? "", "", Date.now())).save()
         } catch (error) {
-            console.log(error);
+            console.log(`Error creating group in command "${this.name}"`, error);
         }
-
 
         let users = [];
 
-        if (message.mentions.members) {
-            message.mentions.members.forEach(async (member) => {
+        this.userOptions.forEach(userOption => {
+            let user = interaction.options.getUser(userOption.name, userOption.required);
+            if (user) {
                 try {
-                    member.roles.add(role.id);
-                    users.push(member);
+                    if (interaction.guild) interaction.guild.members.cache.get(user.id)?.roles.add(role.id);
+                    users.push(user.username);
                 } catch (error) {
-                    console.log(`There was an error adding user: ${member} for the role "${groupName}" and this was caused by: ${error}`)
+                    console.log(`There was an error adding user: ${user.username} for the role "${groupName}" and this was caused by: ${error}`)
                 }
-            });
+            }
+        });
+
+        interaction.reply({ content: botSystem.translator.translateUppercase("group :group name: was created", [role]), ephemeral: this.ephemeral });
+        return;
+    }
+
+    private authorize(interaction: CommandInteraction | ModalSubmitInteraction, botSystem: BotSystem): boolean {
+        if (
+            !interaction.member
+        ) {
+            if (interaction instanceof CommandInteraction) interaction.editReply(botSystem.translator.translateUppercase("you do not have the right permissions to use this command"));
+            else if (interaction instanceof ModalSubmitInteraction) interaction.reply({ content: botSystem.translator.translateUppercase("you do not have the right permissions to use this command"), ephemeral: true });
+            return false;
         }
 
-        message.channel.send(botSystem.translator.translateUppercase("group :group name: was created", [role]));
-        return;
+        if (!interaction.guild) {
+            if (interaction instanceof CommandInteraction) interaction.editReply(botSystem.translator.translateUppercase("i can't execute that command outside guilds"));
+            else if (interaction instanceof ModalSubmitInteraction) interaction.reply({ content: botSystem.translator.translateUppercase("i can't execute that command outside guilds"), ephemeral: true });
+            return false;
+        }
+
+        return true;
     }
 };

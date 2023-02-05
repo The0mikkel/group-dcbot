@@ -1,7 +1,7 @@
 import DBConnection from "./data/DBConnection";
 
 // DB setup
-const COLLECTIONS = ['guilds', 'groups'];
+const COLLECTIONS = ['guilds', 'groups', 'team-invites', 'guided-setup'];
 
 const mongoClient = DBConnection.getInstance().mongoClient;
 const mongoDatabase = DBConnection.getInstance().mongoDatabase;
@@ -28,7 +28,7 @@ async function setupCollection(collection: string) {
         if (err) {
             // console.log("Collection already exist!")
         } else {
-            console.log("Collection created!");
+            console.log(`Collection ${collection} created!`);
         }
     });
 }

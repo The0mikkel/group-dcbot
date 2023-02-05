@@ -6,6 +6,7 @@ import fs from 'fs';
 export default class Commands {
     static commands: Collection<string, Command> = new Discord.Collection<string, Command>()
     static commandTypeMap: Map<string, Command[]> = new Map;
+    static slashCommands: JSON[] = [];
     static cooldowns: Collection<string, Collection<string, number>> = new Discord.Collection<string, Collection<string, number>>()
 
     static async loadCommands() {
@@ -16,14 +17,21 @@ export default class Commands {
                 await import(`../../commands/${folder}/${file}`).then(command => {
                     try {
                         let obj = new command.default;
+
+                        if (obj.active == false) {
+                            return;
+                        }
+
                         Commands.commands.set(obj.name, obj);
                         
                         if (!Commands.commandTypeMap.has(obj.category)) {
                             Commands.commandTypeMap.set(obj.category, []);
                         }
                         Commands.commandTypeMap.get(obj.category)?.push(obj);
+
+                        Commands.slashCommands.push(obj.slashCommand().toJSON());
                     } catch (error) {
-                        console.error(error);
+                        console.error(error, command);
                     }
                 });
             }

@@ -2,7 +2,8 @@
 version: "3.6"
 services:
     bot:
-        image: themikkel/group-dcbot
+        # image: themikkel/group-dcbot
+        build: .
         volumes:
             - ./dist:/usr/src/app/dist
             - ./resources:/usr/src/app/resources
@@ -12,6 +13,7 @@ services:
         environment:
             bot_token: ${bot_token}
             bot_prefix: ${bot_prefix}
+            app_id: ${app_id}
             database_url: mongodb://${db_username}:${db_password}@mongodb:27017/
             language: da
             env: ${env}
@@ -23,6 +25,8 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: ${db_password}
         volumes:
             - ./db:/data/db
+        ports:
+          - 27017:27017
 
     mongo-express:
         image: mongo-express

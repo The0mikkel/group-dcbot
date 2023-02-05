@@ -1,4 +1,4 @@
-import { Message, MessageActionRow, MessageButton, MessageEmbed, Role } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, Message, Role, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import ASCIIFolder from "../../data/Helper/ascii-folder";
@@ -26,35 +26,72 @@ export default class TeamDelete extends TeamCommand {
         )
     }
 
-    async execute(message: Message, botSystem: BotSystem, args: any, autoDelete = false): Promise<void> {
-        if (message.mentions.roles.size > 0) {
-            message.mentions.roles.forEach(async role => {
-                const dbGroup = await DBGroup.load(role.id);
-                if (dbGroup) {
-                    Team.delete(botSystem, message, dbGroup);
-                }
-            })
+    slashCommand(): SlashCommandBuilder {
+        let command = super.slashCommand();
+
+        command.setNameLocalizations({
+            "en-US": "delete-team",
+            "da": "slet-hold"
+        });
+
+        command.setDescriptionLocalizations({
+            "en-US": "Delete a team. one or more teams may be mentioned to delete without navigating the team list",
+            "da": "Slet et hold eller flere hold. Hvis du nævner et hold, springer du over listen over hold"
+        });
+
+        command.addRoleOption(option =>
+            option.setName('team')
+                .setNameLocalizations({
+                    "en-US": "team",
+                    "da": "hold"
+                })
+                .setDescription("The team you want to delete")
+                .setDescriptionLocalizations({
+                    "en-US": "The team you want to delete",
+                    "da": "Holdet du vil slette"
+                })
+                .setRequired(false)
+        );
+
+        return command;
+    }
+
+    async execute(interaction: ChatInputCommandInteraction, botSystem: BotSystem): Promise<void> {
+
+        let team = interaction.options.getRole('team', false);
+        if (team) {
+            const dbGroup = await DBGroup.load(team.id);
+            if (dbGroup) {
+                Team.delete(botSystem, interaction, dbGroup);
+            }
         } else {
-            this.deleteTeamlist(message, botSystem);
+            this.deleteTeamlist(interaction, botSystem);
         }
     }
 
-    async deleteTeamlist(message: Message, botSystem: BotSystem) {
+    async deleteTeamlist(interaction: ChatInputCommandInteraction, botSystem: BotSystem) {
         const translator = botSystem.translator;
 
         this.teams = await DBGroup.loadFromGuild(botSystem.guild?.id);
         let currentPage = "0";
 
-        const pageContent = await this.generatePage(currentPage, message, botSystem);
+        // Run through each to ensure that the team still exists. If not, remove it from the list and database
+        for (let i = 0; i < this.teams.length; i++) {
+            const team = this.teams[i];
+            const role = interaction.guild?.roles.cache.get(team.id); 
+            if (!role) {
+                await Team.delete(botSystem, interaction, team);
+                this.teams = this.teams.filter(item => item !== team)
+            }
+        }
+
+        const pageContent = await this.generatePage(currentPage, interaction, botSystem);
         if (!pageContent) {
-            console.log(pageContent);
-            message.channel.send(translator.translateUppercase("no teams has been created through the bot"))
+            interaction.editReply(translator.translateUppercase("no teams has been created through the bot"))
             return;
         }
 
-        BotSystem.autoDeleteMessageByUser(message, 0);
-
-        let listMessage = await message.channel.send(pageContent);
+        let listMessage = await interaction.editReply(pageContent);
         const collector = listMessage.createMessageComponentCollector({ time: 150000 });
         collector.on('collect', async i => {
             if (!i.customId) {
@@ -63,27 +100,26 @@ export default class TeamDelete extends TeamCommand {
 
             if (i.customId.startsWith("team-delete-new-page;")) {
                 currentPage = i.customId.split(";")[1];
-                const pageContent = await this.generatePage(currentPage, message, botSystem);
+                const pageContent = await this.generatePage(currentPage, interaction, botSystem);
                 if (!pageContent) {
                     return;
                 }
                 await i.update(pageContent);
             } else if (i.customId.startsWith("team-delete;")) {
                 let teamToDelete = i.customId.split(";")[1];
-                console.log(teamToDelete);
-                const role = await message.guild?.roles.fetch(teamToDelete);
+                const role = await interaction.guild?.roles.fetch(teamToDelete);
                 let teamName = "";
                 if (role) {
                     teamName = role.name;
                     let dbGroupToDelete = await DBGroup.load(role.id);
                     if (dbGroupToDelete) {
-                        console.log(await Team.delete(botSystem, message, dbGroupToDelete));
+                        await Team.delete(botSystem, interaction, dbGroupToDelete);
                     }
                     this.teams = this.teams.filter(item => item !== dbGroupToDelete)
                 }
-                if (teamName !== "") BotSystem.sendAutoDeleteMessage(message.channel, translator.translateUppercase("team :team name: was deleted", [teamName]));
+                if (teamName !== "") interaction.editReply({ content: translator.translateUppercase("team :team name: was deleted", [teamName])});
 
-                let pageContent: any = await this.generatePage(currentPage, message, botSystem);
+                let pageContent: any = await this.generatePage(currentPage, interaction, botSystem);
                 if (!pageContent) {
                     pageContent = "";
                 }
@@ -93,7 +129,7 @@ export default class TeamDelete extends TeamCommand {
         collector.on('end', () => BotSystem.autoDeleteMessageByUser(listMessage, 0));
     }
 
-    private async generatePage(page: string = "0", message: Message, botSystem: BotSystem): Promise<{ embeds: any[], components: any[] } | false> {
+    private async generatePage(page: string = "0", interaction: ChatInputCommandInteraction, botSystem: BotSystem): Promise<{ embeds: any[], components: any[] } | false> {
         if (this.teams.length <= 0) {
             return false;
         }
@@ -105,9 +141,9 @@ export default class TeamDelete extends TeamCommand {
 
         for (let index = 0; index < this.teams.length; index++) {
             const currentTeam = this.teams[index];
-            const role = await message.guild?.roles.fetch(currentTeam.id);
+            const role = await interaction.guild?.roles.fetch(currentTeam.id);
             if (!role) {
-                Team.delete(botSystem, message, currentTeam);
+                Team.delete(botSystem, interaction, currentTeam);
                 this.teams = this.teams.filter(item => item !== currentTeam)
             }
         }
@@ -134,7 +170,7 @@ export default class TeamDelete extends TeamCommand {
             "keycap_ten"
         ];
 
-        let currentTeams = []
+        let currentTeams: DBGroup[] = []
         for (let index = 0; index < 10; index++) {
             let currentIndex = (index + ((pageNumber) * 10));
 
@@ -150,8 +186,13 @@ export default class TeamDelete extends TeamCommand {
             currentTeams.push(currentTeam);
         }
 
+        if (pageText === "") {
+            interaction.editReply(botSystem.translator.translateUppercase("no teams has been created through the bot"));
+            return false;
+        }
 
-        const pageEmbed = new MessageEmbed()
+
+        const pageEmbed = new EmbedBuilder()
             .setColor('#0099ff')
             .setTitle(botSystem.translator.translateUppercase('Delete team'))
             .setDescription(pageText)
@@ -160,12 +201,12 @@ export default class TeamDelete extends TeamCommand {
 
 
         let componentCount = 0;
-        const buttons: MessageActionRow[] = [];
+        const buttons: ActionRowBuilder<ButtonBuilder>[] = [];
 
         if (pageButtons && pageNumber != 0) {
-            const buttonType = 'SECONDARY';
+            const buttonType = ButtonStyle.Secondary;
             this.addComponent(buttons, componentCount,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(`team-delete-new-page;${pageNumber - 1}`)
                     .setLabel(botSystem.translator.translateUppercase(`previus page`))
                     .setStyle(buttonType),
@@ -174,9 +215,9 @@ export default class TeamDelete extends TeamCommand {
         }
         for (let index = 0; index < currentTeams.length; index++) {
             try {
-                const buttonType = 'SECONDARY';
+                const buttonType = ButtonStyle.Secondary;
                 this.addComponent(buttons, componentCount,
-                    new MessageButton()
+                    new ButtonBuilder()
                         .setCustomId(`team-delete;${currentTeams[index].id}`)
                         .setLabel(`${index + 1}`)
                         .setStyle(buttonType),
@@ -187,9 +228,9 @@ export default class TeamDelete extends TeamCommand {
             componentCount++
         }
         if (pageButtons && pageNumber != (pages - 1)) {
-            const buttonType = 'SECONDARY';
+            const buttonType = ButtonStyle.Secondary;
             this.addComponent(buttons, componentCount,
-                new MessageButton()
+                new ButtonBuilder()
                     .setCustomId(`team-delete-new-page;${pageNumber + 1}`)
                     .setLabel(botSystem.translator.translateUppercase(`next page`))
                     .setStyle(buttonType),
@@ -200,11 +241,11 @@ export default class TeamDelete extends TeamCommand {
         return { embeds: [pageEmbed], components: buttons };
     }
 
-    addComponent(buttons: MessageActionRow[] = [], componentCount: number, component: MessageButton) {
+    addComponent(buttons: ActionRowBuilder<ButtonBuilder>[] = [], componentCount: number, component: ButtonBuilder) {
         let index = Math.floor(componentCount / 5);
         let element = buttons[index];
         if (!element) {
-            buttons[index] = new MessageActionRow();
+            buttons[index] = new ActionRowBuilder<ButtonBuilder>();
         }
         buttons[index].addComponents(component)
     }

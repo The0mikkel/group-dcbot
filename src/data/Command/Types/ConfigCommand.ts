@@ -11,7 +11,7 @@ export default abstract class ConfigCommand extends Command {
         args_quantity: number = 0,
         usage: string = "",
         cooldown: number = 5,
-        permissions: PermissionResolvable[] = ["ADMINISTRATOR"],
+        permissions: PermissionResolvable[] = ["Administrator"],
         level: UserLevel = UserLevel.admin,
         aliases: string[] = []
     ) {

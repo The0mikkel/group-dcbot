@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { CommandInteraction, Message, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../../data/BotSystem";
 import OtherCommand from "../../data/Command/Types/OtherCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -15,11 +15,27 @@ export default class Ping extends OtherCommand {
 			undefined,
 			undefined,
 			UserLevel.user,
-    		['pinging'],
+			['pinging'],
 		)
 	}
 
-	async execute(message: Message, botSystem: BotSystem) {
-		message.channel.send('Pong');
+	slashCommand(): SlashCommandBuilder {
+		let command = super.slashCommand();
+
+		command.setNameLocalizations({
+			"en-US": "ping",
+			"da": "ping"
+		});
+
+		command.setDescriptionLocalizations({
+			"en-US": "Ping!",
+			"da": "Ping!"
+		});
+
+		return command;
+	}
+
+	async execute(interaction: CommandInteraction, botSystem: BotSystem) {
+		await interaction.editReply({ content: 'Pong!' });
 	}
 };

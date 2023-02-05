@@ -1,13 +1,16 @@
-import { BaseGuildTextChannel, Message, PermissionResolvable } from "discord.js";
+import { AutocompleteFocusedOption, AutocompleteInteraction, BaseGuildTextChannel, CacheType, CommandInteraction, GuildMemberRoleManager, Interaction, Message, ModalSubmitInteraction, PermissionResolvable, SlashCommandBuilder } from "discord.js";
 import BotSystem from "../BotSystem";
+import { envType } from "../envType";
 import { DBGroup } from "../Group/DBGroup";
 import Translate from "../Language/Translate";
-import CommandType from "./Types/CommandType";
+import CommandType from "./Interfaces/CommandType";
 import { UserLevel } from "./UserLevel";
 
 export default abstract class Command implements CommandType {
+    active: boolean = true;
     name: string; // Command
     description: string;
+    shortDescription: string = "";
     guildOnly: boolean;
     args: boolean;
     args_quantity: number;
@@ -18,6 +21,9 @@ export default abstract class Command implements CommandType {
     aliases: string[] = [];
     category: string;
     categoryEmoji: string;
+    deferReply: boolean = true;
+    ephemeral: boolean = true;
+    isModal: boolean = false;
 
     constructor(
         name: string,
@@ -26,7 +32,7 @@ export default abstract class Command implements CommandType {
         args: boolean = false,
         args_quantity: number = 0,
         usage: string = "",
-        cooldown: number = 5,
+        cooldown: number = 1,
         permissions: PermissionResolvable[] = [],
         level: UserLevel = UserLevel.user,
         aliases: string[] = [],
@@ -47,27 +53,64 @@ export default abstract class Command implements CommandType {
         this.category = Translate.getInstance().translate(category);
         this.categoryEmoji = categoryEmoji;
         this.level = level;
+
+        if (this.shortDescription == "") {
+            this.shortDescription = this.description;
+        }
+        if (this.shortDescription.length > 100) {
+            this.shortDescription = this.shortDescription.substring(0, 97) + "...";
+        }
     }
 
-    abstract execute(message: Message, botSystem: BotSystem, args: any, autoDelete: boolean, autoDeleteTime: number): Promise<void>;
+    abstract execute(interaction: CommandInteraction, botSystem: BotSystem, autoDelete: boolean, autoDeleteTime: number): Promise<void>;
 
+    async executeModal(interaction: ModalSubmitInteraction, botSystem: BotSystem): Promise<void> {
+        return;
+    }
 
-    async authorized(message: Message, botSystem: BotSystem): Promise<boolean> {
+    async executeAutocomplete(interaction: AutocompleteInteraction, botSystem: BotSystem): Promise<void> {
+        await this.autocompleteHelper(interaction);
+        return;
+    }
+
+    protected async autocompleteHelper(interaction: AutocompleteInteraction, choices: string[] = [], focusedOption: AutocompleteFocusedOption | null = null): Promise<void> {
+        if (focusedOption == null) {
+            focusedOption = interaction.options.getFocused(true);
+        }
+
+        const filtered = choices.filter(choice => (choice.toLowerCase()).startsWith(focusedOption?.value.toLowerCase() ?? "")).slice(0, 25);
+        await interaction.respond(
+            filtered.map(choice => ({ name: choice, value: choice })),
+        );
+    }
+
+    slashCommand(): SlashCommandBuilder {
+        return new SlashCommandBuilder()
+            .setName(this.name)
+            .setDescription(this.shortDescription)
+            .setDMPermission(this.guildOnly ? false : true);
+    }
+
+    async authorized(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if (this.permissions.length <= 0 && this.level == UserLevel.user) {
             return true; // Everyone has access
         }
 
         // Always allow owner to use command
-        if (message.guild?.ownerId === message.author.id) {
+        if (interaction.guild?.ownerId === interaction.user.id) {
             return true;
+        }
+
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
         }
 
         // Check permissions
         if (this.permissions.length <= 0) {
-            if (!(message.channel instanceof BaseGuildTextChannel)) {
+            if (!(interaction.channel instanceof BaseGuildTextChannel)) {
                 return false; // Permissions based authorization can only be used in BaseGuildTextChannels
             }
-            const authorPerms = message.channel.permissionsFor(message.author);
+            const authorPerms = interaction.channel.permissionsFor(interaction.user);
             if (!authorPerms) {
                 return false; // User has no permission
             }
@@ -82,99 +125,131 @@ export default abstract class Command implements CommandType {
         // Authorize by level
         switch (this.level) {
             case UserLevel.admin:
-                return await this.authorizedAdmin(message, botSystem);
+                return await this.authorizedAdmin(interaction, botSystem);
             case UserLevel.teamAdmin:
-                return await this.authorizedTeamAdmin(message, botSystem);
+                return await this.authorizedTeamAdmin(interaction, botSystem);
             case UserLevel.teamLeader:
-                return await this.authorizedTeamLeader(message, botSystem);
+                return await this.authorizedTeamLeader(interaction, botSystem);
             case UserLevel.team:
-                return await this.authorizedTeam(message, botSystem);
+                return await this.authorizedTeam(interaction, botSystem);
             case UserLevel.teamCreate:
-                return await this.authorizedTeamCreate(message, botSystem);
+                return await this.authorizedTeamCreate(interaction, botSystem);
             case UserLevel.user: // nothing
             default:
                 return true;
         }
     }
 
-    protected async authorizedAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedAdmin(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if (!botSystem.guild) {
             return false;
         }
 
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
+
         let hasRole = false;
+        let roles = interaction?.member?.roles;
         botSystem.guild?.adminRoles.forEach(role => {
-            if (message?.member?.roles.cache.has(role)) {
+            if (Array.isArray(roles) && roles.includes(role)) {
+                hasRole = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
                 hasRole = true;
             }
         });
 
-        if (botSystem.guild.adminRoles.length <= 0) {
-            hasRole = false;
-        }
-
         return hasRole;
     }
-    protected async authorizedTeamAdmin(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamAdmin(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
         if (!botSystem.guild) {
             return false;
         }
-        
+
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
+
         let hasRole = false;
+        let roles = interaction?.member?.roles;
         botSystem.guild?.teamAdminRoles.forEach(role => {
-            if (message?.member?.roles.cache.has(role)) {
+            if (Array.isArray(roles) && roles.includes(role)) {
+                hasRole = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
                 hasRole = true;
             }
         });
 
-        if (botSystem.guild.teamAdminRoles.length <= 0) {
-            hasRole = false;
+        return hasRole;
+    }
+    protected async authorizedTeamLeader(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
         }
+
+        let groups: DBGroup[];
+        groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
+
+        let hasRole = false;
+        let roles = interaction?.member?.roles;
+        groups.forEach(group => {
+            if (Array.isArray(roles) && roles.includes(group.id) && interaction?.user.id == group.teamLeader) {
+                hasRole = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(group.id) && interaction?.user.id == group.teamLeader) {
+                hasRole = true;
+            }
+        });
 
         return hasRole;
     }
-    protected async authorizedTeamLeader(message: Message, botSystem: BotSystem): Promise<boolean> {
-        let groups: DBGroup[];
-        groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
-
-        let inAnyGroupAsLeader = false;
-        groups.forEach(group => {
-            if (
-                message?.member?.roles.cache.has(group.id)
-                && message?.member?.id == group.teamLeader
-            ) {
-                inAnyGroupAsLeader = true;
-                return;
-            }
-        });
-
-        return inAnyGroupAsLeader; // Should return true if user is a team leader
-    }
-    protected async authorizedTeam(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeam(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
 
         let groups: DBGroup[];
         groups = await DBGroup.loadFromGuild(botSystem.guild?.id);
 
-        let inAnyGroup = false;
+        let hasRole = false;
         groups.forEach(group => {
-            if (message?.member?.roles.cache.has(group.id)) {
-                inAnyGroup = true;
-                return;
+            let roles = interaction?.member?.roles;
+
+            if (Array.isArray(roles) && roles.includes(group.id)) {
+                hasRole = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(group.id)) {
+                hasRole = true;
             }
         });
 
-        return inAnyGroup; // Should return true if user is part of a team
+        return hasRole;
     }
 
-    protected async authorizedTeamCreate(message: Message, botSystem: BotSystem): Promise<boolean> {
+    protected async authorizedTeamCreate(interaction: Interaction, botSystem: BotSystem): Promise<boolean> {
+        if ((await BotSystem.checkIfAdministrator(interaction, interaction.user))) {
+            return true; // User has admin permission
+        }
+
         let hasRole = false;
         botSystem.guild?.teamConfig.creatorRole.forEach(role => {
-            if (message.member?.roles.cache.has(role)) {
+            let roles = interaction?.member?.roles;
+            if (Array.isArray(roles) && roles.includes(role)) {
+                hasRole = true;
+            }
+
+            if (interaction?.member?.roles instanceof GuildMemberRoleManager && interaction?.member?.roles.cache.has(role)) {
                 hasRole = true;
             }
         });
         if (botSystem.guild?.teamConfig.allowEveryone) {
-            hasRole = true;
+            return true;
         }
 
         return hasRole;

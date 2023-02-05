@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 export default class Translate {
 
     private language: string;
@@ -51,6 +49,12 @@ export default class Translate {
      * @example translate("total of %count% members are present in the guild", [2])
      */
     translate(text: string = "", data: any[] = []): string {
+        try {
+            if (!text) text.toString() ?? "";
+        } catch (error) {
+            return "";
+        }
+        
         text = text.toLowerCase();
         let translatedText: string;
         try {
