@@ -49,11 +49,7 @@ client.on("ready", () => {
 	console.log(`Bot is ready to go! - Logged in as ${client.user.tag}!`)
 
 	client.user.setPresence({
-		status: 'online',
-		activities: [{
-			name: (Translate.getInstance().translate('watching activity', [(process.env.bot_prefix ?? "gr!") + ((new help).name)])),
-			type: Discord.ActivityType.Watching,
-		}],
+		status: 'online'
 	})
 
 	BotSystem.client = client;
