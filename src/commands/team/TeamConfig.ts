@@ -1,5 +1,4 @@
 import { ChannelType, ChatInputCommandInteraction, ColorResolvable, EmbedBuilder, Message, PermissionFlagsBits, resolveColor, SlashCommandBuilder } from "discord.js";
-import { cp } from "fs";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
