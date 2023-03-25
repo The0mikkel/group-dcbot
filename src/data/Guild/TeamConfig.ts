@@ -55,6 +55,10 @@ export class TeamConfig {
      * Enable/disable creation of void channel when a new team is created for the team
      */
     createVoiceOnTeamCreation: boolean = false;
+    /**
+     * Who can transfer the team to another user
+     */
+    teamTransferType: UserLevel = UserLevel.teamLeader;
 
 
     constructor(
@@ -70,7 +74,8 @@ export class TeamConfig {
         defaultCategoryText: string[] = [],
         defaultCategoryVoice: string[] = [],
         createTextOnTeamCreation: boolean = false,
-        createVoiceOnTeamCreation: boolean = false
+        createVoiceOnTeamCreation: boolean = false,
+        teamTransferType: UserLevel = UserLevel.teamLeader,
     ) {
         this.creatorRole = creatorRole;
         this.allowEveryone = allowEveryone;
@@ -92,6 +97,7 @@ export class TeamConfig {
         this.defaultCategoryVoice = defaultCategoryVoice;
         this.createTextOnTeamCreation = createTextOnTeamCreation;
         this.createVoiceOnTeamCreation = createVoiceOnTeamCreation;
+        this.teamTransferType = teamTransferType;
     }
 
     addCreatorRole(roleId: string) {
@@ -122,7 +128,8 @@ export class TeamConfig {
                 result.teamConfig?.defaultCategoryText ?? undefined,
                 result.teamConfig?.defaultCategoryVoice ?? undefined,
                 result.teamConfig?.createTextOnTeamCreation ?? undefined,
-                result.teamConfig?.createVoiceOnTeamCreation ?? undefined
+                result.teamConfig?.createVoiceOnTeamCreation ?? undefined,
+                result.teamConfig?.teamTransferType ?? undefined,
             );
         } catch (error) {
             console.error(error);

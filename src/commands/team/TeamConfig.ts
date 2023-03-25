@@ -1,4 +1,5 @@
 import { ChannelType, ChatInputCommandInteraction, ColorResolvable, EmbedBuilder, Message, PermissionFlagsBits, resolveColor, SlashCommandBuilder } from "discord.js";
+import { cp } from "fs";
 import BotSystem from "../../data/BotSystem";
 import TeamCommand from "../../data/Command/Types/TeamCommand";
 import { UserLevel } from "../../data/Command/UserLevel";
@@ -211,6 +212,49 @@ export default class TeamConfig extends TeamCommand {
                         .setRequired(false)
                 )
         );
+
+        command.addSubcommand((subcommand) =>
+            subcommand
+                .setName('transfer-by')
+                .setDescription('Set, who can transfer the team leader')
+                .setNameLocalizations({
+                    'en-US': 'transfer-by',
+                    da: 'overfør-af',
+                })
+                .setDescriptionLocalizations({
+                    'en-US': 'Set, who can transfer the team leader',
+                    da: 'Indstil, hvem der kan overføre holdlederen',
+                })
+                .addStringOption((option) =>
+                    option
+                        .setName('transfer-by')
+                        .setDescription('Who can transfer the team leader')
+                        .setNameLocalizations({
+                            'en-US': 'transfer-by',
+                            da: 'overfør-af',
+                        })
+                        .setDescriptionLocalizations({
+                            'en-US': 'Who can transfer the team leader',
+                            da: 'Hvem der kan overføre holdlederen',
+                        })
+                        .setRequired(false)
+                        .addChoices(
+                            {
+                                name: 'Team leader',
+                                value: 'leader',
+                            },
+                            {
+                                name: 'Team Admin',
+                                value: 'team-admin',
+                            },
+                            {
+                                name: 'Admin',
+                                value: 'admin',
+                            }
+                        )
+                )
+        );
+
 
         command.addSubcommand((subcommand) =>
             subcommand
@@ -543,6 +587,32 @@ export default class TeamConfig extends TeamCommand {
                         break;
                     default:
                         interaction.editReply(`${translator.translateUppercase(`i did not know the restriction type`)}. ${translator.translateUppercase(`please use either admin, leader or team`)}.`)
+                        break;
+                }
+
+                await botSystem.guild.save();
+                break;
+            case `transfer-by`:
+                let transferType = interaction.options.getString('transfer-by');
+
+                const setTransferTypeText = ASCIIFolder.foldReplacing(transferType?.trim().toLowerCase() ?? ``);
+
+                switch (setTransferTypeText) {
+                    default:
+                    case ``:
+                        interaction.editReply(translator.translateUppercase(`transferring teams, are currently limited to :role:`, [`*${translator.translate(botSystem.guild.teamConfig.teamTransferType.toString())}*`]))
+                        break;
+                    case `admin`:
+                        botSystem.guild.teamConfig.teamTransferType = UserLevel.admin;
+                        interaction.editReply(translator.translateUppercase(`transferring teams, are now limited to :role:`, [`*${translator.translate(botSystem.guild.teamConfig.teamTransferType.toString())}*`]))
+                        break;
+                    case `team-admin`:
+                        botSystem.guild.teamConfig.teamTransferType = UserLevel.teamAdmin;
+                        interaction.editReply(translator.translateUppercase(`transferring teams, are now limited to :role:`, [`*${translator.translate(botSystem.guild.teamConfig.teamTransferType.toString())}*`]))
+                        break;
+                    case `leader`:
+                        botSystem.guild.teamConfig.teamTransferType = UserLevel.teamLeader
+                        interaction.editReply(translator.translateUppercase(`transferring teams, are now limited to :role:`, [`*${translator.translate(botSystem.guild.teamConfig.teamTransferType.toString())}*`]))
                         break;
                 }
 

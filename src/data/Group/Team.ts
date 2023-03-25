@@ -349,6 +349,36 @@ export default class Team {
         }
         return filteretTeams.map(team => team.name).sort();
     }
+
+    static async transferTeamLeader(interaction: ChatInputCommandInteraction, botSystem: BotSystem, dbGroup: DBGroup, newLeader: GuildMember): Promise<true | TeamTransferErrors> {
+        try {
+            if (!interaction.guild || !dbGroup.id) {
+                if (botSystem.env == envType.dev) console.log("No guild provided - Stopping team creation")
+                return TeamTransferErrors.generalError;
+            }
+
+            let role = await interaction.guild.roles.fetch(dbGroup.id);
+            if (!role) {
+                return TeamTransferErrors.generalError;
+            }
+
+            let id = newLeader.id;
+            let member = await interaction.guild.members.fetch(id);
+            if (!member) {
+                return TeamTransferErrors.generalError;
+            }
+
+            dbGroup.teamLeader = newLeader.id;
+            dbGroup.save();
+
+            member.roles.add(role.id);
+
+            return true;
+        } catch (error) {
+            console.error(error);
+            return TeamTransferErrors.generalError;
+        }
+    }
 }
 
 export enum TeamCreationErrors {
@@ -366,5 +396,9 @@ export enum TeamInviteErrors {
 }
 
 export enum TeamDeleteErrors {
+    generalError = "generalError",
+}
+
+export enum TeamTransferErrors {
     generalError = "generalError",
 }
