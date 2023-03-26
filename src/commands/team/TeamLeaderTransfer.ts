@@ -34,7 +34,7 @@ export default class TeamInvite extends TeamCommand {
 
         command.setNameLocalizations({
             "en-US": "transfer-team-leader",
-            "da": "overfør-hold-leader"
+            "da": "overfør-hold-leder"
         });
 
         command.setDescriptionLocalizations({
