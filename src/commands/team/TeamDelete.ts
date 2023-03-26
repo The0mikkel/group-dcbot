@@ -64,6 +64,8 @@ export default class TeamDelete extends TeamCommand {
             if (dbGroup) {
                 Team.delete(botSystem, interaction, dbGroup);
             }
+
+            interaction.editReply({ content: botSystem.translator.translateUppercase("team :team name: was deleted", [team.name])});
         } else {
             this.deleteTeamlist(interaction, botSystem);
         }
