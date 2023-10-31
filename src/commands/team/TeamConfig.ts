@@ -12,7 +12,7 @@ import Colors from "../../data/Helper/Colors";
 require(`dotenv`).config();
 
 export default class TeamConfig extends TeamCommand {
-    private allowedCategories: number = 5;
+    private allowedCategories: number = 10;
 
     constructor() {
         super(
