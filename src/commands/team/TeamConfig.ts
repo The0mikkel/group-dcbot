@@ -703,7 +703,7 @@ export default class TeamConfig extends TeamCommand {
             case `channel-category-text`:
                 let categoriesText = [];
 
-                for (let index = 0; index < 5; index++) {
+                for (let index = 0; index < this.allowedCategories; index++) {
                     let channel = interaction.options.getChannel(`category-${index + 1}`);
                     if (channel) {
                         if (channel.type !== ChannelType.GuildCategory) {
@@ -732,7 +732,7 @@ export default class TeamConfig extends TeamCommand {
             case `channel-category-voice`:
                 let categoriesVoice = [];
 
-                for (let index = 0; index < 5; index++) {
+                for (let index = 0; index < this.allowedCategories; index++) {
                     let channel = interaction.options.getChannel(`category-${index + 1}`);
                     if (channel) {
                         if (channel.type !== ChannelType.GuildCategory) {
