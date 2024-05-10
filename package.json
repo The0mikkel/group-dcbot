@@ -24,7 +24,7 @@
     "discord.js": "^14.7.1",
     "dotenv": "^10.0.0",
     "mongodb": "^4.17.2",
-    "node": "^17.7.2",
+    "node": "^17.9.1",
     "string-sanitizer": "^2.0.2"
   },
   "devDependencies": {
