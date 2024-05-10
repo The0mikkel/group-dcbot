@@ -1,4 +1,4 @@
-FROM node:19-slim
+FROM node:20-slim
 LABEL maintainer="me@themikkel.dk"
 
 ARG bot_token="0"
