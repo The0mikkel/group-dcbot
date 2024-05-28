@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/The0mikkel/group-dcbot#readme",
   "dependencies": {
-    "discord.js": "^14.7.1",
+    "discord.js": "^14.15.2",
     "dotenv": "^10.0.0",
     "mongodb": "^4.17.2",
     "node": "^17.7.2",
