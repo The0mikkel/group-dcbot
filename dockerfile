@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:20.19.6-trixie-slim
 LABEL maintainer="me@themikkel.dk"
 
 ARG bot_token="0"
